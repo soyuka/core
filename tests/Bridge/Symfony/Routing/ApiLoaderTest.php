@@ -48,7 +48,7 @@ class ApiLoaderTest extends TestCase
         $resourceMetadata = $resourceMetadata->withShortName('dummy');
         //default operation based on OperationResourceMetadataFactory
         $resourceMetadata = $resourceMetadata->withItemOperations([
-            'get' => ['method' => 'GET', 'requirements' => ['id' => '\d+'], 'defaults' => ['my_default' => 'default_value', '_controller' => 'should_not_be_overriden']],
+            'get' => ['method' => 'GET', 'requirements' => ['id' => '\d+'], 'defaults' => ['my_default' => 'default_value', '_controller' => 'should_be_overriden']],
             'put' => ['method' => 'PUT'],
             'delete' => ['method' => 'DELETE'],
         ]);
@@ -62,7 +62,7 @@ class ApiLoaderTest extends TestCase
         $routeCollection = $this->getApiLoaderWithResourceMetadata($resourceMetadata)->load(null);
 
         $this->assertEquals(
-            $this->getRoute('/dummies/{id}.{_format}', 'api_platform.action.get_item', DummyEntity::class, 'get', ['GET'], false, ['id' => '\d+'], ['my_default' => 'default_value']),
+            $this->getRoute('/dummies/{id}.{_format}', 'should_be_overriden', DummyEntity::class, 'get', ['GET'], false, ['id' => '\d+'], ['my_default' => 'default_value']),
             $routeCollection->get('api_dummies_get_item')
         );
 

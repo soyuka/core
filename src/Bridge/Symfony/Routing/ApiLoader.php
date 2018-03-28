@@ -108,7 +108,7 @@ final class ApiLoader extends Loader
             foreach ($this->subresourceOperationFactory->create($resourceClass) as $operationId => $operation) {
                 $routeCollection->add($operation['route_name'], new Route(
                     $operation['path'],
-                    [
+                    ($operation['defaults'] ?? []) + [
                         '_controller' => self::DEFAULT_ACTION_PATTERN.'get_subresource',
                         '_format' => null,
                         '_api_resource_class' => $operation['resource_class'],
@@ -119,7 +119,7 @@ final class ApiLoader extends Loader
                             'collection' => $operation['collection'],
                             'operationId' => $operationId,
                         ],
-                    ] + ($operation['defaults'] ?? []),
+                    ],
                     $operation['requirements'] ?? [],
                     $operation['options'] ?? [],
                     $operation['host'] ?? '',
@@ -199,12 +199,12 @@ final class ApiLoader extends Loader
 
         $route = new Route(
             $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName),
-            [
+            ($operation['defaults'] ?? []) + [
                 '_controller' => $controller,
                 '_format' => null,
                 '_api_resource_class' => $resourceClass,
                 sprintf('_api_%s_operation_name', $operationType) => $operationName,
-            ] + ($operation['defaults'] ?? []),
+            ],
             $operation['requirements'] ?? [],
             $operation['options'] ?? [],
             $operation['host'] ?? '',
