@@ -73,7 +73,7 @@ final class PropertyInfoPropertyMetadataFactory implements PropertyMetadataFacto
                 $propertyMetadata = $propertyMetadata->withInitializable($initializable);
             }
         } else {
-            // BC layer for Symfony < 4.1
+            // BC layer for Symfony < 4.2
             // To be removed in EOF of Symfony 3.4
             $ref = new \ReflectionClass($resourceClass);
             if ($ref->isInstantiable() && $constructor = $ref->getConstructor()) {
