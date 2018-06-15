@@ -533,13 +533,6 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
             $context[self::OBJECT_TO_POPULATE] = $this->iriConverter->getItemFromIri($iri, $context + ['fetch_data' => true]);
         } catch (InvalidArgumentException $e) {
             // https://github.com/api-platform/core/issues/857
-            $identifiers = $this->identifiersExtractor->getIdentifiersFromResourceClass($class);
-            $identifiersData = \array_intersect_key($data, array_flip($identifiers));
-            if (0 === \count($identifiersData)) {
-                throw $e;
-            }
-
-            // TODO: use $this->iriConverter->getIriFromPlainIdentifier() once https://github.com/api-platform/core/pull/1837 is merged.
             $context[self::OBJECT_TO_POPULATE] = $this->iriConverter->getItemFromIri(
                 sprintf(
                     '%s/%s',
