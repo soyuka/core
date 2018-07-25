@@ -86,14 +86,16 @@ trait OperationDataProviderTrait
     private function extractIdentifiers(array $parameters, array $attributes)
     {
         if (isset($attributes['item_operation_name'])) {
-            if (!isset($parameters['id'])) {
-                throw new InvalidIdentifierException('Parameter "id" not found');
+            $property = $attributes['identified_by'] ?? 'id';
+
+            if (!isset($parameters[$property])) {
+                throw new InvalidIdentifierException(sprintf('Parameter "%s" not found', $property));
             }
 
-            $id = $parameters['id'];
+            $id = $parameters[$property];
 
             if (null !== $this->identifierConverter) {
-                return $this->identifierConverter->convert((string) $id, $attributes['resource_class']);
+                return $this->identifierConverter->convert((string) $id, $attributes['resource_class'], $attributes['identified_by'] ? [$attributes['identified_by']] : null);
             }
 
             return $id;
