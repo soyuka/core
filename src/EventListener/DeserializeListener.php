@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\Api\FormatMatcher;
 use ApiPlatform\Core\Api\FormatsProviderInterface;
+use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
@@ -36,11 +37,12 @@ final class DeserializeListener
     private $formats = [];
     private $formatsProvider;
     private $formatMatcher;
+    private $dataTransformer;
 
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, /* FormatsProviderInterface */ $formatsProvider)
+    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, /* FormatsProviderInterface */$formatsProvider, DataTransformerInterface $dataTransformer = null)
     {
         $this->serializer = $serializer;
         $this->serializerContextBuilder = $serializerContextBuilder;
@@ -54,6 +56,8 @@ final class DeserializeListener
 
             $this->formatsProvider = $formatsProvider;
         }
+
+        $this->dataTransformer = $dataTransformer;
     }
 
     /**
@@ -78,7 +82,7 @@ final class DeserializeListener
         }
 
         $context = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
-        if (false === $context['input_class']) {
+        if (isset($context['input']) && \array_key_exists('class', $context['input']) && null === $context['input']['class']) {
             return;
         }
 
@@ -94,12 +98,15 @@ final class DeserializeListener
             $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $data;
         }
 
-        $request->attributes->set(
-            'data',
-            $this->serializer->deserialize(
-                $requestContent, $context['input_class'], $format, $context
-            )
+        $data = $this->serializer->deserialize(
+            $requestContent, $context['input']['class'] ?? $context['resource_class'], $format, $context
         );
+
+        if (null !== ($context['input']['class'] ?? null) && null !== $this->dataTransformer && $this->dataTransformer->supportsTransformation($data, $context)) {
+            $data = $this->dataTransformer->transform($data, $context);
+        }
+
+        $request->attributes->set('data', $data);
     }
 
     /**

@@ -54,8 +54,9 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
     protected $localCache = [];
     protected $itemDataProvider;
     protected $allowPlainIdentifiers;
+    protected $allowUnmappedClass;
 
-    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, PropertyAccessorInterface $propertyAccessor = null, NameConverterInterface $nameConverter = null, ClassMetadataFactoryInterface $classMetadataFactory = null, ItemDataProviderInterface $itemDataProvider = null, bool $allowPlainIdentifiers = false, array $defaultContext = [])
+    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, PropertyAccessorInterface $propertyAccessor = null, NameConverterInterface $nameConverter = null, ClassMetadataFactoryInterface $classMetadataFactory = null, ItemDataProviderInterface $itemDataProvider = null, bool $allowPlainIdentifiers = false, array $defaultContext = [], bool $allowUnmappedClass = false)
     {
         if (!isset($defaultContext['circular_reference_handler'])) {
             $defaultContext['circular_reference_handler'] = function ($object) {
@@ -64,6 +65,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
         }
         if (!interface_exists(AdvancedNameConverterInterface::class)) {
             $this->setCircularReferenceHandler($defaultContext['circular_reference_handler']);
+        }
+
+        if (false === $allowUnmappedClass) {
+            @trigger_error(sprintf('Passing a falsy $allowUnmappedClass flag in %s is deprecated since version 2.4 and will default to true in 3.0.', self::class), E_USER_DEPRECATED);
         }
 
         parent::__construct($classMetadataFactory, $nameConverter, null, null, \Closure::fromCallable([$this, 'getObjectClass']), $defaultContext);
@@ -75,6 +80,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
         $this->itemDataProvider = $itemDataProvider;
         $this->allowPlainIdentifiers = $allowPlainIdentifiers;
+        $this->allowUnmappedClass = $allowUnmappedClass;
     }
 
     /**
@@ -82,11 +88,15 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      */
     public function supportsNormalization($data, $format = null)
     {
-        if (!\is_object($data)) {
+        if (!\is_object($data) || $data instanceof \Traversable) {
             return false;
         }
 
-        return $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
+        if (false === $this->allowUnmappedClass) {
+            return $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
+        }
+
+        return true;
     }
 
     /**
@@ -102,7 +112,15 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      */
     public function normalize($object, $format = null, array $context = [])
     {
-        $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null, true);
+        try {
+            $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null, true);
+        } catch (InvalidArgumentException $e) {
+            $context = $this->initContext(\get_class($object), $context);
+            $context['api_normalize'] = true;
+
+            return parent::normalize($object, $format, $context);
+        }
+
         $context = $this->initContext($resourceClass, $context);
         $context['api_normalize'] = true;
 
@@ -119,7 +137,15 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        return $this->localCache[$type] ?? $this->localCache[$type] = $this->resourceClassResolver->isResourceClass($type);
+        if ('elasticsearch' === $format) {
+            return false;
+        }
+
+        if (false === $this->allowUnmappedClass) {
+            return $this->localCache[$type] ?? $this->localCache[$type] = $this->resourceClassResolver->isResourceClass($type);
+        }
+
+        return true;
     }
 
     /**

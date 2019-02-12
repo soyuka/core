@@ -45,7 +45,11 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class AbstractItemNormalizerTest extends TestCase
 {
-    public function testSupportNormalizationAndSupportDenormalization()
+    /**
+     * @group legacy
+     * @expectedDeprecation Passing a falsy $allowUnmappedClass flag in ApiPlatform\Core\Serializer\AbstractItemNormalizer is deprecated since version 2.4 and will default to true in 3.0.
+     */
+    public function testLegacySupportNormalizationAndSupportDenormalization()
     {
         $std = new \stdClass();
         $dummy = new Dummy();
@@ -71,6 +75,39 @@ class AbstractItemNormalizerTest extends TestCase
         $this->assertFalse($normalizer->supportsNormalization($std));
         $this->assertTrue($normalizer->supportsDenormalization($dummy, Dummy::class));
         $this->assertFalse($normalizer->supportsDenormalization($std, \stdClass::class));
+        $this->assertTrue($normalizer->hasCacheableSupportsMethod());
+    }
+
+    public function testSupportNormalizationAndSupportDenormalization()
+    {
+        $std = new \stdClass();
+        $dummy = new Dummy();
+
+        $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
+        $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
+        $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
+        $propertyAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+
+        $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
+
+        $normalizer = $this->getMockForAbstractClass(AbstractItemNormalizer::class, [
+            $propertyNameCollectionFactoryProphecy->reveal(),
+            $propertyMetadataFactoryProphecy->reveal(),
+            $iriConverterProphecy->reveal(),
+            $resourceClassResolverProphecy->reveal(),
+            $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
+        ]);
+
+        $this->assertTrue($normalizer->supportsNormalization($dummy));
+        $this->assertTrue($normalizer->supportsNormalization($std));
+        $this->assertTrue($normalizer->supportsDenormalization($dummy, Dummy::class));
+        $this->assertTrue($normalizer->supportsDenormalization($std, \stdClass::class));
         $this->assertTrue($normalizer->hasCacheableSupportsMethod());
     }
 
@@ -141,6 +178,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -212,6 +255,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -282,6 +331,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -318,7 +373,7 @@ class AbstractItemNormalizerTest extends TestCase
             (new PropertyMetadata(new Type(Type::BUILTIN_TYPE_STRING), '', true, false))->withInitializable(true)
         );
 
-        $normalizer = new class($propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), $this->prophesize(IriConverterInterface::class)->reveal(), $this->prophesize(ResourceClassResolverInterface::class)->reveal()) extends AbstractItemNormalizer {
+        $normalizer = new class($propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), $this->prophesize(IriConverterInterface::class)->reveal(), $this->prophesize(ResourceClassResolverInterface::class)->reveal(), null, null, null, null, false, [], true) extends AbstractItemNormalizer {
         };
 
         /** @var DummyForAdditionalFieldsInput $res */
@@ -326,8 +381,8 @@ class AbstractItemNormalizerTest extends TestCase
             'dummyName' => 'Dummy Name',
         ], DummyForAdditionalFieldsInput::class, 'json', [
             'resource_class' => DummyForAdditionalFields::class,
-            'input_class' => DummyForAdditionalFieldsInput::class,
-            'output_class' => DummyForAdditionalFields::class,
+            'input' => ['class' => DummyForAdditionalFieldsInput::class],
+            'output' => ['class' => DummyForAdditionalFields::class],
         ]);
 
         $this->assertInstanceOf(DummyForAdditionalFieldsInput::class, $res);
@@ -396,6 +451,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -443,6 +504,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -486,6 +553,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -520,6 +593,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -552,6 +631,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -601,6 +686,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -636,6 +727,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -681,6 +778,12 @@ class AbstractItemNormalizerTest extends TestCase
             $iriConverterProphecy->reveal(),
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
+            null,
+            null,
+            null,
+            false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -730,6 +833,8 @@ class AbstractItemNormalizerTest extends TestCase
             null,
             null,
             $itemDataProviderProphecy->reveal(),
+            true,
+            [],
             true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
@@ -781,9 +886,32 @@ class AbstractItemNormalizerTest extends TestCase
             null,
             $itemDataProviderProphecy->reveal(),
             false,
+            [],
+            true,
         ]);
         $normalizer->setSerializer($serializerProphecy->reveal());
 
         $normalizer->denormalize(['relatedDummy' => 1], Dummy::class, 'jsonld');
+    }
+
+    /**
+     * @group legacy
+     * @expectedDeprecation Passing a falsy $allowUnmappedClass flag in ApiPlatform\Core\Serializer\AbstractItemNormalizer is deprecated since version 2.4 and will default to true in 3.0.
+     */
+    public function testDisallowUnmappedClass()
+    {
+        $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
+        $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
+        $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
+        $propertyAccessorProphecy = $this->prophesize(PropertyAccessorInterface::class);
+        $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
+
+        $this->getMockForAbstractClass(AbstractItemNormalizer::class, [
+            $propertyNameCollectionFactoryProphecy->reveal(),
+            $propertyMetadataFactoryProphecy->reveal(),
+            $iriConverterProphecy->reveal(),
+            $resourceClassResolverProphecy->reveal(),
+            $propertyAccessorProphecy->reveal(),
+        ]);
     }
 }

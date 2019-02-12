@@ -98,8 +98,11 @@
             <argument type="service" id="serializer.mapping.class_metadata_factory" on-invalid="ignore" />
             <argument type="service" id="api_platform.item_data_provider" on-invalid="ignore" />
             <argument>%api_platform.allow_plain_identifiers%</argument>
+            <argument>null</argument>
+            <argument>true</argument>
 
-            <tag name="serializer.normalizer" />
+              <!-- After the DataURINormalizer but before the object denormalizer -->
+            <tag name="serializer.normalizer" priority="-923" />
         </service>
 
         <!-- Resources Operations path resolver -->
@@ -165,6 +168,7 @@
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
             <argument type="service" id="api_platform.formats_provider" />
+            <argument type="service" id="api_platform.data_transformer.chain_input_transformer" on-invalid="null" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="2" />
         </service>
@@ -172,6 +176,7 @@
         <service id="api_platform.listener.view.serialize" class="ApiPlatform\Core\EventListener\SerializeListener">
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
+            <argument type="service" id="api_platform.data_transformer.chain_output_transformer" on-invalid="null" />
 
             <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="16" />
         </service>
@@ -281,6 +286,14 @@
 
         <service id="api_platform.cache.subresource_operation_factory" parent="cache.system" public="false">
             <tag name="cache.pool" />
+        </service>
+
+        <service id="api_platform.data_transformer.chain_input_transformer" class="ApiPlatform\Core\DataTransformer\ChainInputDataTransformer" public="false">
+            <argument type="tagged" tag="api_platform.data_transformer.input" />
+        </service>
+
+        <service id="api_platform.data_transformer.chain_output_transformer" class="ApiPlatform\Core\DataTransformer\ChainOutputDataTransformer" public="false">
+            <argument type="tagged" tag="api_platform.data_transformer.output" />
         </service>
     </services>
 

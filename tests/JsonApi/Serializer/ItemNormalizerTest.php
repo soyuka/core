@@ -42,6 +42,10 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class ItemNormalizerTest extends TestCase
 {
+    /**
+     * @group legacy
+     * @expectedDeprecation Passing a falsy $allowUnmappedClass flag in ApiPlatform\Core\Serializer\AbstractItemNormalizer is deprecated since version 2.4 and will default to true in 3.0.
+     */
     public function testSupportDenormalization()
     {
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
@@ -63,6 +67,10 @@ class ItemNormalizerTest extends TestCase
         $this->assertTrue($normalizer->hasCacheableSupportsMethod());
     }
 
+    /**
+     * @group legacy
+     * @expectedDeprecation Passing a falsy $allowUnmappedClass flag in ApiPlatform\Core\Serializer\AbstractItemNormalizer is deprecated since version 2.4 and will default to true in 3.0.
+     */
     public function testSupportNormalization()
     {
         $std = new \stdClass();
@@ -129,7 +137,9 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
             new ReservedAttributeNameConverter(),
-            $resourceMetadataFactoryProphecy->reveal()
+            $resourceMetadataFactoryProphecy->reveal(),
+            [],
+            true
         );
 
         $normalizer->setSerializer($serializerProphecy->reveal());
@@ -165,7 +175,9 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             $this->prophesize(PropertyAccessorInterface::class)->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->setSerializer(new Serializer([$normalizer]));
@@ -219,7 +231,9 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->normalize($foo, ItemNormalizer::FORMAT);
@@ -298,7 +312,9 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             $propertyAccessorProphecy->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
         $normalizer->setSerializer($serializerProphecy->reveal());
 
@@ -348,7 +364,9 @@ class ItemNormalizerTest extends TestCase
             $this->prophesize(ResourceClassResolverInterface::class)->reveal(),
             null,
             null,
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->denormalize(
@@ -399,7 +417,9 @@ class ItemNormalizerTest extends TestCase
             $this->prophesize(ResourceClassResolverInterface::class)->reveal(),
             $this->prophesize(PropertyAccessorInterface::class)->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->denormalize(
@@ -451,7 +471,9 @@ class ItemNormalizerTest extends TestCase
             $this->prophesize(ResourceClassResolverInterface::class)->reveal(),
             $this->prophesize(PropertyAccessorInterface::class)->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->denormalize(
@@ -505,7 +527,9 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             $this->prophesize(PropertyAccessorInterface::class)->reveal(),
             new ReservedAttributeNameConverter(),
-            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal()
+            $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
+            [],
+            true
         );
 
         $normalizer->denormalize(

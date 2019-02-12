@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\EventListener;
 
+use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Serializer\ResourceList;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
@@ -34,11 +35,13 @@ final class SerializeListener
 {
     private $serializer;
     private $serializerContextBuilder;
+    private $dataTransformer;
 
-    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder)
+    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, DataTransformerInterface $dataTransformer = null)
     {
         $this->serializer = $serializer;
         $this->serializerContextBuilder = $serializerContextBuilder;
+        $this->dataTransformer = $dataTransformer;
     }
 
     /**
@@ -62,15 +65,10 @@ final class SerializeListener
         $request->attributes->set('_api_respond', true);
         $context = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
 
-        if (isset($context['output_class'])) {
-            if (false === $context['output_class']) {
-                // If the output class is explicitly set to false, the response must be empty
-                $event->setControllerResult('');
+        if (isset($context['output']) && \array_key_exists('class', $context['output']) && null === $context['output']['class']) {
+            $event->setControllerResult('');
 
-                return;
-            }
-
-            $context['resource_class'] = $context['output_class'];
+            return;
         }
 
         if ($included = $request->attributes->get('_api_included')) {
@@ -83,6 +81,10 @@ final class SerializeListener
         $context['resources_to_push'] = &$resourcesToPush;
 
         $request->attributes->set('_api_normalization_context', $context);
+
+        if (null !== ($context['output']['class'] ?? null) && null !== $this->dataTransformer && $this->dataTransformer->supportsTransformation($controllerResult, $context)) {
+            $controllerResult = $this->dataTransformer->transform($controllerResult, $context);
+        }
 
         $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
 
