@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class RecoverPasswordOutput
 {
     /**
-     * @var \ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\User
+     * @var \ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\User | \ApiPlatform\Core\Tests\Fixtures\TestBundle\Document\User
      * @Groups({"user"})
      */
     public $user;
