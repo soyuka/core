@@ -14,6 +14,9 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Util;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Api\OperationType;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Inflector\Inflector;
 
@@ -36,7 +39,33 @@ trait AnnotationFilterExtractorTrait
     private function getFilterAnnotations(array $miscAnnotations): \Iterator
     {
         foreach ($miscAnnotations as $miscAnnotation) {
-            if (ApiFilter::class === \get_class($miscAnnotation)) {
+            $annotationClass = \get_class($miscAnnotation);
+
+            if (ApiResource::class === $annotationClass) {
+                foreach ($miscAnnotation->collectionOperations ?: [] as $operationName => $operation) {
+                    if (\is_array($operation) && isset($operation['filters'])) {
+                        foreach ($operation['filters'] as $filter) {
+                            $filter->setOperation($operationName);
+                            $filter->setOperationType(OperationType::COLLECTION);
+                            $filter->id = sprintf('%s_%s', OperationType::COLLECTION, $operationName);
+                            yield $filter;
+                        }
+                    }
+                }
+
+                foreach ($miscAnnotation->itemOperations ?: [] as $operationName => $operation) {
+                    if (\is_array($operation) && isset($operation['filters'])) {
+                        foreach ($operation['filters'] as $filter) {
+                            $filter->setOperation($operationName);
+                            $filter->setOperationType(OperationType::ITEM);
+                            $filter->id = sprintf('%s_%s', OperationType::ITEM, $operationName);
+                            yield $filter;
+                        }
+                    }
+                }
+            }
+
+            if (ApiFilter::class === $annotationClass) {
                 yield $miscAnnotation;
             }
         }

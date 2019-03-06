@@ -22,7 +22,7 @@ use ApiPlatform\Core\Exception\InvalidArgumentException;
  * @author Antoine Bluchet <soyuka@gmail.com>
  *
  * @Annotation
- * @Target({"PROPERTY", "CLASS"})
+ * @Target({"PROPERTY", "CLASS", "ANNOTATION"})
  */
 final class ApiFilter
 {
@@ -51,6 +51,16 @@ final class ApiFilter
      */
     public $arguments = [];
 
+    /**
+     * @var string
+     */
+    private $operation;
+
+    /**
+     * @var string
+     */
+    private $operationType;
+
     public function __construct($options = [])
     {
         if (!\is_string($options['value'] ?? null)) {
@@ -71,5 +81,25 @@ final class ApiFilter
 
             $this->$key = $value;
         }
+    }
+
+    public function setOperation(string $operation)
+    {
+        $this->operation = $operation;
+    }
+
+    public function getOperation(): ?string
+    {
+        return $this->operation;
+    }
+
+    public function setOperationType(string $operationType)
+    {
+        $this->operationType = $operationType;
+    }
+
+    public function getOperationType(): ?string
+    {
+        return $this->operationType;
     }
 }

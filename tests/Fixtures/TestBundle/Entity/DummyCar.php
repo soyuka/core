@@ -18,6 +18,7 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\ExistsFilter;
 use ApiPlatform\Core\Serializer\Filter\GroupFilter;
 use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -27,6 +28,7 @@ use Symfony\Component\Serializer\Annotation as Serializer;
 /**
  * @ApiResource(
  *     itemOperations={"get"={"swagger_context"={"tags"={}}, "openapi_context"={"tags"={}}}, "put", "delete"},
+ *     collectionOperations={"get", "post", "search"={"filters"={@ApiFilter(ExistsFilter::class, properties={"name"})}}},
  *     attributes={
  *         "sunset"="2050-01-01",
  *         "normalization_context"={"groups"="colors"}
