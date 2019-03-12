@@ -38,6 +38,7 @@ use Doctrine\ORM\Version;
 use Elasticsearch\Client;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\BrowserKit\Client as BrowserKitClient;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Resource\DirectoryResource;
@@ -160,6 +161,14 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerMessengerConfiguration($config, $loader);
         $this->registerElasticsearchConfiguration($container, $config, $loader);
         $this->registerDataTransformerConfiguration($container);
+
+        if ('test' === $container->getParameter('kernel.environment')) {
+            $loader->load('test.xml');
+
+            if (!class_exists(BrowserKitClient::class)) {
+                $container->removeDefinition('test.api_platform.client');
+            }
+        }
     }
 
     /**
