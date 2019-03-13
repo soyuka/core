@@ -38,7 +38,8 @@ final class Client implements HttpClientInterface
         'json' => null,                                     // array|\JsonSerializable - when set, implementations MUST set the "body" option to
         //   the JSON-encoded value and set the "content-type" headers to a JSON-compatible
         'base_uri' => 'http://example.com',                 // string - the URI to resolve relative URLs, following rules in RFC 3986, section 2
-        'bearer' => null,                                   // string - sets a corresponding Authorization token of the Bearer type
+        'auth' => null,                                     // string - a username:password enabling HTTP Basic authentication (RFC 7617)
+        'bearer' => null,                                   // string - a token enabling HTTP Bearer authorization (RFC 6750)
     ];
 
     use HttpClientTrait;
@@ -82,16 +83,18 @@ final class Client implements HttpClientInterface
             }
         }
 
+        // TODO: remove when https://github.com/symfony/symfony/pull/30547 will be merged
         if (isset($options['bearer']) && \is_string($options['bearer'])) {
             $options['headers']['authorization'] = ['Bearer '.$options['bearer']];
         }
 
+        $basic = $options['auth'] ?? null;
         [$url, $options] = $this->prepareRequest($method, $url, $options, self::OPTIONS_DEFAULT);
 
         $server = [];
         // Convert headers to a $_SERVER-like array
         foreach ($options['headers'] as $key => $value) {
-            if ('content-type' === strtolower($key)) {
+            if ('content-type' === $key) {
                 $server['CONTENT_TYPE'] = $value[0] ?? '';
 
                 continue;
@@ -99,6 +102,12 @@ final class Client implements HttpClientInterface
 
             // BrowserKit doesn't support setting several headers with the same name
             $server['HTTP_'.strtoupper(str_replace('-', '_', $key))] = $value[0] ?? '';
+        }
+
+        if ($basic) {
+            $credentials = explode(':', $basic, 2);
+            $server['PHP_AUTH_USER'] = $credentials[0];
+            $server['PHP_AUTH_PW'] = $credentials[1] ?? '';
         }
 
         $info = [
