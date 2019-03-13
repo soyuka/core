@@ -75,7 +75,7 @@ final class Client implements HttpClientInterface
                 (\is_array($options['body']) || $options['body'] instanceof \JsonSerializable) &&
                 (
                     $json ||
-                    false !== preg_match('#^application/(?:.+\+)?json$#', $options['headers']['content-type'][0])
+                    false !== preg_match('#^application/(?:.+\+)?json#', $options['headers']['content-type'][0])
                 )
             ) {
                 // Encode the JSON

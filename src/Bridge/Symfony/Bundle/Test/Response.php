@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Test;
 
+use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ClientException;
 use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
@@ -65,21 +66,29 @@ final class Response implements ResponseInterface
         return $this->info;
     }
 
+    /**
+     * Checks the status, and try to extract message if appropriate.
+     */
     private function checkStatusCode()
     {
+        $message = 'An error '.$this->info['http_code'].' occured.';
+        if (isset($this->headers['content-type'][0]) && false !== preg_match('#^application/(?:.+\+)?json#', $this->headers['content-type'][0])) {
+            if ($json = json_decode($this->content, true)) {
+                // Try to extract the error message from Hydra or RFC 7807 error structures
+                $message = $json['hydra:description'] ?? $json['hydra:title'] ?? $json['detail'] ?? $json['title'] ?? $message;
+            }
+        }
+
         if (500 <= $this->info['http_code']) {
-            throw new class('', $this->info['http_code']) extends \RuntimeException implements ServerExceptionInterface {
-            };
+            throw new ServerException($message, $this->info['http_code']);
         }
 
         if (400 <= $this->info['http_code']) {
-            throw new class('', $this->info['http_code']) extends \RuntimeException implements ClientExceptionInterface {
-            };
+            throw new ClientException($message, $this->info['http_code']);
         }
 
         if (300 <= $this->info['http_code']) {
-            throw new class('', $this->info['http_code']) extends \RuntimeException implements RedirectionExceptionInterface {
-            };
+            throw new RedirectionException($message, $this->info['http_code']);
         }
     }
 
