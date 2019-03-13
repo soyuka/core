@@ -71,8 +71,9 @@ final class Response implements ResponseInterface
      */
     private function checkStatusCode()
     {
+        // TODO: use https://github.com/symfony/symfony/pull/30559 instead
         $message = 'An error '.$this->info['http_code'].' occured.';
-        if (isset($this->headers['content-type'][0]) && false !== preg_match('#^application/(?:.+\+)?json#', $this->headers['content-type'][0])) {
+        if (isset($this->headers['content-type'][0]) && preg_match('/\bjson\b/i', $this->headers['content-type'][0])) {
             if ($json = json_decode($this->content, true)) {
                 // Try to extract the error message from Hydra or RFC 7807 error structures
                 $message = $json['hydra:description'] ?? $json['hydra:title'] ?? $json['detail'] ?? $json['title'] ?? $message;
