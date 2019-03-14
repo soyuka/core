@@ -61,30 +61,6 @@ final class Client implements HttpClientInterface
      */
     public function request(string $method, string $url, array $options = []): ResponseInterface
     {
-        if (isset($options['body'])) {
-            if (isset($options['headers'])) {
-                $options['headers'] = self::normalizeHeaders($options['headers']);
-            }
-
-            $json = false;
-            if (!isset($options['headers']['content-type'][0])) {
-                // Content-Type default to JSON-LD if a body is set, but no Content-Type is defined
-                $options['headers']['content-type'] = $options['headers']['content-type'] ?? ['application/ld+json'];
-                $json = true;
-            }
-
-            if (
-                (\is_array($options['body']) || $options['body'] instanceof \JsonSerializable) &&
-                (
-                    $json ||
-                    preg_match('/\bjson\b/i', $options['headers']['content-type'][0])
-                )
-            ) {
-                // Encode the JSON
-                $options['json'] = $options['body'];
-            }
-        }
-
         $basic = $options['auth_basic'] ?? null;
         [$url, $options] = $this->prepareRequest($method, $url, $options, self::OPTIONS_DEFAULT);
 
