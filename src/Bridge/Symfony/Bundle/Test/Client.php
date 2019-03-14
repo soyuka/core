@@ -32,14 +32,16 @@ use Symfony\Contracts\HttpClient\ResponseStreamInterface;
 final class Client implements HttpClientInterface
 {
     public const OPTIONS_DEFAULT = [
+        'auth_basic' => null,                               // array|string - an array containing the username as first value, and optionally the
+                                                            //   password as the second one; or string like username:password - enabling HTTP Basic
+                                                            //   authentication (RFC 7617)
+        'auth_bearer' => null,                              // string - a token enabling HTTP Bearer authorization (RFC 6750)
         'query' => [],                                      // string[] - associative array of query string values to merge with the request's URL
         'headers' => ['accept' => ['application/ld+json']], // iterable|string[]|string[][] - headers names provided as keys or as part of values
         'body' => '',                                       // array|string|resource|\Traversable|\Closure - the callback SHOULD yield a string
         'json' => null,                                     // array|\JsonSerializable - when set, implementations MUST set the "body" option to
         //   the JSON-encoded value and set the "content-type" headers to a JSON-compatible
         'base_uri' => 'http://example.com',                 // string - the URI to resolve relative URLs, following rules in RFC 3986, section 2
-        'auth' => null,                                     // string - a username:password enabling HTTP Basic authentication (RFC 7617)
-        'bearer' => null,                                   // string - a token enabling HTTP Bearer authorization (RFC 6750)
     ];
 
     use HttpClientTrait;
@@ -83,12 +85,7 @@ final class Client implements HttpClientInterface
             }
         }
 
-        // TODO: remove when https://github.com/symfony/symfony/pull/30547 will be merged
-        if (isset($options['bearer']) && \is_string($options['bearer'])) {
-            $options['headers']['authorization'] = ['Bearer '.$options['bearer']];
-        }
-
-        $basic = $options['auth'] ?? null;
+        $basic = $options['auth_basic'] ?? null;
         [$url, $options] = $this->prepareRequest($method, $url, $options, self::OPTIONS_DEFAULT);
 
         $server = [];
@@ -105,7 +102,7 @@ final class Client implements HttpClientInterface
         }
 
         if ($basic) {
-            $credentials = explode(':', $basic, 2);
+            $credentials = is_array($basic) ? $basic : explode(':', $basic, 2);
             $server['PHP_AUTH_USER'] = $credentials[0];
             $server['PHP_AUTH_PW'] = $credentials[1] ?? '';
         }
