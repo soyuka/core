@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Test;
 
 use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ClientException;
+use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ServerException;
+use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\RedirectionException;
 use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Test;
+namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception;
 
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
