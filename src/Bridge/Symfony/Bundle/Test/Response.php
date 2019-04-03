@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Test;
 
 use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ClientException;
-use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ServerException;
 use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\RedirectionException;
+use ApiPlatform\Core\Bridge\Symfony\Bundle\Test\Exception\ServerException;
 use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 use Symfony\Component\HttpClient\Exception\JsonException;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;

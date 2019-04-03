@@ -33,8 +33,8 @@ final class Client implements HttpClientInterface
 {
     public const OPTIONS_DEFAULT = [
         'auth_basic' => null,                               // array|string - an array containing the username as first value, and optionally the
-                                                            //   password as the second one; or string like username:password - enabling HTTP Basic
-                                                            //   authentication (RFC 7617)
+        //   password as the second one; or string like username:password - enabling HTTP Basic
+        //   authentication (RFC 7617)
         'auth_bearer' => null,                              // string - a token enabling HTTP Bearer authorization (RFC 6750)
         'query' => [],                                      // string[] - associative array of query string values to merge with the request's URL
         'headers' => ['accept' => ['application/ld+json']], // iterable|string[]|string[][] - headers names provided as keys or as part of values
@@ -78,7 +78,7 @@ final class Client implements HttpClientInterface
         }
 
         if ($basic) {
-            $credentials = is_array($basic) ? $basic : explode(':', $basic, 2);
+            $credentials = \is_array($basic) ? $basic : explode(':', $basic, 2);
             $server['PHP_AUTH_USER'] = $credentials[0];
             $server['PHP_AUTH_PW'] = $credentials[1] ?? '';
         }
