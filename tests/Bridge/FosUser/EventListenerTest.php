@@ -96,6 +96,10 @@ class EventListenerTest extends TestCase
         $listener->onKernelView($event->reveal());
     }
 
+    /**
+     * @expectedDeprecation Using Groups is deprecated since version 2.2 and will be removed in 3.0.
+     * @group legacy
+     */
     public function testSafeMethod()
     {
         $request = new Request([], [], ['_api_resource_class' => User::class, '_api_item_operation_name' => 'put']);
