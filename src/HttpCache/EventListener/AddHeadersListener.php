@@ -66,6 +66,8 @@ final class AddHeadersListener
             $resourceCacheHeaders = $resourceMetadata->getOperationAttribute($attributes, 'cache_headers', [], true);
         }
 
+        var_dump($resourceCacheHeaders);
+        die();
         if ($this->etag && !$response->getEtag()) {
             $response->setEtag(md5((string) $response->getContent()));
         }

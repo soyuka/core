@@ -83,6 +83,10 @@ final class AnnotationResourceMetadataFactory implements ResourceMetadataFactory
     {
         $attributes = (null === $annotation->attributes && [] === $this->defaults['attributes']) ? null : (array) $annotation->attributes + $this->defaults['attributes'];
 
+        if ($resourceClass === CachedAttributesDummy::class) {
+            var_dump($attributes);
+            die();
+        }
         if (!$parentResourceMetadata) {
             return new ResourceMetadata(
                 $annotation->shortName,
