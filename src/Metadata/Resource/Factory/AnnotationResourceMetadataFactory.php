@@ -16,6 +16,7 @@ namespace ApiPlatform\Core\Metadata\Resource\Factory;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CachedAttributesDummy;
 use Doctrine\Common\Annotations\Reader;
 
 /**
@@ -61,7 +62,7 @@ final class AnnotationResourceMetadataFactory implements ResourceMetadataFactory
             return $this->handleNotFound($parentResourceMetadata, $resourceClass);
         }
 
-        return $this->createMetadata($resourceAnnotation, $parentResourceMetadata);
+        return $this->createMetadata($resourceAnnotation, $parentResourceMetadata, $resourceClass);
     }
 
     /**
@@ -78,7 +79,7 @@ final class AnnotationResourceMetadataFactory implements ResourceMetadataFactory
         throw new ResourceClassNotFoundException(sprintf('Resource "%s" not found.', $resourceClass));
     }
 
-    private function createMetadata(ApiResource $annotation, ResourceMetadata $parentResourceMetadata = null): ResourceMetadata
+    private function createMetadata(ApiResource $annotation, ResourceMetadata $parentResourceMetadata = null, $resourceClass): ResourceMetadata
     {
         $attributes = (null === $annotation->attributes && [] === $this->defaults['attributes']) ? null : (array) $annotation->attributes + $this->defaults['attributes'];
 

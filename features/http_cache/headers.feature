@@ -10,3 +10,10 @@ Feature: Default values of HTTP cache headers
     And the header "Etag" should be equal to '"21248afbca1f242fd3009ac7cdf13293"'
     And the header "Cache-Control" should be equal to "max-age=60, public, s-maxage=3600"
     And the header "Vary" should be equal to "Accept, Cookie"
+
+  @createSchema
+  Scenario: Cache headers default values
+    When I send a "GET" request to "/cached_attributes_dummies"
+    Then the response status code should be 200
+    And the header "Cache-Control" should be equal to "max-age=60, public, s-maxage=120"
+    And the header "Vary" should be equal to "Accept, Cookie"
