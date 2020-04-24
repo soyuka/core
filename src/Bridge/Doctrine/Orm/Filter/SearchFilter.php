@@ -113,7 +113,7 @@ class SearchFilter extends AbstractContextAwareFilter implements SearchFilterInt
             }
 
             if (1 === \count($values)) {
-                $this->addWhereByStrategy($strategy, $queryBuilder, $queryNameGenerator, $alias, $field, $doctrineTypeField, $values[0], $caseSensitive);
+                $this->addWhereByStrategy($strategy, $queryBuilder, $queryNameGenerator, $alias, $field, $values[0], $caseSensitive, $doctrineTypeField);
 
                 return;
             }
@@ -181,7 +181,7 @@ class SearchFilter extends AbstractContextAwareFilter implements SearchFilterInt
      *
      * @throws InvalidArgumentException If strategy does not exist
      */
-    protected function addWhereByStrategy(string $strategy, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $alias, string $field, $fieldType, $value, bool $caseSensitive)
+    protected function addWhereByStrategy(string $strategy, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $alias, string $field, $value, bool $caseSensitive, $fieldType = null)
     {
         $wrapCase = $this->createWrapCase($caseSensitive);
         $valueParameter = $queryNameGenerator->generateParameterName($field);
