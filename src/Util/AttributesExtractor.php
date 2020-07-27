@@ -63,9 +63,9 @@ final class AttributesExtractor
             'persist' => (bool) ($attributes['_api_persist'] ?? true),
         ];
 
-        if (isset($attributes['identifiedBy'])) {
-            $result['identified_by'] = $attributes['identifiedBy'];
-        }
+        // if (isset($attributes['identifiedBy'])) {
+        //     $result['identified_by'] = $attributes['identifiedBy'];
+        // }
 
         return $result;
     }

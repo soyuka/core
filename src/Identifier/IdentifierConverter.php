@@ -39,9 +39,10 @@ final class IdentifierConverter implements IdentifierConverterInterface
     /**
      * {@inheritdoc}
      */
-    public function convert(string $data, string $class, array $keys = null): array
+    public function convert(string $data, string $class): array
     {
-        $keys = $keys ?: $this->identifiersExtractor->getIdentifiersFromResourceClass($class);
+            // $identifiers ?: /*, array $identifiers = null*/
+        $keys = $this->identifiersExtractor->getIdentifiersFromResourceClass($class);
 
         if (($numIdentifiers = \count($keys)) > 1) {
             $identifiers = CompositeIdentifierParser::parse($data);

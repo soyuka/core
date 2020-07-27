@@ -36,6 +36,7 @@ use ApiPlatform\Core\Exception\InvalidArgumentException;
  *     @Attribute("filters", type="string[]"),
  *     @Attribute("graphql", type="array"),
  *     @Attribute("hydraContext", type="array"),
+ *     @Attribute("identifiedBy", type="string[]"),
  *     @Attribute("iri", type="string"),
  *     @Attribute("itemOperations", type="array"),
  *     @Attribute("maximumItemsPerPage", type="int"),

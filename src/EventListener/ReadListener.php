@@ -90,6 +90,9 @@ final class ReadListener
         try {
             $identifiers = $this->extractIdentifiers($request->attributes->all(), $attributes);
 
+            // var_dump($identifiers);
+            // die();
+
             if (isset($attributes['item_operation_name'])) {
                 $data = $this->getItemData($identifiers, $attributes, $context);
             } elseif (isset($attributes['subresource_operation_name'])) {

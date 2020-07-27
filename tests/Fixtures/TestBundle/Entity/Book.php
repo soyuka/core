@@ -24,7 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ApiResource(itemOperations={
  *     "get",
  *     "put",
- *     "get_by_isbn"={"method"="GET", "path"="/books/by_isbn/{isbn}.{_format}", "requirements"={"isbn"=".+"}, "defaults"={"identifiedBy"="isbn"}}
+ *     "get_by_isbn"={"method"="GET", "path"="/books/by_isbn/{isbn}.{_format}", "requirements"={"isbn"=".+"}, "identifiedBy"="isbn"}
  * })
  * @ORM\Entity
  */
