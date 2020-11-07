@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class DeprecateMercurePublisherPassTest extends TestCase
+final class DeprecateMercurePublisherPassTest extends TestCase
 {
     use ProphecyTrait;
 
