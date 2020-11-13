@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Operation\Factory;
 
-use ApiPlatform\Core\Bridge\Elasticsearch\Api\IdentifierExtractorInterface;
+use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
 use ApiPlatform\Core\Bridge\Symfony\Routing\RouteNameGenerator;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
@@ -35,7 +35,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
     private $pathSegmentNameGenerator;
     private $identifiersExtractor;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator, IdentifierExtractorInterface $identifiersExtractor = null)
+    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, PathSegmentNameGeneratorInterface $pathSegmentNameGenerator, IdentifiersExtractorInterface $identifiersExtractor = null)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
@@ -83,7 +83,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
 
             $subresourceClass = $subresource->getResourceClass();
             $subresourceMetadata = $this->resourceMetadataFactory->create($subresourceClass);
-            $subresourceMetadata = $subresourceMetadata->withAttributes(($subresourceMetadata->getAttributes() ?: []) + ['identified_by' => $this->identifiersExtractor->getIdentifiersFromResourceClass($subresourceClass)]);
+            $subresourceMetadata = $subresourceMetadata->withAttributes(($subresourceMetadata->getAttributes() ?: []) + ['identified_by' => !$this->identifiersExtractor ? [$property] : $this->identifiersExtractor->getIdentifiersFromResourceClass($subresourceClass)]);
             $isLastItem = ($parentOperation['resource_class'] ?? null) === $resourceClass && $propertyMetadata->isIdentifier();
 
             // A subresource that is also an identifier can't be a start point
@@ -102,7 +102,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
             }
 
             $rootResourceMetadata = $this->resourceMetadataFactory->create($rootResourceClass);
-            $rootResourceMetadata = $rootResourceMetadata->withAttributes(($rootResourceMetadata->getAttributes() ?: []) + ['identified_by' => $this->identifiersExtractor->getIdentifiersFromResourceClass($rootResourceClass)]);
+            $rootResourceMetadata = $rootResourceMetadata->withAttributes(($rootResourceMetadata->getAttributes() ?: []) + ['identified_by' => !$this->identifiersExtractor ? [$property] : $this->identifiersExtractor->getIdentifiersFromResourceClass($rootResourceClass)]);
             $operationName = 'get';
             $operation = [
                 'property' => $property,

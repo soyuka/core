@@ -96,7 +96,7 @@ trait OperationDataProviderTrait
      */
     private function extractIdentifiers(array $parameters, array $attributes)
     {
-        $identifiersKeys = $attributes['identified_by'] ?? [];
+        $identifiersKeys = $attributes['identified_by'] ?? ['id'];
         $identifiers = [];
 
         if (isset($attributes['subresource_context'])) {

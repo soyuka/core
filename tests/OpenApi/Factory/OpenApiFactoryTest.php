@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\OpenApi\Factory;
 
+use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
 use ApiPlatform\Core\Bridge\Symfony\Routing\RouterOperationPathResolver;
 use ApiPlatform\Core\DataProvider\PaginationOptions;
 use ApiPlatform\Core\JsonSchema\Schema;
@@ -148,6 +149,9 @@ class OpenApiFactoryTest extends TestCase
         $schemaFactory = new SchemaFactory($typeFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $typeFactory->setSchemaFactory($schemaFactory);
 
+        $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
+        $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
+
         $factory = new OpenApiFactory(
             $resourceNameCollectionFactoryProphecy->reveal(),
             $resourceMetadataFactory,
@@ -169,7 +173,8 @@ class OpenApiFactoryTest extends TestCase
                     'name' => 'key',
                 ],
             ]),
-            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination')
+            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination'),
+            $identifiersExtractorProphecy->reveal()
         );
 
         $dummySchema = new Schema('openapi');
@@ -525,6 +530,9 @@ class OpenApiFactoryTest extends TestCase
         $schemaFactory = new SchemaFactory($typeFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $typeFactory->setSchemaFactory($schemaFactory);
 
+        $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
+        $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
+
         $factory = new OpenApiFactory(
             $resourceNameCollectionFactoryProphecy->reveal(),
             $resourceMetadataFactory,
@@ -546,7 +554,8 @@ class OpenApiFactoryTest extends TestCase
                     'name' => 'key',
                 ],
             ]),
-            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination')
+            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination'),
+            $identifiersExtractorProphecy->reveal()
         );
 
         $openApi = $factory(['base_url' => '/app_dev.php/']);
@@ -614,7 +623,11 @@ class OpenApiFactoryTest extends TestCase
         $propertyNameCollectionFactory = $propertyNameCollectionFactoryProphecy->reveal();
         $propertyMetadataFactory = $propertyMetadataFactoryProphecy->reveal();
 
-        $subresourceOperationFactory = new SubresourceOperationFactory($resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new UnderscorePathSegmentNameGenerator());
+        $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
+        $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
+        $identifiersExtractor = $identifiersExtractorProphecy->reveal();
+
+        $subresourceOperationFactory = new SubresourceOperationFactory($resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new UnderscorePathSegmentNameGenerator(), $identifiersExtractor);
 
         $resourceNameCollectionFactoryProphecy = $this->prophesize(ResourceNameCollectionFactoryInterface::class);
         $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Question::class, Answer::class]));
@@ -645,7 +658,8 @@ class OpenApiFactoryTest extends TestCase
                     'name' => 'key',
                 ],
             ]),
-            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination')
+            new PaginationOptions(true, 'page', true, 'itemsPerPage', true, 'pagination'),
+            $identifiersExtractor
         );
 
         $openApi = $factory(['base_url', '/app_dev.php/']);
