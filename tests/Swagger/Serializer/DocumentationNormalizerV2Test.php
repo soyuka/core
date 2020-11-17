@@ -60,7 +60,6 @@ use Symfony\Component\Serializer\NameConverter\AdvancedNameConverterInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-
 /**
  * @author Amrouche Hamza <hamza.simperfit@gmail.com>
  * @author Kévin Dunglas <dunglas@gmail.com>
@@ -1165,7 +1164,6 @@ class DocumentationNormalizerV2Test extends TestCase
             $identifiersExtractorProphecy->reveal()
         );
 
-
         $expected = [
             'swagger' => '2.0',
             'basePath' => '/app_dev.php/',
@@ -1287,7 +1285,6 @@ class DocumentationNormalizerV2Test extends TestCase
             [2, 3],
             $identifiersExtractorProphecy->reveal()
         );
-
 
         $expected = [
             'swagger' => '2.0',
@@ -1947,7 +1944,6 @@ class DocumentationNormalizerV2Test extends TestCase
             [2, 3],
             $this->prophesize(IdentifiersExtractorInterface::class)->reveal()
         );
-
     }
 
     public function testSupports(): void
@@ -2431,7 +2427,7 @@ class DocumentationNormalizerV2Test extends TestCase
             false,
             'pagination',
             [],
-            [2,3],
+            [2, 3],
             $identifiersExtractorProphecy->reveal()
         );
 
