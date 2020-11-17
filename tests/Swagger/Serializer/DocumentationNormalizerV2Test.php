@@ -1918,9 +1918,6 @@ class DocumentationNormalizerV2Test extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "$filterLocator" argument is expected to be an implementation of the "Psr\\Container\\ContainerInterface" interface or null.');
 
-        $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
-        $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
-
         new DocumentationNormalizer(
             $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),
             $this->prophesize(PropertyNameCollectionFactoryInterface::class)->reveal(),
@@ -1948,7 +1945,7 @@ class DocumentationNormalizerV2Test extends TestCase
             'pagination',
             [],
             [2, 3],
-            $identifiersExtractorProphecy->reveal()
+            $this->prophesize(IdentifiersExtractorInterface::class)->reveal()
         );
 
     }
