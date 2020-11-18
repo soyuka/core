@@ -341,6 +341,7 @@ class IriConverterTest extends TestCase
     public function testNoIdentifiersException()
     {
         $this->markTestSkipped('The method "generateIdentifiersUrl" has been removed.');
+        /* @phpstan-ignore-next-line */
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('No identifiers defined for resource of type "\App\Entity\Sample"');
 

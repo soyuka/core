@@ -50,7 +50,6 @@ final class IdentifierConverter implements ContextAwareIdentifierConverterInterf
      */
     public function convert($data, string $class, array $context = []): array
     {
-        /* @phpstan-ignore-next-line */
         if (!\is_array($data)) {
             @trigger_error(sprintf('Not using an array as the first argument of "%s->convert" is deprecated since API Platform 2.6 and will not be possible anymore in API Platform 3', self::class), E_USER_DEPRECATED);
             $data = ['id' => $data];

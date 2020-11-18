@@ -33,6 +33,7 @@ class IdentifierConverterTest extends TestCase
     public function testCompositeIdentifier()
     {
         $this->markTestSkipped('This behavior is now external to the identifier converter.');
+        /** @phpstan-ignore-next-line */
         $identifier = 'a=1;c=2;d=2015-04-05';
         $class = 'Dummy';
 
