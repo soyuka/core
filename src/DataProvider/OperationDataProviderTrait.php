@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\DataProvider;
 
 use ApiPlatform\Core\Exception\InvalidIdentifierException;
 use ApiPlatform\Core\Exception\RuntimeException;
+use ApiPlatform\Core\Identifier\CompositeIdentifierParser;
 use ApiPlatform\Core\Identifier\IdentifierConverterInterface;
 
 /**

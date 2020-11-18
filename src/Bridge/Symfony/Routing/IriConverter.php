@@ -26,6 +26,7 @@ use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Exception\InvalidIdentifierException;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
 use ApiPlatform\Core\Exception\RuntimeException;
+use ApiPlatform\Core\Identifier\CompositeIdentifierParser;
 use ApiPlatform\Core\Identifier\IdentifierConverterInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
