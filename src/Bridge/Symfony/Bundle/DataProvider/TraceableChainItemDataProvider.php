@@ -63,7 +63,6 @@ final class TraceableChainItemDataProvider implements ItemDataProviderInterface
                 }
 
                 $identifier = $id;
-
                 if (!$dataProvider instanceof DenormalizedIdentifiersAwareItemDataProviderInterface && $identifier && \is_array($identifier)) {
                     if (\count($identifier) > 1) {
                         @trigger_error(sprintf('Receiving "$id" as non-array in an item data provider is deprecated in 2.3 in favor of implementing "%s".', DenormalizedIdentifiersAwareItemDataProviderInterface::class), E_USER_DEPRECATED);

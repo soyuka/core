@@ -41,11 +41,6 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
         $this->propertyMetadataFactory = $propertyMetadataFactory;
         $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
-
-        if (null === $identifiersExtractor) {
-            @trigger_error(sprintf('Not injecting "%s" is deprecated since API Platform 2.6 and will not be possible anymore in API Platform 3', IdentifiersExtractorInterface::class), E_USER_DEPRECATED);
-        }
-
         $this->identifiersExtractor = $identifiersExtractor;
     }
 
@@ -114,7 +109,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
 
             if (null === $parentOperation) {
                 $rootShortname = $rootResourceMetadata->getShortName();
-                // TODO: mutliple identifiers for subresources?
+                // TODO: multiple identifiers for subresources?
                 $operation['identifiers'] = [[$operation['identified_by'][0], $rootResourceClass, true, $operation['identified_by']]];
                 $operation['operation_name'] = sprintf(
                     '%s_%s%s',
