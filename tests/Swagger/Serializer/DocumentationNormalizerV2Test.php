@@ -80,7 +80,6 @@ class DocumentationNormalizerV2Test extends TestCase
     public function testLegacyConstruct(): void
     {
         $this->expectDeprecation('Passing an instance of ApiPlatform\Core\Api\UrlGeneratorInterface to ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer::__construct() is deprecated since version 2.1 and will be removed in 3.0.');
-        $this->expectDeprecation('Not injecting "ApiPlatform\Core\Api\IdentifiersExtractorInterface" is deprecated since API Platform 2.6 and will not be possible anymore in API Platform 3');
 
         $normalizer = new DocumentationNormalizer(
             $this->prophesize(ResourceMetadataFactoryInterface::class)->reveal(),

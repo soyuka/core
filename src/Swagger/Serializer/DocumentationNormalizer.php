@@ -170,11 +170,6 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $this->defaultContext[self::SPEC_VERSION] = $swaggerVersions[0] ?? 2;
 
         $this->defaultContext = array_merge($this->defaultContext, $defaultContext);
-
-        if (null === $identifiersExtractor) {
-            @trigger_error(sprintf('Not injecting "%s" is deprecated since API Platform 2.6 and will not be possible anymore in API Platform 3', IdentifiersExtractorInterface::class), E_USER_DEPRECATED);
-        }
-
         $this->identifiersExtractor = $identifiersExtractor;
     }
 

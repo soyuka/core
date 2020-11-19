@@ -15,7 +15,6 @@ namespace ApiPlatform\Core\Bridge\Symfony\Routing;
 
 use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
 use ApiPlatform\Core\Api\OperationType;
-use ApiPlatform\Core\Bridge\Elasticsearch\Api\IdentifierExtractorInterface;
 use ApiPlatform\Core\Exception\InvalidResourceException;
 use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
@@ -77,11 +76,6 @@ final class ApiLoader extends Loader
         $this->graphQlPlaygroundEnabled = $graphQlPlaygroundEnabled;
         $this->entrypointEnabled = $entrypointEnabled;
         $this->docsEnabled = $docsEnabled;
-
-        if (null === $identifiersExtractor) {
-            @trigger_error(sprintf('Not injecting "%s" is deprecated since API Platform 2.6 and will not be possible anymore in API Platform 3', IdentifierExtractorInterface::class), E_USER_DEPRECATED);
-        }
-
         $this->identifiersExtractor = $identifiersExtractor;
     }
 
