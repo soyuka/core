@@ -123,9 +123,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $rootResourceClass = $resourceClass;
         foreach ($operations as $operationName => $operation) {
             $identifiers = (array) ($operation['identified_by'] ?? $resourceMetadata->getAttribute('identified_by', null === $this->identifiersExtractor ? ['id'] : $this->identifiersExtractor->getIdentifiersFromResourceClass($resourceClass)));
-            $hasCompositeIdentifiers = \count($identifiers) > 1 ? $resourceMetadata->getAttribute('composite_identifier', true) : false;
-
-            if ($hasCompositeIdentifiers) {
+            if (\count($identifiers) > 1 ? $resourceMetadata->getAttribute('composite_identifier', true) : false) {
                 $identifiers = ['id'];
             }
 
