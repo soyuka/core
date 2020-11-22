@@ -66,26 +66,26 @@ Feature: Using custom identifier on resource
     """
 
   Scenario: Update a resource
-      When I add "Content-Type" header equal to "application/ld+json"
-      And I send a "PUT" request to "/custom_identifier_dummies/1" with body:
-      """
-      {
-        "name": "My Dummy modified"
-      }
-      """
-      Then the response status code should be 200
-      And the response should be in JSON
-      And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-      And the JSON should be equal to:
-      """
-      {
-        "@context": "/contexts/CustomIdentifierDummy",
-        "@id": "/custom_identifier_dummies/1",
-        "@type": "CustomIdentifierDummy",
-        "customId": 1,
-        "name": "My Dummy modified"
-      }
-      """
+    When I add "Content-Type" header equal to "application/ld+json"
+    And I send a "PUT" request to "/custom_identifier_dummies/1" with body:
+    """
+    {
+      "name": "My Dummy modified"
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/CustomIdentifierDummy",
+      "@id": "/custom_identifier_dummies/1",
+      "@type": "CustomIdentifierDummy",
+      "customId": 1,
+      "name": "My Dummy modified"
+    }
+    """
 
   Scenario: API doc is correctly generated
     When I send a "GET" request to "/docs.jsonld"
@@ -101,3 +101,21 @@ Feature: Using custom identifier on resource
     When I send a "DELETE" request to "/custom_identifier_dummies/1"
     Then the response status code should be 204
     And the response should be empty
+
+  @createSchema
+  Scenario: Get a resource
+    Given there is a custom multiple identifier dummy
+    When I send a "GET" request to "/custom_multiple_identifier_dummies/1/2"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/CustomMultipleIdentifierDummy",
+      "@id": "/custom_multiple_identifier_dummies/1/2",
+      "@type": "CustomMultipleIdentifierDummy",
+      "firstId": 1,
+      "secondId": 2,
+      "name": "Orwell"
+    }
+    """
