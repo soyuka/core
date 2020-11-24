@@ -527,6 +527,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
             $attributeValue = null;
         }
 
+        if ($context['api_denormalize'] ?? false) {
+            return $attributeValue;
+        }
+
         $type = $propertyMetadata->getType();
 
         if (

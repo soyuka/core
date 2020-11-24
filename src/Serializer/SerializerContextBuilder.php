@@ -64,6 +64,10 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         if (!$normalization) {
             if (!isset($context['api_allow_update'])) {
                 $context['api_allow_update'] = \in_array($request->getMethod(), ['PUT', 'PATCH'], true);
+
+                if ($context['api_allow_update']) {
+                    $context[AbstractItemNormalizer::DEEP_OBJECT_TO_POPULATE] = true;
+                }
             }
 
             if ('csv' === $request->getContentType()) {
@@ -95,18 +99,6 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         }
 
         unset($context[DocumentationNormalizer::SWAGGER_DEFINITION_NAME]);
-
-        if (isset($context['skip_null_values'])) {
-            return $context;
-        }
-
-        foreach ($resourceMetadata->getItemOperations() as $operation) {
-            if ('PATCH' === ($operation['method'] ?? '') && \in_array('application/merge-patch+json', $operation['input_formats']['json'] ?? [], true)) {
-                $context['skip_null_values'] = true;
-
-                break;
-            }
-        }
 
         return $context;
     }

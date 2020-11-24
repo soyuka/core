@@ -78,7 +78,7 @@ class SerializerContextBuilderTest extends TestCase
 
         $request = Request::create('/foos', 'PUT');
         $request->attributes->replace(['_api_resource_class' => 'Foo', '_api_collection_operation_name' => 'put', '_api_format' => 'xml', '_api_mime_type' => 'text/xml']);
-        $expected = ['bar' => 'baz', 'collection_operation_name' => 'put', 'resource_class' => 'Foo', 'request_uri' => '/foos', 'api_allow_update' => true, 'operation_type' => 'collection', 'uri' => 'http://localhost/foos', 'output' => null, 'input' => null];
+        $expected = ['bar' => 'baz', 'collection_operation_name' => 'put', 'resource_class' => 'Foo', 'request_uri' => '/foos', 'api_allow_update' => true, 'operation_type' => 'collection', 'uri' => 'http://localhost/foos', 'output' => null, 'input' => null, 'deep_object_to_populate' => true];
         $this->assertEquals($expected, $this->builder->createFromRequest($request, false));
 
         $request = Request::create('/bars/1/foos');

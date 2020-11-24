@@ -27,4 +27,13 @@ Feature: Sending PATCH requets
     """
     {"name": null}
     """
-    Then the JSON node "name" should not exist
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/PatchDummy",
+      "@id": "/patch_dummies/1",
+      "@type": "PatchDummy",
+      "id": 1,
+      "name": null
+    }
+    """

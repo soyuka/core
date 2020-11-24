@@ -80,7 +80,7 @@ Feature: JSON relations support
       "@type": "RelationEmbedder",
       "krondstadt": "Krondstadt",
       "anotherRelated": {
-        "@id": "/related_dummies/2",
+        "@id": "/related_dummies/1",
         "@type": "https://schema.org/Product",
         "symfony": "laravel2",
         "thirdLevel": null
@@ -166,9 +166,9 @@ Feature: JSON relations support
     """
     {
       "@context": "/contexts/RelatedDummy",
-      "@id": "/related_dummies/3",
+      "@id": "/related_dummies/2",
       "@type": "https://schema.org/Product",
-      "id": 3,
+      "id": 2,
       "name": null,
       "symfony": "symfony",
       "dummyDate": null,

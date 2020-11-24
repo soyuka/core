@@ -111,11 +111,13 @@ use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\FooDummy;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\FourthLevel;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Greeting;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\InternalUser;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\JsonDocument;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\MaxDepthDummy;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Order;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Person;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\PersonToPet;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Pet;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\POPO;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Product;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Question;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\RamseyUuidDummy;
@@ -1517,6 +1519,22 @@ final class DoctrineContext implements Context
             $this->manager->persist($owner);
         }
 
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given there is a JsonDocument
+     */
+    public function thereIsAJsonDocument()
+    {
+        $jsonDocument = new JsonDocument();
+        $jsonDocument->name = 'My documents';
+        $data = new POPO();
+        $data->foo = 'foo';
+        $data->bar = 1;
+        $jsonDocument->misc = $data;
+
+        $this->manager->persist($jsonDocument);
         $this->manager->flush();
     }
 

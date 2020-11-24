@@ -60,13 +60,7 @@ Feature: Using custom normalized entity
     """
     {
       "name": "My Dummy",
-      "customNormalizedDummy":[{
-        "@context": "/contexts/CustomNormalizedDummy",
-        "@id": "/custom_normalized_dummies/1",
-        "@type": "CustomNormalizedDummy",
-        "id": 1,
-        "name": "My Dummy"
-    }]
+      "customNormalizedDummy":["/custom_normalized_dummies/1"]
     }
     """
     Then the response status code should be 200
@@ -82,7 +76,7 @@ Feature: Using custom normalized entity
         "id": 1,
         "name": "My Dummy",
         "alias": "My alias"
-         }]
+      }]
     }
     """
 

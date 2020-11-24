@@ -328,7 +328,7 @@ Feature: Relations support
       "@type": "RelationEmbedder",
       "krondstadt": "Krondstadt",
       "anotherRelated": {
-        "@id": "/related_dummies/3",
+        "@id": "/related_dummies/2",
         "@type": "https://schema.org/Product",
         "symfony": "laravel2",
         "thirdLevel": null

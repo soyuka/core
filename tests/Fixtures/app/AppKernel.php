@@ -19,8 +19,10 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MongoDBBundle\DoctrineMongoDBBundle;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
+use Dunglas\DoctrineJsonOdm\Bundle\DunglasDoctrineJsonOdmBundle;
 use FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle;
 use Nelmio\ApiDocBundle\NelmioApiDocBundle;
+use Symfony\Bundle\DebugBundle\DebugBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MercureBundle\MercureBundle;
@@ -70,6 +72,8 @@ class AppKernel extends Kernel
             new SecurityBundle(),
             new WebProfilerBundle(),
             new FriendsOfBehatSymfonyExtensionBundle(),
+            new DunglasDoctrineJsonOdmBundle(),
+            new DebugBundle(),
         ];
 
         if (class_exists(DoctrineMongoDBBundle::class)) {
