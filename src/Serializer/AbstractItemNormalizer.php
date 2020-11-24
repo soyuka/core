@@ -615,6 +615,11 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
 
             return $this->normalizeRelation($propertyMetadata, $attributeValue, $resourceClass, $format, $childContext);
         }
+        
+        if (isset($context['api_denormalize'])) {
+
+            return $attributeValue;
+        }
 
         if (!$this->serializer instanceof NormalizerInterface) {
             throw new LogicException(sprintf('The injected serializer must be an instance of "%s".', NormalizerInterface::class));
