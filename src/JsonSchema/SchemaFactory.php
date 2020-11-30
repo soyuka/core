@@ -20,6 +20,7 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyInfo\Type;
@@ -153,6 +154,8 @@ final class SchemaFactory implements SchemaFactoryInterface
     {
         $version = $schema->getVersion();
         $swagger = false;
+        $propertySchema = $propertyMetadata->getSchema() ?? [];
+
         switch ($version) {
             case Schema::VERSION_SWAGGER:
                 $swagger = true;
@@ -165,7 +168,11 @@ final class SchemaFactory implements SchemaFactoryInterface
                 $basePropertySchemaAttribute = 'json_schema_context';
         }
 
-        $propertySchema = $propertyMetadata->getAttributes()[$basePropertySchemaAttribute] ?? [];
+        $propertySchema = array_merge(
+            $propertySchema,
+            $propertyMetadata->getAttributes()[$basePropertySchemaAttribute] ?? []
+        );
+
         if (false === $propertyMetadata->isWritable() && !$propertyMetadata->isInitializable()) {
             $propertySchema['readOnly'] = true;
         }
@@ -185,6 +192,18 @@ final class SchemaFactory implements SchemaFactoryInterface
             $propertySchema['externalDocs'] = ['url' => $iri];
         }
 
+        if (!isset($propertySchema['default']) && null !== $default = $propertyMetadata->getDefault()) {
+            $propertySchema['default'] = $default;
+        }
+
+        if (!isset($propertySchema['example']) && null !== $example = $propertyMetadata->getExample()) {
+            $propertySchema['example'] = $example;
+        }
+
+        if (!isset($propertySchema['example']) && isset($propertySchema['default'])) {
+            $propertySchema['example'] = $propertySchema['default'];
+        }
+
         $valueSchema = [];
         if (null !== $type = $propertyMetadata->getType()) {
             $isCollection = $type->isCollection();
@@ -200,7 +219,6 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         $propertySchema = new \ArrayObject($propertySchema + $valueSchema);
-
         $schema->getDefinitions()[$definitionName]['properties'][$normalizedPropertyName] = $propertySchema;
     }
 
@@ -210,22 +228,30 @@ final class SchemaFactory implements SchemaFactoryInterface
 
         $prefix = $resourceMetadata ? $resourceMetadata->getShortName() : (new \ReflectionClass($className))->getShortName();
         if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
-            $prefix .= ':'.md5($inputOrOutputClass);
+            $parts = explode('\\', $inputOrOutputClass);
+            $shortName = end($parts);
+            $prefix .= '.'.$shortName;
         }
 
         if (isset($this->distinctFormats[$format])) {
             // JSON is the default, and so isn't included in the definition name
-            $prefix .= ':'.$format;
+            $prefix .= '.'.$format;
         }
 
-        if (isset($serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME])) {
-            $name = sprintf('%s-%s', $prefix, $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME]);
+        $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
+        if ($definitionName) {
+            $name = sprintf('%s-%s', $prefix, $definitionName);
         } else {
             $groups = (array) ($serializerContext[AbstractNormalizer::GROUPS] ?? []);
             $name = $groups ? sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
         }
 
-        return $name;
+        return $this->encodeDefinitionName($name);
+    }
+
+    private function encodeDefinitionName(string $name): string
+    {
+        return preg_replace('/[^a-zA-Z0-9.\-_]/', '.', $name);
     }
 
     private function getMetadata(string $className, string $type = Schema::TYPE_OUTPUT, ?string $operationType = null, ?string $operationName = null, ?array $serializerContext = null): ?array

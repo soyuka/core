@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.6.0
+
+* Display the API Platform's version in the debug-bar
+* MongoDB: Possibility to add execute options (aggregate command fields) for a resource, like `allowDiskUse` (#3144)
+* MongoDB: Mercure support (#3290)
+* GraphQL: Subscription support with Mercure (#3321)
+* GraphQL: Allow to format GraphQL errors based on exceptions (#3063)
+* GraphQL: Add page-based pagination (#3175, #3517)
+* GraphQL: Errors thrown from the GraphQL library can now be handled (#3632)
+* GraphQL: Possibility to add a custom description for queries, mutations and subscriptions (#3477, #3514)
+* GraphQL: Support for field name conversion (serialized name) (#3455, #3516)
+* GraphQL: **BC** `operation` is now `operationName` to follow the standard (#3568)
+* GraphQL: **BC** New syntax for the filters' arguments to preserve the order: `order: [{foo: 'asc'}, {bar: 'desc'}]` (#3468)
+* OpenAPI: Add PHP default values to the documentation (#2386)
+* Deprecate using a validation groups generator service not implementing `ApiPlatform\Core\Bridge\Symfony\Validator\ValidationGroupsGeneratorInterface` (#3346)
+* Subresources: subresource resourceClass can now be defined as a container parameter in XML and Yaml definitions
+* IriConverter: Fix IRI url double encoding - may cause breaking change as some characters no longer encoded in output (#3552)
+* OpenAPI: **BC** Replace all characters other than `[a-zA-Z0-9\.\-_]` to `.` in definition names to be compliant with OpenAPI 3.0 (#3669)
+* Add stateless ApiResource attribute
+
 ## 2.5.8
 
 For compatibility reasons with Symfony 5.2 and PHP 8, we do not test these legacy packages nor their integration anymore:
@@ -130,7 +150,7 @@ For compatibility reasons with Symfony 5.2 and PHP 8, we do not test these legac
 
 * Allow to not declare GET item operation
 * Add support for the Accept-Patch header
-* Make the `maximum_items_per_page` attribute consistent with other attributes controlling pagination 
+* Make the `maximum_items_per_page` attribute consistent with other attributes controlling pagination
 * Allow to use a string instead of an array for serializer groups
 * Test: Add a helper method to find the IRI of a resource
 * Test: Add assertions for testing response against JSON Schema from API resource
