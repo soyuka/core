@@ -18,6 +18,7 @@ use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
+use ApiPlatform\Core\Exception\RuntimeException;
 
 /**
  * @author Anthony GRASSIOT <antograssiot@free.fr>
@@ -50,6 +51,7 @@ final class TraceableChainCollectionDataProvider implements ContextAwareCollecti
         $this->context = $context;
         $results = null;
         $match = false;
+        $called = 0;
 
         foreach ($this->dataProviders as $dataProvider) {
             $this->providersResponse[\get_class($dataProvider)] = $match ? null : false;
@@ -68,6 +70,10 @@ final class TraceableChainCollectionDataProvider implements ContextAwareCollecti
                 @trigger_error(sprintf('Throwing a "%s" in a data provider is deprecated in favor of implementing "%s"', ResourceClassNotSupportedException::class, RestrictedDataProviderInterface::class), E_USER_DEPRECATED);
                 continue;
             }
+        }
+
+        if (0 === $called) {
+            throw new RuntimeException(sprintf('No DataProvider found to handle the resource "%s" on "%s"', $resourceClass, $operationName));
         }
 
         return $results ?? [];

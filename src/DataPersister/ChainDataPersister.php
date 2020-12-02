@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\DataPersister;
 
+use ApiPlatform\Core\Exception\RuntimeException;
+
 /**
  * Chained data persisters.
  *
@@ -59,6 +61,8 @@ final class ChainDataPersister implements ContextAwareDataPersisterInterface
                 return $persister->persist($data, $context) ?? $data;
             }
         }
+
+        throw new RuntimeException(sprintf('No DataPersister found to handle the resource "%s".', \get_class($data)));
     }
 
     /**
@@ -73,5 +77,7 @@ final class ChainDataPersister implements ContextAwareDataPersisterInterface
                 return;
             }
         }
+
+        throw new RuntimeException(sprintf('No DataPersister found to handle the resource "%s".', \get_class($data)));
     }
 }

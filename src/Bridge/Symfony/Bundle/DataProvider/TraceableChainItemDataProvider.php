@@ -18,6 +18,7 @@ use ApiPlatform\Core\DataProvider\DenormalizedIdentifiersAwareItemDataProviderIn
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
+use ApiPlatform\Core\Exception\RuntimeException;
 
 /**
  * @author Anthony GRASSIOT <antograssiot@free.fr>
@@ -50,6 +51,7 @@ final class TraceableChainItemDataProvider implements ItemDataProviderInterface
         $this->context = $context;
         $match = false;
         $result = null;
+        $called = 0;
 
         foreach ($this->dataProviders as $dataProvider) {
             $this->providersResponse[\get_class($dataProvider)] = $match ? null : false;
@@ -72,12 +74,17 @@ final class TraceableChainItemDataProvider implements ItemDataProviderInterface
                     }
                 }
 
+                ++$called;
                 $result = $dataProvider->getItem($resourceClass, $identifier, $operationName, $context);
                 $this->providersResponse[\get_class($dataProvider)] = $match = true;
             } catch (ResourceClassNotSupportedException $e) {
                 @trigger_error(sprintf('Throwing a "%s" is deprecated in favor of implementing "%s"', \get_class($e), RestrictedDataProviderInterface::class), E_USER_DEPRECATED);
                 continue;
             }
+        }
+
+        if (0 === $called) {
+            throw new RuntimeException(sprintf('No DataProvider found to handle the resource "%s" on "%s"', $resourceClass, $operationName));
         }
 
         return $result;

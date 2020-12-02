@@ -17,6 +17,7 @@ use ApiPlatform\Core\DataProvider\ChainSubresourceDataProvider;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
+use ApiPlatform\Core\Exception\RuntimeException;
 
 /**
  * @author Anthony GRASSIOT <antograssiot@free.fr>
@@ -72,6 +73,6 @@ final class TraceableChainSubresourceDataProvider implements SubresourceDataProv
             return $result;
         }
 
-        return ($context['collection'] ?? false) ? [] : null;
+        throw new RuntimeException(sprintf('No DataProvider found to handle the resource "%s".', $resourceClass));
     }
 }

@@ -16,6 +16,7 @@ namespace ApiPlatform\Core\Bridge\Symfony\Bundle\DataPersister;
 use ApiPlatform\Core\DataPersister\ChainDataPersister;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 use ApiPlatform\Core\DataPersister\DataPersisterInterface;
+use ApiPlatform\Core\Exception\RuntimeException;
 
 /**
  * @author Anthony GRASSIOT <antograssiot@free.fr>
@@ -55,6 +56,8 @@ final class TraceableChainDataPersister implements ContextAwareDataPersisterInte
         if ($match = $this->tracePersisters($data, $context)) {
             return $match->persist($data, $context) ?? $data;
         }
+
+        throw new RuntimeException(sprintf('No DataPersister found to handle the resource "%s".', \get_class($data)));
     }
 
     /**
@@ -65,6 +68,8 @@ final class TraceableChainDataPersister implements ContextAwareDataPersisterInte
         if ($match = $this->tracePersisters($data, $context)) {
             return $match->remove($data, $context);
         }
+
+        throw new RuntimeException(sprintf('No DataPersister found to handle the resource "%s".', \get_class($data)));
     }
 
     private function tracePersisters($data, array $context = [])

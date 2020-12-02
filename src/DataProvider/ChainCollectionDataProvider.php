@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\DataProvider;
 
 use ApiPlatform\Core\Exception\ResourceClassNotSupportedException;
+use ApiPlatform\Core\Exception\RuntimeException;
 
 /**
  * Tries each configured data provider and returns the result of the first able to handle the resource class.
@@ -56,6 +57,6 @@ final class ChainCollectionDataProvider implements ContextAwareCollectionDataPro
             }
         }
 
-        return [];
+        throw new RuntimeException(sprintf('No DataProvider found to handle the resource "%s" on "%s"', $resourceClass, $operationName));
     }
 }
