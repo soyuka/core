@@ -22,6 +22,10 @@ Feature: Handle properly invalid data submitted to the API
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "Not existing",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -33,12 +37,8 @@ Feature: Handle properly invalid data submitted to the API
       "jsonData": [],
       "arrayData": [],
       "name_converted": null,
-	  "relatedOwnedDummy": null,
-	  "relatedOwningDummy": null,
-      "id": 1,
-      "name": "Not existing",
-      "alias": null,
-      "foo": null
+      "relatedOwnedDummy": null,
+      "relatedOwningDummy": null
     }
     """
 

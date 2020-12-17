@@ -335,6 +335,10 @@ Feature: JSON API Inclusion of Related Resources
                 "id": "/dummies/1",
                 "type": "Dummy",
                 "attributes": {
+                    "_id": 1,
+                    "name": "Dummy #1",
+                    "alias": "Alias #0",
+                    "foo": null,
                     "description": null,
                     "dummy": null,
                     "dummyBoolean": null,
@@ -343,11 +347,7 @@ Feature: JSON API Inclusion of Related Resources
                     "dummyPrice": null,
                     "jsonData": [],
                     "arrayData": [],
-                    "name_converted": null,
-                    "_id": 1,
-                    "name": "Dummy #1",
-                    "alias": "Alias #0",
-                    "foo": null
+                    "name_converted": null
                 },
                 "relationships": {
                     "relatedDummy": {
@@ -363,7 +363,9 @@ Feature: JSON API Inclusion of Related Resources
                     "id": "/related_dummies/1",
                     "type": "RelatedDummy",
                     "attributes": {
+                        "_id": 1,
                         "name": "RelatedDummy #1",
+                        "symfony": "symfony",
                         "dummyDate": null,
                         "dummyBoolean": null,
                         "embeddedDummy": {
@@ -374,8 +376,6 @@ Feature: JSON API Inclusion of Related Resources
                             "dummyPrice": null,
                             "symfony": null
                         },
-                        "_id": 1,
-                        "symfony": "symfony",
                         "age": null
                     },
                     "relationships": {

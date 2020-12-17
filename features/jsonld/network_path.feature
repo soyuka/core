@@ -18,8 +18,8 @@ Feature: IRI should contain network path
         {
           "@id": "//example.com/network_path_dummies/1",
           "@type": "NetworkPathDummy",
-          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
-          "id": 1
+          "id": 1,
+          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
         }
       ],
       "hydra:totalItems": 1
@@ -43,8 +43,8 @@ Feature: IRI should contain network path
       "@context": "//example.com/contexts/NetworkPathRelationDummy",
       "@id": "//example.com/network_path_relation_dummies/2",
       "@type": "NetworkPathRelationDummy",
-      "networkPathDummies": [],
-      "id": 2
+      "id": 2,
+      "networkPathDummies": []
     }
     """
 
@@ -58,8 +58,8 @@ Feature: IRI should contain network path
       "@context": "//example.com/contexts/NetworkPathDummy",
       "@id": "//example.com/network_path_dummies/1",
       "@type": "NetworkPathDummy",
-      "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
-      "id": 1
+      "id": 1,
+      "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
     }
     """
 
@@ -77,8 +77,8 @@ Feature: IRI should contain network path
         {
           "@id": "//example.com/network_path_dummies/1",
           "@type": "NetworkPathDummy",
-          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
-          "id": 1
+          "id": 1,
+          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
         }
       ],
       "hydra:totalItems": 1

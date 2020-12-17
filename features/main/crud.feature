@@ -30,6 +30,10 @@ Feature: Create-Retrieve-Update-Delete
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "My Dummy",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -47,11 +51,7 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null,
-      "id": 1,
-      "name": "My Dummy",
-      "alias": null,
-      "foo": null
+      "relatedOwningDummy": null
     }
     """
 
@@ -66,6 +66,10 @@ Feature: Create-Retrieve-Update-Delete
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "My Dummy",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -83,11 +87,7 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null,
-      "id": 1,
-      "name": "My Dummy",
-      "alias": null,
-      "foo": null
+      "relatedOwningDummy": null
     }
     """
 
@@ -116,6 +116,10 @@ Feature: Create-Retrieve-Update-Delete
         {
           "@id": "/dummies/1",
           "@type": "Dummy",
+          "id": 1,
+          "name": "My Dummy",
+          "alias": null,
+          "foo": null,
           "description": null,
           "dummy": null,
           "dummyBoolean": null,
@@ -133,11 +137,7 @@ Feature: Create-Retrieve-Update-Delete
           "arrayData": [],
           "name_converted": null,
           "relatedOwnedDummy": null,
-          "relatedOwningDummy": null,
-          "id": 1,
-          "name": "My Dummy",
-          "alias": null,
-          "foo": null
+          "relatedOwningDummy": null
         }
       ],
       "hydra:totalItems": 1,
@@ -520,6 +520,10 @@ Feature: Create-Retrieve-Update-Delete
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "A nice dummy",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -539,11 +543,7 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null,
-      "id": 1,
-      "name": "A nice dummy",
-      "alias": null,
-      "foo": null
+      "relatedOwningDummy": null
     }
     """
 

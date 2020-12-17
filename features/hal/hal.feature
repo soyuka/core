@@ -68,6 +68,10 @@ Feature: HAL support
           }
         ]
       },
+      "id": 1,
+      "name": "Dummy with relations",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -76,11 +80,7 @@ Feature: HAL support
       "dummyPrice": null,
       "jsonData": [],
       "arrayData": [],
-      "name_converted": null,
-      "id": 1,
-      "name": "Dummy with relations",
-      "alias": null,
-      "foo": null
+      "name_converted": null
     }
     """
 
@@ -111,6 +111,10 @@ Feature: HAL support
           }
         ]
       },
+      "id": 1,
+      "name": "A nice dummy",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -119,11 +123,7 @@ Feature: HAL support
       "dummyPrice": null,
       "jsonData": [],
       "arrayData": [],
-      "name_converted": null,
-      "id": 1,
-      "name": "A nice dummy",
-      "alias": null,
-      "foo": null
+      "name_converted": null
     }
     """
 

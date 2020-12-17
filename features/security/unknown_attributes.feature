@@ -22,6 +22,10 @@ Feature: Ignore unknown attributes
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "Not existing",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -34,10 +38,6 @@ Feature: Ignore unknown attributes
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null,
-      "id": 1,
-      "name": "Not existing",
-      "alias": null,
-      "foo": null
+      "relatedOwningDummy": null
     }
     """

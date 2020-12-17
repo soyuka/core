@@ -21,11 +21,11 @@ Feature: JSON relations support
       "@context": "/contexts/ThirdLevel",
       "@id": "/third_levels/1",
       "@type": "ThirdLevel",
-      "fourthLevel": null,
-      "badFourthLevel": null,
       "id": 1,
       "level": 3,
-      "test": true
+      "test": true,
+      "fourthLevel": null,
+      "badFourthLevel": null
     }
     """
 
@@ -205,6 +205,10 @@ Feature: JSON relations support
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
+      "id": 1,
+      "name": "Dummy with plain relations",
+      "alias": null,
+      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -219,10 +223,6 @@ Feature: JSON relations support
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null,
-      "id": 1,
-      "name": "Dummy with plain relations",
-      "alias": null,
-      "foo": null
+      "relatedOwningDummy": null
     }
     """

@@ -71,7 +71,7 @@ Feature: GraphQL introspection support
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/json"
     And the JSON node "data.type1.description" should be equal to "Dummy Product."
-    And the JSON node "data.type1.fields[1].type.name" should be equal to "DummyAggregateOfferConnection"
+    And the JSON node "data.type1.fields[2].type.name" should be equal to "DummyAggregateOfferConnection"
     And the JSON node "data.type2.fields[0].name" should be equal to "edges"
     And the JSON node "data.type2.fields[0].type.ofType.name" should be equal to "DummyAggregateOfferEdge"
     And the JSON node "data.type3.fields[0].name" should be equal to "node"
@@ -286,8 +286,8 @@ Feature: GraphQL introspection support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/json"
-    And the JSON node "data.__type.fields[9].name" should be equal to "jsonData"
-    And the JSON node "data.__type.fields[9].type.name" should be equal to "Iterable"
+    And the JSON node "data.__type.fields[13].name" should be equal to "jsonData"
+    And the JSON node "data.__type.fields[13].type.name" should be equal to "Iterable"
 
   Scenario: Retrieve entity - using serialization groups - fields
     When I send the following GraphQL request:
@@ -424,8 +424,8 @@ Feature: GraphQL introspection support
     And the JSON node "data.typeCreatePayload.fields[0].name" should be equal to "dummyProperty"
     And the JSON node "data.typeCreatePayload.fields[0].type.name" should be equal to "createDummyPropertyPayloadData"
     And the JSON node "data.typeCreatePayload.fields[1].name" should be equal to "clientMutationId"
-    And the JSON node "data.typeCreatePayloadData.fields[3].name" should be equal to "group"
-    And the JSON node "data.typeCreatePayloadData.fields[3].type.name" should be equal to "createDummyGroupNestedPayload"
+    And the JSON node "data.typeCreatePayloadData.fields[4].name" should be equal to "group"
+    And the JSON node "data.typeCreatePayloadData.fields[4].type.name" should be equal to "createDummyGroupNestedPayload"
     And the JSON node "data.typeCreateNestedPayload.fields[0].name" should be equal to "id"
 
   Scenario: Retrieve a type name through a GraphQL query

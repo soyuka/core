@@ -78,8 +78,8 @@ Feature: Operation support
         "@context": "/contexts/Book",
         "@id": "/books/1",
         "@type": "Book",
+        "id": 1,
         "name": "1984",
-        "isbn": "9780451524935",
-        "id": 1
+        "isbn": "9780451524935"
     }
     """

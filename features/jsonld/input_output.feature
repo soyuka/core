@@ -25,9 +25,9 @@ Feature: JSON-LD DTO input and output
       "@context": "/contexts/DummyDtoCustom",
       "@id": "/dummy_dto_customs/1",
       "@type": "DummyDtoCustom",
+      "id": 1,
       "lorem": "test",
-      "ipsum": "1",
-      "id": 1
+      "ipsum": "1"
     }
     """
 
@@ -98,9 +98,9 @@ Feature: JSON-LD DTO input and output
       "@context": "/contexts/DummyDtoOutputSameClass",
       "@id": "/dummy_dto_output_same_classes/1",
       "@type": "DummyDtoOutputSameClass",
+      "id": 1,
       "lorem": "test",
-      "ipsum": "modified",
-      "id": 1
+      "ipsum": "modified"
     }
     """
 
@@ -117,9 +117,9 @@ Feature: JSON-LD DTO input and output
       "@context": "/contexts/DummyDtoOutputFallbackToSameClass",
       "@id": "/dummy_dto_output_fallback_to_same_classes/1",
       "@type": "DummyDtoOutputFallbackToSameClass",
+      "id": 1,
       "lorem": "test",
-      "ipsum": "modified",
-      "id": 1
+      "ipsum": "modified"
     }
     """
 
@@ -321,7 +321,7 @@ Feature: JSON-LD DTO input and output
     """
 
   @createSchema
-  Scenario: Initialize input data with a DataTransformerInitializer 
+  Scenario: Initialize input data with a DataTransformerInitializer
     Given there is an InitializeInput object with id 1
     When I send a "PUT" request to "/initialize_inputs/1" with body:
     """
@@ -348,7 +348,7 @@ Feature: JSON-LD DTO input and output
     """
     {
       "foo": "test",
-      "bar": "test" 
+      "bar": "test"
     }
     """
     Then the response status code should be 400

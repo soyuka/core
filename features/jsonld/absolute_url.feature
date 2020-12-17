@@ -17,8 +17,8 @@ Feature: IRI should contain Absolute URL
         {
           "@id": "http://example.com/absolute_url_dummies/1",
           "@type": "AbsoluteUrlDummy",
-          "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1",
-          "id": 1
+          "id": 1,
+          "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1"
         }
       ],
       "hydra:totalItems": 1
@@ -42,8 +42,8 @@ Feature: IRI should contain Absolute URL
       "@context": "http://example.com/contexts/AbsoluteUrlRelationDummy",
       "@id": "http://example.com/absolute_url_relation_dummies/2",
       "@type": "AbsoluteUrlRelationDummy",
-      "absoluteUrlDummies": [],
-      "id": 2
+      "id": 2,
+      "absoluteUrlDummies": []
     }
     """
 
@@ -56,8 +56,8 @@ Feature: IRI should contain Absolute URL
       "@context": "http://example.com/contexts/AbsoluteUrlDummy",
       "@id": "http://example.com/absolute_url_dummies/1",
       "@type": "AbsoluteUrlDummy",
-      "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1",
-      "id": 1
+      "id": 1,
+      "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1"
     }
     """
 
@@ -74,8 +74,8 @@ Feature: IRI should contain Absolute URL
         {
           "@id": "http://example.com/absolute_url_dummies/1",
           "@type": "AbsoluteUrlDummy",
-          "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1",
-          "id": 1
+          "id": 1,
+          "absoluteUrlRelationDummy": "http://example.com/absolute_url_relation_dummies/1"
         }
       ],
       "hydra:totalItems": 1

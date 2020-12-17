@@ -70,6 +70,10 @@ Feature: HAL Collections support
                 "href": "/dummies/1"
               }
             },
+            "id": 1,
+            "name": "Dummy #1",
+            "alias": "Alias #9",
+            "foo": null,
             "description": "Smart dummy.",
             "dummy": "SomeDummyTest1",
             "dummyBoolean": null,
@@ -78,11 +82,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 1",
-            "id": 1,
-            "name": "Dummy #1",
-            "alias": "Alias #9",
-            "foo": null
+            "name_converted": "Converted 1"
           },
           {
             "_links": {
@@ -90,6 +90,10 @@ Feature: HAL Collections support
                 "href": "/dummies/2"
               }
             },
+            "id": 2,
+            "name": "Dummy #2",
+            "alias": "Alias #8",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest2",
             "dummyBoolean": null,
@@ -98,11 +102,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 2",
-            "id": 2,
-            "name": "Dummy #2",
-            "alias": "Alias #8",
-            "foo": null
+            "name_converted": "Converted 2"
           },
           {
             "_links": {
@@ -110,6 +110,10 @@ Feature: HAL Collections support
                 "href": "/dummies/3"
               }
             },
+            "id": 3,
+            "name": "Dummy #3",
+            "alias": "Alias #7",
+            "foo": null,
             "description": "Smart dummy.",
             "dummy": "SomeDummyTest3",
             "dummyBoolean": null,
@@ -118,11 +122,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 3",
-            "id": 3,
-            "name": "Dummy #3",
-            "alias": "Alias #7",
-            "foo": null
+            "name_converted": "Converted 3"
           }
         ]
       }
@@ -177,6 +177,10 @@ Feature: HAL Collections support
                 "href": "/dummies/7"
               }
             },
+            "id": 7,
+            "name": "Dummy #7",
+            "alias": "Alias #3",
+            "foo": null,
             "description": "Smart dummy.",
             "dummy": "SomeDummyTest7",
             "dummyBoolean": null,
@@ -185,11 +189,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 7",
-            "id": 7,
-            "name": "Dummy #7",
-            "alias": "Alias #3",
-            "foo": null
+            "name_converted": "Converted 7"
           },
           {
             "_links": {
@@ -197,6 +197,10 @@ Feature: HAL Collections support
                 "href": "/dummies/8"
               }
             },
+            "id": 8,
+            "name": "Dummy #8",
+            "alias": "Alias #2",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest8",
             "dummyBoolean": null,
@@ -205,11 +209,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 8",
-            "id": 8,
-            "name": "Dummy #8",
-            "alias": "Alias #2",
-            "foo": null
+            "name_converted": "Converted 8"
           },
           {
             "_links": {
@@ -217,6 +217,10 @@ Feature: HAL Collections support
                 "href": "/dummies/9"
               }
             },
+            "id": 9,
+            "name": "Dummy #9",
+            "alias": "Alias #1",
+            "foo": null,
             "description": "Smart dummy.",
             "dummy": "SomeDummyTest9",
             "dummyBoolean": null,
@@ -225,11 +229,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 9",
-            "id": 9,
-            "name": "Dummy #9",
-            "alias": "Alias #1",
-            "foo": null
+            "name_converted": "Converted 9"
           }
         ]
       }
@@ -275,6 +275,10 @@ Feature: HAL Collections support
                 "href": "/dummies/10"
               }
             },
+            "id": 10,
+            "name": "Dummy #10",
+            "alias": "Alias #0",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest10",
             "dummyBoolean": null,
@@ -283,11 +287,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 10",
-            "id": 10,
-            "name": "Dummy #10",
-            "alias": "Alias #0",
-            "foo": null
+            "name_converted": "Converted 10"
           }
         ]
       }
@@ -336,6 +336,10 @@ Feature: HAL Collections support
                 "href": "/dummies/4"
               }
             },
+            "id": 4,
+            "name": "Dummy #4",
+            "alias": "Alias #6",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest4",
             "dummyBoolean": null,
@@ -344,11 +348,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 4",
-            "id": 4,
-            "name": "Dummy #4",
-            "alias": "Alias #6",
-            "foo": null
+            "name_converted": "Converted 4"
           },
           {
             "_links": {
@@ -356,6 +356,10 @@ Feature: HAL Collections support
                 "href": "/dummies/5"
               }
             },
+            "id": 5,
+            "name": "Dummy #5",
+            "alias": "Alias #5",
+            "foo": null,
             "description": "Smart dummy.",
             "dummy": "SomeDummyTest5",
             "dummyBoolean": null,
@@ -364,11 +368,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 5",
-            "id": 5,
-            "name": "Dummy #5",
-            "alias": "Alias #5",
-            "foo": null
+            "name_converted": "Converted 5"
           },
           {
             "_links": {
@@ -376,6 +376,10 @@ Feature: HAL Collections support
                 "href": "/dummies/6"
               }
             },
+            "id": 6,
+            "name": "Dummy #6",
+            "alias": "Alias #4",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest6",
             "dummyBoolean": null,
@@ -384,11 +388,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 6",
-            "id": 6,
-            "name": "Dummy #6",
-            "alias": "Alias #4",
-            "foo": null
+            "name_converted": "Converted 6"
           }
         ]
       }
@@ -498,6 +498,10 @@ Feature: HAL Collections support
                 "href": "/dummies/2"
               }
             },
+            "id": 2,
+            "name": "Dummy #2",
+            "alias": "Alias #8",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest2",
             "dummyBoolean": null,
@@ -506,11 +510,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted":  "Converted 2",
-            "id": 2,
-            "name": "Dummy #2",
-            "alias": "Alias #8",
-            "foo": null
+            "name_converted": "Converted 2"
           }
         ]
       }
@@ -547,6 +547,10 @@ Feature: HAL Collections support
                 "href": "/dummies/8"
               }
             },
+            "id": 8,
+            "name": "Dummy #8",
+            "alias": "Alias #2",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest8",
             "dummyBoolean": null,
@@ -555,11 +559,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 8",
-            "id": 8,
-            "name": "Dummy #8",
-            "alias": "Alias #2",
-            "foo": null
+            "name_converted": "Converted 8"
           }
         ]
       }
@@ -596,6 +596,10 @@ Feature: HAL Collections support
                 "href": "/dummies/8"
               }
             },
+            "id": 8,
+            "name": "Dummy #8",
+            "alias": "Alias #2",
+            "foo": null,
             "description": "Not so smart dummy.",
             "dummy": "SomeDummyTest8",
             "dummyBoolean": null,
@@ -604,11 +608,7 @@ Feature: HAL Collections support
             "dummyPrice": null,
             "jsonData": [],
             "arrayData": [],
-            "name_converted": "Converted 8",
-            "id": 8,
-            "name": "Dummy #8",
-            "alias": "Alias #2",
-            "foo": null
+            "name_converted": "Converted 8"
           }
         ]
       }
