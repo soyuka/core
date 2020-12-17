@@ -193,45 +193,45 @@ Feature: Subresource support
     }
     """
 
-  Scenario: Get the subresource relation item
-    When I send a "GET" request to "/dummies/1/related_dummies/2"
-    Then the response status code should be 200
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
-    """
-    {
-      "@context": "/contexts/RelatedDummy",
-      "@id": "/related_dummies/2",
-      "@type": "https://schema.org/Product",
-      "id": 2,
-      "name": null,
-      "symfony": "symfony",
-      "dummyDate": null,
-      "thirdLevel": {
-        "@id": "/third_levels/1",
-        "@type": "ThirdLevel",
-        "fourthLevel": "/fourth_levels/1"
-      },
-      "relatedToDummyFriend": [],
-      "dummyBoolean": null,
-      "embeddedDummy": [],
-      "age": null
-    }
-    """
+#  Scenario: Get the subresource relation item
+#    When I send a "GET" request to "/dummies/1/related_dummies/2"
+#    Then the response status code should be 200
+#    And the response should be in JSON
+#    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+#    And the JSON should be equal to:
+#    """
+#    {
+#      "@context": "/contexts/RelatedDummy",
+#      "@id": "/related_dummies/2",
+#      "@type": "https://schema.org/Product",
+#      "id": 2,
+#      "name": null,
+#      "symfony": "symfony",
+#      "dummyDate": null,
+#      "thirdLevel": {
+#        "@id": "/third_levels/1",
+#        "@type": "ThirdLevel",
+#        "fourthLevel": "/fourth_levels/1"
+#      },
+#      "relatedToDummyFriend": [],
+#      "dummyBoolean": null,
+#      "embeddedDummy": [],
+#      "age": null
+#    }
+#    """
 
-  Scenario: Create a dummy with a relation that is a subresource
-    When I add "Content-Type" header equal to "application/ld+json"
-    And I send a "POST" request to "/dummies" with body:
-    """
-    {
-      "name": "Dummy with relations",
-      "relatedDummy": "/dummies/1/related_dummies/2"
-    }
-    """
-    Then the response status code should be 201
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+#  Scenario: Create a dummy with a relation that is a subresource
+#    When I add "Content-Type" header equal to "application/ld+json"
+#    And I send a "POST" request to "/dummies" with body:
+#    """
+#    {
+#      "name": "Dummy with relations",
+#      "relatedDummy": "/dummies/1/related_dummies/2"
+#    }
+#    """
+#    Then the response status code should be 201
+#    And the response should be in JSON
+#    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
 
   Scenario: Get the embedded relation subresource item at the third level
     When I send a "GET" request to "/dummies/1/related_dummies/1/third_level"
@@ -248,7 +248,7 @@ Feature: Subresource support
       "level": 3,
       "test": true,
       "fourthLevel": "/fourth_levels/1",
-      "badFourthLevel": null,
+      "badFourthLevel": null
     }
     """
 
@@ -265,7 +265,7 @@ Feature: Subresource support
       "@type": "FourthLevel",
       "id": 1,
       "level": 4,
-      "badThirdLevel": [],
+      "badThirdLevel": []
     }
     """
 
@@ -355,9 +355,9 @@ Feature: Subresource support
     """
     {
       "@context": "/contexts/Dummy",
-      "@id": "/dummies/3",
+      "@id": "/dummies/2",
       "@type": "Dummy",
-      "id": 3,
+      "id": 2,
       "name": "plop",
       "alias": null,
       "foo": null,
@@ -387,9 +387,9 @@ Feature: Subresource support
     """
     {
       "@context": "/contexts/Dummy",
-      "@id": "/dummies/4",
+      "@id": "/dummies/3",
       "@type": "Dummy",
-      "id": 4,
+      "id": 3,
       "name": "plop",
       "alias": null,
       "foo": null,
