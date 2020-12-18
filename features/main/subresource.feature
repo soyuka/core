@@ -34,7 +34,7 @@ Feature: Subresource support
     When I send a "GET" request to "/questions/1/answer/related_questions"
     And the response status code should be 200
     And the response should be in JSON
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Question",
@@ -44,8 +44,8 @@ Feature: Subresource support
         {
           "@id": "/questions/1",
           "@type": "Question",
-          "id": 1,
           "content": "What's the answer to the Ultimate Question of Life, the Universe and Everything?",
+          "id": 1,
           "answer": "/answers/1"
         }
       ],
@@ -238,17 +238,17 @@ Feature: Subresource support
     And the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/ThirdLevel",
       "@id": "/third_levels/1",
       "@type": "ThirdLevel",
+      "fourthLevel": "/fourth_levels/1",
+      "badFourthLevel": null,
       "id": 1,
       "level": 3,
-      "test": true,
-      "fourthLevel": "/fourth_levels/1",
-      "badFourthLevel": null
+      "test": true
     }
     """
 
@@ -257,15 +257,15 @@ Feature: Subresource support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/FourthLevel",
       "@id": "/fourth_levels/1",
       "@type": "FourthLevel",
+      "badThirdLevel": [],
       "id": 1,
-      "level": 4,
-      "badThirdLevel": []
+      "level": 4
     }
     """
 
@@ -324,7 +324,7 @@ Feature: Subresource support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Greeting",
@@ -334,10 +334,10 @@ Feature: Subresource support
         {
           "@id": "/greetings/1",
           "@type": "Greeting",
-          "id": 1,
           "message": "hello",
           "sender": "/people/1",
-          "recipient": null
+          "recipient": null,
+          "id": 1
         }
       ],
       "hydra:totalItems": 1
@@ -351,16 +351,12 @@ Feature: Subresource support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/2",
       "@type": "Dummy",
-      "id": 2,
-      "name": "plop",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -373,7 +369,11 @@ Feature: Subresource support
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": "/related_owned_dummies/1",
-      "relatedOwningDummy": null
+      "relatedOwningDummy": null,
+      "id": 2,
+      "name": "plop",
+      "alias": null,
+      "foo": null
     }
     """
 
@@ -383,16 +383,12 @@ Feature: Subresource support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/3",
       "@type": "Dummy",
-      "id": 3,
-      "name": "plop",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -405,7 +401,11 @@ Feature: Subresource support
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": "/related_owning_dummies/1"
+      "relatedOwningDummy": "/related_owning_dummies/1",
+      "id": 3,
+      "name": "plop",
+      "alias": null,
+      "foo": null
     }
     """
 
@@ -414,16 +414,16 @@ Feature: Subresource support
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/DummyProduct",
       "@id": "/dummy_products/2",
       "@type": "DummyProduct",
-      "id": 2,
       "offers": [
         "/dummy_aggregate_offers/1"
       ],
+      "id": 2,
       "name": "Dummy product",
       "relatedProducts": [
         "/dummy_products/1"

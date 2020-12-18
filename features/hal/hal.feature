@@ -52,7 +52,7 @@ Feature: HAL support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "_links": {
@@ -68,10 +68,6 @@ Feature: HAL support
           }
         ]
       },
-      "id": 1,
-      "name": "Dummy with relations",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -80,7 +76,11 @@ Feature: HAL support
       "dummyPrice": null,
       "jsonData": [],
       "arrayData": [],
-      "name_converted": null
+      "name_converted": null,
+      "id": 1,
+      "name": "Dummy with relations",
+      "alias": null,
+      "foo": null
     }
     """
 
@@ -95,7 +95,7 @@ Feature: HAL support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "_links": {
@@ -111,10 +111,6 @@ Feature: HAL support
           }
         ]
       },
-      "id": 1,
-      "name": "A nice dummy",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -123,7 +119,11 @@ Feature: HAL support
       "dummyPrice": null,
       "jsonData": [],
       "arrayData": [],
-      "name_converted": null
+      "name_converted": null,
+      "id": 1,
+      "name": "A nice dummy",
+      "alias": null,
+      "foo": null
     }
     """
 

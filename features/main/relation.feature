@@ -13,17 +13,17 @@ Feature: Relations support
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/ThirdLevel",
       "@id": "/third_levels/1",
       "@type": "ThirdLevel",
+      "fourthLevel": null,
+      "badFourthLevel": null,
       "id": 1,
       "level": 3,
-      "test": true,
-      "fourthLevel": null,
-      "badFourthLevel": null
+      "test": true
     }
     """
 
@@ -146,16 +146,12 @@ Feature: Relations support
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
-      "id": 1,
-      "name": "Dummy with relations",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -170,7 +166,11 @@ Feature: Relations support
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null
+      "relatedOwningDummy": null,
+      "id": 1,
+      "name": "Dummy with relations",
+      "alias": null,
+      "foo": null
     }
     """
 

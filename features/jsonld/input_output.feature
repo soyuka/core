@@ -19,15 +19,15 @@ Feature: JSON-LD DTO input and output
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/DummyDtoCustom",
       "@id": "/dummy_dto_customs/1",
       "@type": "DummyDtoCustom",
-      "id": 1,
       "lorem": "test",
-      "ipsum": "1"
+      "ipsum": "1",
+      "id": 1
     }
     """
 
@@ -92,15 +92,15 @@ Feature: JSON-LD DTO input and output
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/DummyDtoOutputSameClass",
       "@id": "/dummy_dto_output_same_classes/1",
       "@type": "DummyDtoOutputSameClass",
-      "id": 1,
       "lorem": "test",
-      "ipsum": "modified"
+      "ipsum": "modified",
+      "id": 1
     }
     """
 
@@ -111,15 +111,15 @@ Feature: JSON-LD DTO input and output
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/DummyDtoOutputFallbackToSameClass",
       "@id": "/dummy_dto_output_fallback_to_same_classes/1",
       "@type": "DummyDtoOutputFallbackToSameClass",
-      "id": 1,
       "lorem": "test",
-      "ipsum": "modified"
+      "ipsum": "modified",
+      "id": 1
     }
     """
 
@@ -321,7 +321,7 @@ Feature: JSON-LD DTO input and output
     """
 
   @createSchema
-  Scenario: Initialize input data with a DataTransformerInitializer
+  Scenario: Initialize input data with a DataTransformerInitializer 
     Given there is an InitializeInput object with id 1
     When I send a "PUT" request to "/initialize_inputs/1" with body:
     """
@@ -348,7 +348,7 @@ Feature: JSON-LD DTO input and output
     """
     {
       "foo": "test",
-      "bar": "test"
+      "bar": "test" 
     }
     """
     Then the response status code should be 400

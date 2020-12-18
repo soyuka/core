@@ -14,7 +14,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -56,7 +56,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -86,7 +86,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -123,7 +123,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -158,7 +158,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -238,7 +238,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "data": {
@@ -328,67 +328,67 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
-    {
-        "data": {
-            "id": "/dummies/1",
-            "type": "Dummy",
-            "attributes": {
-                "_id": 1,
-                "name": "Dummy #1",
-                "alias": "Alias #0",
-                "foo": null,
-                "description": null,
-                "dummy": null,
-                "dummyBoolean": null,
-                "dummyDate": null,
-                "dummyFloat": null,
-                "dummyPrice": null,
-                "jsonData": [],
-                "arrayData": [],
-                "name_converted": null
-            },
-            "relationships": {
-                "relatedDummy": {
-                    "data": {
-                        "type": "RelatedDummy",
-                        "id": "/related_dummies/1"
-                    }
-                }
-            }
-        },
-        "included": [
-            {
-                "id": "/related_dummies/1",
-                "type": "RelatedDummy",
+        {
+            "data": {
+                "id": "/dummies/1",
+                "type": "Dummy",
                 "attributes": {
-                    "_id": 1,
-                    "name": "RelatedDummy #1",
-                    "symfony": "symfony",
-                    "dummyDate": null,
+                    "description": null,
+                    "dummy": null,
                     "dummyBoolean": null,
-                    "embeddedDummy": {
-                        "dummyName": null,
-                        "dummyBoolean": null,
-                        "dummyDate": null,
-                        "dummyFloat": null,
-                        "dummyPrice": null,
-                        "symfony": null
-                    },
-                    "age": null
+                    "dummyDate": null,
+                    "dummyFloat": null,
+                    "dummyPrice": null,
+                    "jsonData": [],
+                    "arrayData": [],
+                    "name_converted": null,
+                    "_id": 1,
+                    "name": "Dummy #1",
+                    "alias": "Alias #0",
+                    "foo": null
                 },
                 "relationships": {
-                    "thirdLevel": {
+                    "relatedDummy": {
                         "data": {
-                            "type": "ThirdLevel",
-                            "id": "/third_levels/1"
+                            "type": "RelatedDummy",
+                            "id": "/related_dummies/1"
                         }
                     }
                 }
-            }
-        ]
-   }
+            },
+            "included": [
+                {
+                    "id": "/related_dummies/1",
+                    "type": "RelatedDummy",
+                    "attributes": {
+                        "name": "RelatedDummy #1",
+                        "dummyDate": null,
+                        "dummyBoolean": null,
+                        "embeddedDummy": {
+                            "dummyName": null,
+                            "dummyBoolean": null,
+                            "dummyDate": null,
+                            "dummyFloat": null,
+                            "dummyPrice": null,
+                            "symfony": null
+                        },
+                        "_id": 1,
+                        "symfony": "symfony",
+                        "age": null
+                    },
+                    "relationships": {
+                        "thirdLevel": {
+                            "data": {
+                                "type": "ThirdLevel",
+                                "id": "/third_levels/1"
+                            }
+                        }
+                    }
+                }
+            ]
+       }
     """
 
   @createSchema
@@ -398,7 +398,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "links": {
@@ -510,7 +510,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "links": {
@@ -602,7 +602,7 @@ Feature: JSON API Inclusion of Related Resources
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON should be valid according to the JSON API schema
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
         "links": {

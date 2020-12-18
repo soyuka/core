@@ -24,16 +24,12 @@ Feature: Create-Retrieve-Update-Delete
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the header "Content-Location" should be equal to "/dummies/1"
     And the header "Location" should be equal to "/dummies/1"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
-      "id": 1,
-      "name": "My Dummy",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -51,7 +47,11 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null
+      "relatedOwningDummy": null,
+      "id": 1,
+      "name": "My Dummy",
+      "alias": null,
+      "foo": null
     }
     """
 
@@ -60,16 +60,12 @@ Feature: Create-Retrieve-Update-Delete
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
-      "id": 1,
-      "name": "My Dummy",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -87,7 +83,11 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null
+      "relatedOwningDummy": null,
+      "id": 1,
+      "name": "My Dummy",
+      "alias": null,
+      "foo": null
     }
     """
 
@@ -106,7 +106,7 @@ Feature: Create-Retrieve-Update-Delete
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
@@ -116,10 +116,6 @@ Feature: Create-Retrieve-Update-Delete
         {
           "@id": "/dummies/1",
           "@type": "Dummy",
-          "id": 1,
-          "name": "My Dummy",
-          "alias": null,
-          "foo": null,
           "description": null,
           "dummy": null,
           "dummyBoolean": null,
@@ -137,7 +133,11 @@ Feature: Create-Retrieve-Update-Delete
           "arrayData": [],
           "name_converted": null,
           "relatedOwnedDummy": null,
-          "relatedOwningDummy": null
+          "relatedOwningDummy": null,
+          "id": 1,
+          "name": "My Dummy",
+          "alias": null,
+          "foo": null
         }
       ],
       "hydra:totalItems": 1,
@@ -514,16 +514,12 @@ Feature: Create-Retrieve-Update-Delete
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the header "Content-Location" should be equal to "/dummies/1"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "/contexts/Dummy",
       "@id": "/dummies/1",
       "@type": "Dummy",
-      "id": 1,
-      "name": "A nice dummy",
-      "alias": null,
-      "foo": null,
       "description": null,
       "dummy": null,
       "dummyBoolean": null,
@@ -543,7 +539,11 @@ Feature: Create-Retrieve-Update-Delete
       "arrayData": [],
       "name_converted": null,
       "relatedOwnedDummy": null,
-      "relatedOwningDummy": null
+      "relatedOwningDummy": null,
+      "id": 1,
+      "name": "A nice dummy",
+      "alias": null,
+      "foo": null
     }
     """
 

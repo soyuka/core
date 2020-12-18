@@ -15,10 +15,11 @@ Feature: Content Negotiation support
     """
     Then the response status code should be 201
     And the header "Content-Type" should be equal to "application/xml; charset=utf-8"
-    And the response should be equal to
+    And the response should be in XML
+    And the XML should be equal to:
     """
     <?xml version="1.0"?>
-    <response><id>1</id><name>XML!</name><alias/><foo/><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/></response>
+    <response><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/><id>1</id><name>XML!</name><alias/><foo/></response>
     """
 
   Scenario:  Retrieve a collection in XML
@@ -26,20 +27,22 @@ Feature: Content Negotiation support
     And I send a "GET" request to "/dummies"
     Then the response status code should be 200
     And the header "Content-Type" should be equal to "application/xml; charset=utf-8"
-    And the response should be equal to
+    And the response should be in XML
+    And the XML should be equal to:
     """
     <?xml version="1.0"?>
-    <response><item key="0"><id>1</id><name>XML!</name><alias/><foo/><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/></item></response>
+    <response><item key="0"><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/><id>1</id><name>XML!</name><alias/><foo/></item></response>
     """
 
   Scenario:  Retrieve a collection in XML using the .xml URL
     When I send a "GET" request to "/dummies.xml"
     Then the response status code should be 200
     And the header "Content-Type" should be equal to "application/xml; charset=utf-8"
-    And the response should be equal to
+    And the response should be in XML
+    And the XML should be equal to:
     """
     <?xml version="1.0"?>
-    <response><item key="0"><id>1</id><name>XML!</name><alias/><foo/><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/></item></response>
+    <response><item key="0"><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/><id>1</id><name>XML!</name><alias/><foo/></item></response>
     """
 
   Scenario:  Retrieve a collection in JSON
@@ -48,14 +51,10 @@ Feature: Content Negotiation support
     Then the response status code should be 200
     And the header "Content-Type" should be equal to "application/json; charset=utf-8"
     And the response should be in JSON
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     [
       {
-        "id": 1,
-        "name": "XML!",
-        "alias": null,
-        "foo": null,
         "description": null,
         "dummy": null,
         "dummyBoolean": null,
@@ -68,7 +67,11 @@ Feature: Content Negotiation support
         "arrayData": [],
         "name_converted": null,
 	      "relatedOwnedDummy": null,
-	      "relatedOwningDummy": null
+	      "relatedOwningDummy": null,
+        "id": 1,
+        "name": "XML!",
+        "alias": null,
+        "foo": null
       }
     ]
     """
@@ -82,10 +85,11 @@ Feature: Content Negotiation support
     """
     Then the response status code should be 201
     And the header "Content-Type" should be equal to "application/xml; charset=utf-8"
-    And the response should be equal to
+    And the response should be in XML
+    And the XML should be equal to:
     """
     <?xml version="1.0"?>
-    <response><id>2</id><name>Sent in JSON</name><alias/><foo/><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/></response>
+    <response><description/><dummy/><dummyBoolean/><dummyDate/><dummyFloat/><dummyPrice/><relatedDummy/><relatedDummies/><jsonData/><arrayData/><name_converted/><relatedOwnedDummy/><relatedOwningDummy/><id>2</id><name>Sent in JSON</name><alias/><foo/></response>
     """
 
   Scenario: Requesting the same format in the Accept header and in the URL should work
@@ -134,7 +138,8 @@ Feature: Content Negotiation support
     """
     Then the response status code should be 201
     And the header "Content-Type" should be equal to "application/xml; charset=utf-8"
-    And the response should be equal to
+    And the response should be in XML
+    And the XML should be equal to:
     """
     <?xml version="1.0"?>
     <response><id>1</id><name>Kevin</name></response>

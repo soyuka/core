@@ -8,7 +8,7 @@ Feature: IRI should contain network path
     And I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/json"
     And I send a "GET" request to "/network_path_dummies"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "//example.com/contexts/NetworkPathDummy",
@@ -18,8 +18,8 @@ Feature: IRI should contain network path
         {
           "@id": "//example.com/network_path_dummies/1",
           "@type": "NetworkPathDummy",
-          "id": 1,
-          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
+          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
+          "id": 1
         }
       ],
       "hydra:totalItems": 1
@@ -37,14 +37,14 @@ Feature: IRI should contain network path
     }
     """
     Then the response status code should be 201
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "//example.com/contexts/NetworkPathRelationDummy",
       "@id": "//example.com/network_path_relation_dummies/2",
       "@type": "NetworkPathRelationDummy",
-      "id": 2,
-      "networkPathDummies": []
+      "networkPathDummies": [],
+      "id": 2
     }
     """
 
@@ -52,14 +52,14 @@ Feature: IRI should contain network path
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/json"
     And I send a "GET" request to "/network_path_dummies/1"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "//example.com/contexts/NetworkPathDummy",
       "@id": "//example.com/network_path_dummies/1",
       "@type": "NetworkPathDummy",
-      "id": 1,
-      "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
+      "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
+      "id": 1
     }
     """
 
@@ -67,7 +67,7 @@ Feature: IRI should contain network path
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/json"
     And I send a "GET" request to "/network_path_relation_dummies/1/network_path_dummies"
-    And the JSON should be deep equal to:
+    And the JSON should be equal to:
     """
     {
       "@context": "//example.com/contexts/NetworkPathDummy",
@@ -77,8 +77,8 @@ Feature: IRI should contain network path
         {
           "@id": "//example.com/network_path_dummies/1",
           "@type": "NetworkPathDummy",
-          "id": 1,
-          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1"
+          "networkPathRelationDummy": "//example.com/network_path_relation_dummies/1",
+          "id": 1
         }
       ],
       "hydra:totalItems": 1

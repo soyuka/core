@@ -27,25 +27,20 @@ final class JsonContext extends BaseJsonContext
         parent::__construct($httpCallResultPool);
     }
 
-    /**
-     * @Then /^the JSON should be deep equal to:$/
-     */
-    public function theJsonShouldBeDeepEqualTo(PyStringNode $content)
+    public function theJsonShouldBeEqualTo(PyStringNode $content): void
     {
         $actual = $this->getJson();
+
         try {
             $expected = new Json($content);
         } catch (\Exception $e) {
             throw new \Exception('The expected JSON is not a valid');
         }
 
-        $actual = new Json(json_encode($this->sortArrays($actual->getContent())));
-        $expected = new Json(json_encode($this->sortArrays($expected->getContent())));
-
-        $this->assertSame(
-            (string) $expected,
-            (string) $actual,
-            "The json is equal to:\n".$actual->encode()
+        $this->assertEquals(
+            $expected->getContent(),
+            $actual->getContent(),
+            "The json is equal to:\n{$actual->encode()}"
         );
     }
 
@@ -58,26 +53,5 @@ final class JsonContext extends BaseJsonContext
         $subset = json_decode($content->getRaw(), true);
 
         method_exists(Assert::class, 'assertArraySubset') ? Assert::assertArraySubset($subset, $array) : ApiTestCase::assertArraySubset($subset, $array); // @phpstan-ignore-line Compatibility with PHPUnit 7
-    }
-
-    private function sortArrays($obj)
-    {
-        $isObject = \is_object($obj);
-
-        foreach ($obj as $key => $value) {
-            if (null === $value || is_scalar($value)) {
-                continue;
-            }
-
-            if (\is_array($value)) {
-                sort($value);
-            }
-
-            $value = $this->sortArrays($value);
-
-            $isObject ? $obj->{$key} = $value : $obj[$key] = $value;
-        }
-
-        return $obj;
     }
 }
