@@ -34,6 +34,7 @@ class RelatedDummy extends ParentDummy
 {
     /**
      * @ApiProperty(writable=false)
+     * @ApiSubresource
      * @ODM\Id(strategy="INCREMENT", type="integer")
      * @Groups({"chicago", "friends"})
      */
