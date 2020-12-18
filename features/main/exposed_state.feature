@@ -21,8 +21,8 @@ Feature: Expose persisted object state
       "@context": "/contexts/TruncatedDummy",
       "@id": "/truncated_dummies/1",
       "@type": "TruncatedDummy",
-      "value": "20.3",
-      "id": 1
+      "id": 1,
+      "value": "20.3"
     }
     """
 
@@ -42,7 +42,7 @@ Feature: Expose persisted object state
       "@context": "/contexts/TruncatedDummy",
       "@id": "/truncated_dummies/1",
       "@type": "TruncatedDummy",
-      "value": "42.4",
-      "id": 1
+      "id": 1,
+      "value": "42.4"
     }
     """

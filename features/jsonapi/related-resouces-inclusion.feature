@@ -330,65 +330,65 @@ Feature: JSON API Inclusion of Related Resources
     And the JSON should be valid according to the JSON API schema
     And the JSON should be deep equal to:
     """
-        {
-            "data": {
-                "id": "/dummies/1",
-                "type": "Dummy",
+    {
+        "data": {
+            "id": "/dummies/1",
+            "type": "Dummy",
+            "attributes": {
+                "_id": 1,
+                "name": "Dummy #1",
+                "alias": "Alias #0",
+                "foo": null,
+                "description": null,
+                "dummy": null,
+                "dummyBoolean": null,
+                "dummyDate": null,
+                "dummyFloat": null,
+                "dummyPrice": null,
+                "jsonData": [],
+                "arrayData": [],
+                "name_converted": null
+            },
+            "relationships": {
+                "relatedDummy": {
+                    "data": {
+                        "type": "RelatedDummy",
+                        "id": "/related_dummies/1"
+                    }
+                }
+            }
+        },
+        "included": [
+            {
+                "id": "/related_dummies/1",
+                "type": "RelatedDummy",
                 "attributes": {
                     "_id": 1,
-                    "name": "Dummy #1",
-                    "alias": "Alias #0",
-                    "foo": null,
-                    "description": null,
-                    "dummy": null,
-                    "dummyBoolean": null,
+                    "name": "RelatedDummy #1",
+                    "symfony": "symfony",
                     "dummyDate": null,
-                    "dummyFloat": null,
-                    "dummyPrice": null,
-                    "jsonData": [],
-                    "arrayData": [],
-                    "name_converted": null
+                    "dummyBoolean": null,
+                    "embeddedDummy": {
+                        "dummyName": null,
+                        "dummyBoolean": null,
+                        "dummyDate": null,
+                        "dummyFloat": null,
+                        "dummyPrice": null,
+                        "symfony": null
+                    },
+                    "age": null
                 },
                 "relationships": {
-                    "relatedDummy": {
+                    "thirdLevel": {
                         "data": {
-                            "type": "RelatedDummy",
-                            "id": "/related_dummies/1"
+                            "type": "ThirdLevel",
+                            "id": "/third_levels/1"
                         }
                     }
                 }
-            },
-            "included": [
-                {
-                    "id": "/related_dummies/1",
-                    "type": "RelatedDummy",
-                    "attributes": {
-                        "_id": 1,
-                        "name": "RelatedDummy #1",
-                        "symfony": "symfony",
-                        "dummyDate": null,
-                        "dummyBoolean": null,
-                        "embeddedDummy": {
-                            "dummyName": null,
-                            "dummyBoolean": null,
-                            "dummyDate": null,
-                            "dummyFloat": null,
-                            "dummyPrice": null,
-                            "symfony": null
-                        },
-                        "age": null
-                    },
-                    "relationships": {
-                        "thirdLevel": {
-                            "data": {
-                                "type": "ThirdLevel",
-                                "id": "/third_levels/1"
-                            }
-                        }
-                    }
-                }
-            ]
-       }
+            }
+        ]
+   }
     """
 
   @createSchema

@@ -13,7 +13,7 @@ Feature: Relations support
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "/contexts/ThirdLevel",
@@ -146,7 +146,7 @@ Feature: Relations support
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "/contexts/Dummy",

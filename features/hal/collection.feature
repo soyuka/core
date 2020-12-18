@@ -32,7 +32,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -136,7 +136,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -243,7 +243,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -302,7 +302,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -463,7 +463,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -524,7 +524,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {
@@ -573,7 +573,7 @@ Feature: HAL Collections support
     And the response should be in JSON
     And the JSON should be valid according to the JSON HAL schema
     And the header "Content-Type" should be equal to "application/hal+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "_links": {

@@ -7,7 +7,7 @@ Feature: IRI should contain Absolute URL
     Given there are 1 absoluteUrlDummy objects with a related absoluteUrlRelationDummy
     And I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to "/absolute_url_dummies"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "http://example.com/contexts/AbsoluteUrlDummy",
@@ -36,7 +36,7 @@ Feature: IRI should contain Absolute URL
     }
     """
     Then the response status code should be 201
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "http://example.com/contexts/AbsoluteUrlRelationDummy",
@@ -50,7 +50,7 @@ Feature: IRI should contain Absolute URL
   Scenario: I should be able to GET an Item with Absolute Urls
     Given I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to "/absolute_url_dummies/1"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "http://example.com/contexts/AbsoluteUrlDummy",
@@ -64,7 +64,7 @@ Feature: IRI should contain Absolute URL
   Scenario: I should be able to GET subresources with Absolute Urls
     Given I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to "/absolute_url_relation_dummies/1/absolute_url_dummies"
-    And the JSON should be equal to:
+    And the JSON should be deep equal to:
     """
     {
       "@context": "http://example.com/contexts/AbsoluteUrlDummy",
