@@ -56,8 +56,6 @@ class OpenApiCommandTest extends KernelTestCase
         $this->assertYaml($result);
 
         $expected = <<<YAML
-  /dummy_cars:
-    get:
       operationId: getDummyCarCollection
       tags:
         - DummyCar
@@ -66,8 +64,6 @@ YAML;
         $this->assertStringContainsString(str_replace(\PHP_EOL, "\n", $expected), $result, 'nested object should be present.');
 
         $expected = <<<YAML
-  '/dummy_cars/{id}':
-    get:
       operationId: getDummyCarItem
       tags: []
 YAML;

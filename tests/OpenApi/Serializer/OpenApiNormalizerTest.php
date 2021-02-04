@@ -37,11 +37,12 @@ use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 
 class OpenApiNormalizerTest extends TestCase
 {
@@ -157,13 +158,16 @@ class OpenApiNormalizerTest extends TestCase
         $openApi = $openApi->withExtensionProperty('key', 'Custom x-key value');
         $openApi = $openApi->withExtensionProperty('x-value', 'Custom x-value value');
 
+        $reflectionExtractor = new ReflectionExtractor();
+        $propertyInfo = new PropertyInfoExtractor(
+            [$reflectionExtractor],
+            [$reflectionExtractor],
+            [],
+            [$reflectionExtractor],
+            [$reflectionExtractor]
+        );
         $encoders = [new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer()];
-
-        $serializer = new Serializer($normalizers, $encoders);
-        $normalizers[0]->setSerializer($serializer);
-
-        $normalizer = new OpenApiNormalizer($normalizers[0]);
+        $normalizer = new OpenApiNormalizer(PropertyAccess::createPropertyAccessor(), $propertyInfo);
 
         $openApiAsArray = $normalizer->normalize($openApi);
 
@@ -185,5 +189,7 @@ class OpenApiNormalizerTest extends TestCase
 
         // Make sure things are sorted
         $this->assertEquals(array_keys($openApiAsArray['paths']), ['/dummies', '/dummies/{id}', '/zorros', '/zorros/{id}']);
+        // Test name converter doesn't rename this property
+        $this->assertArrayHasKey('requestBody', $openApiAsArray['paths']['/dummies']['post']);
     }
 }

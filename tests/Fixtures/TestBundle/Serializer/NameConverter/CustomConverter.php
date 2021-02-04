@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Serializer\NameConverter;
 
+use LogicException;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
@@ -23,6 +24,11 @@ class CustomConverter extends CamelCaseToSnakeCaseNameConverter
 {
     public function normalize($propertyName)
     {
+        // OpenApi test, this should never be called
+        if ('extensionProperties' === $propertyName) {
+            throw new LogicException('OpenApi is not using the name converter.');
+        }
+
         return 'nameConverted' === $propertyName ? parent::normalize($propertyName) : $propertyName;
     }
 

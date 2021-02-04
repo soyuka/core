@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\OpenApi\Serializer;
 
+use ApiPlatform\Core\OpenApi\Model\Paths;
 use ApiPlatform\Core\OpenApi\OpenApi;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -26,11 +28,13 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
     public const FORMAT = 'json';
     private const EXTENSION_PROPERTIES_KEY = 'extensionProperties';
 
-    private $decorated;
+    private $propertyAccessor;
+    private $propertyInfo;
 
-    public function __construct(NormalizerInterface $decorated)
+    public function __construct(PropertyAccessorInterface $propertyAccessor, PropertyInfoExtractorInterface $propertyInfo)
     {
-        $this->decorated = $decorated;
+        $this->propertyAccessor = $propertyAccessor;
+        $this->propertyInfo = $propertyInfo;
     }
 
     /**
@@ -38,47 +42,59 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
      */
     public function normalize($object, $format = null, array $context = []): array
     {
-        $context[AbstractObjectNormalizer::PRESERVE_EMPTY_OBJECTS] = true;
-        $context[AbstractObjectNormalizer::SKIP_NULL_VALUES] = true;
-
-        return $this->recursiveClean($this->decorated->normalize($object, $format, $context));
+        return $this->objectToArray($object);
     }
 
-    private function recursiveClean($data): array
+    private function objectToArray($object)
     {
-        foreach ($data as $key => $value) {
-            if (self::EXTENSION_PROPERTIES_KEY === $key) {
-                foreach ($data[self::EXTENSION_PROPERTIES_KEY] as $extensionPropertyKey => $extensionPropertyValue) {
-                    $data[$extensionPropertyKey] = $extensionPropertyValue;
-                }
-                continue;
-            }
-
-            if ('schemas' === $key) {
-                if ($value) {
-                    ksort($value);
-                }
-            }
-
-            // Side effect of using getPaths(): Paths which itself contains the array
-            if ('paths' === $key) {
-                $value = $data['paths'] = $data['paths']['paths'];
-                if ($value) {
-                    ksort($value);
-                }
-                unset($data['paths']['paths']);
-            }
-
-            if (\is_array($value)) {
-                $data[$key] = $this->recursiveClean($value);
-                // arrays must stay even if empty
-                continue;
-            }
+        if (!\is_object($object)) {
+            return $object;
         }
 
-        unset($data[self::EXTENSION_PROPERTIES_KEY]);
+        if ($object instanceof Paths) {
+            $paths = $object->getPaths();
+            ksort($paths);
 
-        return $data;
+            return array_map([$this, 'objectToArray'], $paths);
+        }
+
+        if ($object instanceof \ArrayObject) {
+            return array_map([$this, 'objectToArray'], $object->getArrayCopy());
+        }
+
+        $array = [];
+        foreach ($this->propertyInfo->getProperties(\get_class($object)) as $property) {
+            $value = $this->propertyAccessor->getValue($object, $property);
+
+            if (\is_object($value)) {
+                $array[$property] = $this->objectToArray($value);
+                continue;
+            }
+
+            if (self::EXTENSION_PROPERTIES_KEY === $property) {
+                foreach ($value as $extensionPropertyKey => $extensionPropertyValue) {
+                    $array[$extensionPropertyKey] = $extensionPropertyValue;
+                }
+                continue;
+            }
+
+            if (is_iterable($value)) {
+                $array[$property] = [];
+
+                foreach ($value as $key => $v) {
+                    $array[$property][$key] = $this->objectToArray($v);
+                }
+                continue;
+            }
+
+            if (null === $value) {
+                continue;
+            }
+
+            $array[$property] = $value;
+        }
+
+        return $array;
     }
 
     /**
