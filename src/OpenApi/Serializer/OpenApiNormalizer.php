@@ -15,7 +15,10 @@ namespace ApiPlatform\Core\OpenApi\Serializer;
 
 use ApiPlatform\Core\OpenApi\Model\Paths;
 use ApiPlatform\Core\OpenApi\OpenApi;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -31,9 +34,27 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
     private $propertyAccessor;
     private $propertyInfo;
 
-    public function __construct(PropertyAccessorInterface $propertyAccessor, PropertyInfoExtractorInterface $propertyInfo)
+    public function __construct($propertyAccessor, PropertyInfoExtractorInterface $propertyInfo = null)
     {
+        if (!$propertyAccessor instanceof PropertyAccessorInterface) {
+            @trigger_error('Using a Normalizer is deprecated since 2.6.2 and will not be possible anymore in 3.0', \E_USER_DEPRECATED);
+            $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        }
+
         $this->propertyAccessor = $propertyAccessor;
+
+        if (null === $propertyInfo) {
+            @trigger_error('Not using PropertyInfo is deprecated since 2.6.2 and will not be possible anymore in 3.0', \E_USER_DEPRECATED);
+            $reflectionExtractor = new ReflectionExtractor();
+            $propertyInfo = new PropertyInfoExtractor(
+                [$reflectionExtractor],
+                [$reflectionExtractor],
+                [],
+                [$reflectionExtractor],
+                [$reflectionExtractor]
+            );
+        }
+
         $this->propertyInfo = $propertyInfo;
     }
 

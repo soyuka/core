@@ -27,6 +27,7 @@ use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\OpenApi\Model;
+use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
 use ApiPlatform\Core\OpenApi\Serializer\OpenApiNormalizer;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
@@ -43,6 +44,7 @@ use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class OpenApiNormalizerTest extends TestCase
 {
@@ -50,6 +52,17 @@ class OpenApiNormalizerTest extends TestCase
         'input_formats' => ['jsonld' => ['application/ld+json']],
         'output_formats' => ['jsonld' => ['application/ld+json']],
     ];
+
+    /**
+     * @group legacy
+     * @expectedDeprecation Using a Normalizer is deprecated since 2.6.2 and will not be possible anymore in 3.0
+     * @expectedDeprecation Not using PropertyInfo is deprecated since 2.6.2 and will not be possible anymore in 3.0
+     */
+    public function testNormalizeLegacy()
+    {
+        $normalizer = new OpenApiNormalizer(new ObjectNormalizer());
+        $openApiAsArray = $normalizer->normalize(new OpenApi(new Model\Info('test', 'v1'), [], new Model\Paths()));
+    }
 
     public function testNormalize()
     {

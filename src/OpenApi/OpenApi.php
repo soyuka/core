@@ -66,7 +66,7 @@ final class OpenApi implements DocumentationInterface
         return $this->paths;
     }
 
-    public function getComponents(): Components
+    public function getComponents(): ?Components
     {
         return $this->components;
     }
