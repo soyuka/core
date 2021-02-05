@@ -63,10 +63,19 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
      */
     public function normalize($object, $format = null, array $context = []): array
     {
-        return $this->objectToArray($object);
+        $array = $this->recursiveTransform($object);
+        if (isset($array['components']['schemas'])) {
+            ksort($array['components']['schemas']);
+        }
+
+        return $array;
     }
 
-    private function objectToArray($object)
+    /**
+     * Transforms the OpenApi object recursively
+     * Nulls are removed, empty object must be kept, paths are sorted.
+     */
+    private function recursiveTransform($object)
     {
         if (!\is_object($object)) {
             return $object;
@@ -76,7 +85,7 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
             $paths = $object->getPaths();
             ksort($paths);
 
-            return array_map([$this, 'objectToArray'], $paths);
+            return array_map([$this, 'recursiveTransform'], $paths);
         }
 
         if ($object instanceof \ArrayObject) {
@@ -84,7 +93,7 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
                 return $object;
             }
 
-            return array_map([$this, 'objectToArray'], $object->getArrayCopy());
+            return array_map([$this, 'recursiveTransform'], $object->getArrayCopy());
         }
 
         $array = [];
@@ -92,7 +101,7 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
             $value = $this->propertyAccessor->getValue($object, $property);
 
             if (\is_object($value)) {
-                $array[$property] = $this->objectToArray($value);
+                $array[$property] = $this->recursiveTransform($value);
                 continue;
             }
 
@@ -107,7 +116,7 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
                 $array[$property] = [];
 
                 foreach ($value as $key => $v) {
-                    $array[$property][$key] = $this->objectToArray($v);
+                    $array[$property][$key] = $this->recursiveTransform($v);
                 }
                 continue;
             }
