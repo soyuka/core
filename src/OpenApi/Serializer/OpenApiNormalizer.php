@@ -59,6 +59,10 @@ final class OpenApiNormalizer implements NormalizerInterface, CacheableSupportsM
         }
 
         if ($object instanceof \ArrayObject) {
+            if (0 === $object->count()) {
+                return $object;
+            }
+
             return array_map([$this, 'objectToArray'], $object->getArrayCopy());
         }
 
