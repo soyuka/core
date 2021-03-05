@@ -21,10 +21,17 @@ namespace ApiPlatform\Core\Attributes;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class Resource
 {
+    public Operation[] $operations;
+
+    uriTemplate => génére URI pour les operations /users/{id} 
+    rdfTypes => IRI en ce moment, reosurces, types et propriétés en array 
+
+    // utiliser un trait pour ca
+    
     public array $extraProperties;
 
     /**
-     * @param string       $path
+     * @param string       $iri
      * @param string       $method
      * @param string       $description
      * @param array        $cacheHeaders                   https://api-platform.com/docs/core/performance/#setting-custom-http-cache-headers
@@ -65,7 +72,7 @@ class Resource
      */
     public function __construct(
         public ?string $method = null,
-        public ?string $path = null,
+        public ?string $uri = null,
         public ?string $description = null,
         public ?string $iri = null,
         public ?string $shortName = null,

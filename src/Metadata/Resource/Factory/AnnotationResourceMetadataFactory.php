@@ -41,7 +41,7 @@ final class AnnotationResourceMetadataFactory implements ResourceMetadataFactory
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass)
     {
         $parentResourceMetadata = null;
         if ($this->decorated) {
@@ -123,10 +123,10 @@ final class AnnotationResourceMetadataFactory implements ResourceMetadataFactory
                 $annotation->shortName,
                 $annotation->description ?? $this->defaults['description'] ?? null,
                 $annotation->iri ?? $this->defaults['iri'] ?? null,
-                $annotation->itemOperations ?? $this->defaults['item_operations'] ?? null,
-                $annotation->collectionOperations ?? $this->defaults['collection_operations'] ?? null,
+                // $annotation->itemOperations ?? $this->defaults['item_operations'] ?? null,
+                // $annotation->collectionOperations ?? $this->defaults['collection_operations'] ?? null,
                 $attributes,
-                $annotation->subresourceOperations,
+                // $annotation->subresourceOperations,
                 $annotation->graphql ?? $this->defaults['graphql'] ?? null
             );
         }
