@@ -93,6 +93,7 @@ final class ApiLoader extends Loader
 
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+            dd($resourceMetadata);
             $resourceShortName = $resourceMetadata->getShortName();
 
             if (null === $resourceShortName) {
