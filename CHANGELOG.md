@@ -24,6 +24,7 @@
 * OpenAPI: Fix `Link->requestBody` default value (#4116)
 * GraphQL: Fix "Resource class cannot be determined." error when a null iterable field is returned (#4092)
 * Metadata: Check the output class when calculating serializer groups (#3696)
+* OpenAPI: Using an implicit flow is now valid, changes oauth configuration default values (#4115)
 
 ## 2.6.2
 
