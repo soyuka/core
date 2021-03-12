@@ -13,20 +13,22 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 
-/**
- * Creates a resource metadata value object.
- *
- * @author Kévin Dunglas <dunglas@gmail.com>
- */
-interface ResourceMetadataFactoryInterface
+trait ResourceMetadataFactoryCompatibilityTrait 
 {
     /**
-     * Creates a resource metadata.
-     *
-     * @throws ResourceClassNotFoundException
+     * @param array|ResourceMetadata $resourceMetadata
+     * @return ResourceMetadata[]
      */
-    public function create(string $resourceClass);
+    public function getMetadataAsArray($resourceMetadata): array
+    {
+        if (!is_array($resourceMetadata)) {
+            // deprecation
+            return [$resourceMetadata];
+        }
+
+        return $resourceMetadata;
+    }
+
 }

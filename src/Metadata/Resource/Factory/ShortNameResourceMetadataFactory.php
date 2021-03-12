@@ -20,8 +20,10 @@ use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class ShortNameResourceMetadataFactory implements ResourceMetadataFactoryInterface
+final class ShortNameResourceMetadataFactory implements ResourceCollectionMetadataFactoryInterface 
 {
+    use ResourceMetadataFactoryCompatibilityTrait;
+
     private $decorated;
 
     public function __construct(ResourceMetadataFactoryInterface $decorated)
@@ -32,18 +34,23 @@ final class ShortNameResourceMetadataFactory implements ResourceMetadataFactoryI
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): array
     {
-        $resourceMetadata = $this->decorated->create($resourceClass);
+        $resourceMetadataCollection = $this->getMetadataAsArray($this->decorated->create($resourceClass));
 
-        if (null !== $resourceMetadata->getShortName()) {
-            return $resourceMetadata;
+        foreach ($resourceMetadataCollection as $key => $resourceMetadata) {
+            if (null !== $resourceMetadata->getShortName()) {
+                continue;
+            }
+
+            if (false !== $pos = strrpos($resourceClass, '\\')) {
+                $resourceMetadataCollection[$key] = $resourceMetadata->withShortName(substr($resourceClass, $pos + 1));
+                continue;
+            }
+
+            $resourceMetadataCollection[$key] = $resourceMetadata->withShortName($resourceClass);
         }
 
-        if (false !== $pos = strrpos($resourceClass, '\\')) {
-            return $resourceMetadata->withShortName(substr($resourceClass, $pos + 1));
-        }
-
-        return $resourceMetadata->withShortName($resourceClass);
+        return $resourceMetadataCollection;
     }
 }

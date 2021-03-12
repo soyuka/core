@@ -23,8 +23,10 @@ use phpDocumentor\Reflection\Types\ContextFactory;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class PhpDocResourceMetadataFactory implements ResourceMetadataFactoryInterface
+final class PhpDocResourceMetadataFactory implements ResourceCollectionMetadataFactoryInterface
 {
+    use ResourceMetadataFactoryCompatibilityTrait;
+
     private $decorated;
     private $docBlockFactory;
     private $contextFactory;
@@ -39,23 +41,25 @@ final class PhpDocResourceMetadataFactory implements ResourceMetadataFactoryInte
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): array
     {
-        $resourceMetadata = $this->decorated->create($resourceClass);
+        $resourceMetadataCollection = $this->getMetadataAsArray($this->decorated->create($resourceClass));
 
-        if (null !== $resourceMetadata->getDescription()) {
-            return $resourceMetadata;
+        foreach ($resourceMetadataCollection as $key => $resourceMetadata) {
+            if (null !== $resourceMetadata->getDescription()) {
+                continue;
+            }
+
+            $reflectionClass = new \ReflectionClass($resourceClass);
+
+            try {
+                $docBlock = $this->docBlockFactory->create($reflectionClass, $this->contextFactory->createFromReflector($reflectionClass));
+                $resourceMetadataCollection[$key] = $resourceMetadata->withDescription($docBlock->getSummary());
+            } catch (\InvalidArgumentException $e) {
+                // Ignore empty DocBlocks
+            }
         }
 
-        $reflectionClass = new \ReflectionClass($resourceClass);
-
-        try {
-            $docBlock = $this->docBlockFactory->create($reflectionClass, $this->contextFactory->createFromReflector($reflectionClass));
-            $resourceMetadata = $resourceMetadata->withDescription($docBlock->getSummary());
-        } catch (\InvalidArgumentException $e) {
-            // Ignore empty DocBlocks
-        }
-
-        return $resourceMetadata;
+        return $resourceMetadataCollection;
     }
 }

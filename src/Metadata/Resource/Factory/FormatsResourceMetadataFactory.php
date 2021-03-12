@@ -28,7 +28,7 @@ use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class FormatsResourceMetadataFactory implements ResourceMetadataFactoryInterface
+final class FormatsResourceMetadataFactory implements ResourceCollectionMetadataFactoryInterface
 {
     private $decorated;
     private $formats;
@@ -48,7 +48,7 @@ final class FormatsResourceMetadataFactory implements ResourceMetadataFactoryInt
      *
      * @throws ResourceClassNotFoundException
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): array
     {
         $resourceMetadata = $this->decorated->create($resourceClass);
         $rawResourceFormats = $resourceMetadata->getAttribute('formats');

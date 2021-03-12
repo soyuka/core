@@ -21,12 +21,14 @@ use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-interface ResourceMetadataFactoryInterface
+interface ResourceCollectionMetadataFactoryInterface extends ResourceMetadataFactoryInterface
 {
     /**
      * Creates a resource metadata.
      *
      * @throws ResourceClassNotFoundException
+     *
+     * @return ResourceMetadata[]
      */
-    public function create(string $resourceClass);
+    public function create(string $resourceClass): array;
 }

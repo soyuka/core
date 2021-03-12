@@ -20,8 +20,10 @@ use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
  *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
-final class InputOutputResourceMetadataFactory implements ResourceMetadataFactoryInterface
+final class InputOutputResourceMetadataFactory implements ResourceCollectionMetadataFactoryInterface
 {
+    use ResourceMetadataFactoryCompatibilityTrait;
+
     private $decorated;
 
     public function __construct(ResourceMetadataFactoryInterface $decorated)
@@ -32,27 +34,25 @@ final class InputOutputResourceMetadataFactory implements ResourceMetadataFactor
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass): array
     {
-        $resourceMetadata = $this->decorated->create($resourceClass);
+        $resourceMetadataCollection = $this->getMetadataAsArray($this->decorated->create($resourceClass));
 
-        $attributes = $resourceMetadata->getAttributes() ?: [];
-        $attributes['input'] = isset($attributes['input']) ? $this->transformInputOutput($attributes['input']) : null;
-        $attributes['output'] = isset($attributes['output']) ? $this->transformInputOutput($attributes['output']) : null;
+        foreach ($resourceMetadataCollection as $key => $resourceMetadata) {
+            $extraProperties = $resourceMetadata->getExtraProperties() ?: [];
+            $extraProperties['input'] = isset($extraProperties['input']) ? $this->transformInputOutput($extraProperties['input']) : null;
+            $extraProperties['output'] = isset($extraProperties['output']) ? $this->transformInputOutput($extraProperties['output']) : null;
 
-        if (null !== $collectionOperations = $resourceMetadata->getCollectionOperations()) {
-            $resourceMetadata = $resourceMetadata->withCollectionOperations($this->getTransformedOperations($collectionOperations, $attributes));
+            $resourceMetadata = $resourceMetadata->withOperations($this->getTransformedOperations($resourceMetadata->getOperations(), $extraProperties));
+
+            if (null !== $graphQlAttributes = $resourceMetadata->getGraphql()) {
+                $resourceMetadata = $resourceMetadata->withGraphql($this->getTransformedOperations($graphQlAttributes, $extraProperties));
+            }
+
+            $resourceMetadataCollection[$key] = $resourceMetadata->withExtraProperties($extraProperties);
         }
 
-        if (null !== $itemOperations = $resourceMetadata->getItemOperations()) {
-            $resourceMetadata = $resourceMetadata->withItemOperations($this->getTransformedOperations($itemOperations, $attributes));
-        }
-
-        if (null !== $graphQlAttributes = $resourceMetadata->getGraphql()) {
-            $resourceMetadata = $resourceMetadata->withGraphql($this->getTransformedOperations($graphQlAttributes, $attributes));
-        }
-
-        return $resourceMetadata->withAttributes($attributes);
+        return $resourceMetadataCollection;
     }
 
     private function getTransformedOperations(array $operations, array $resourceAttributes): array

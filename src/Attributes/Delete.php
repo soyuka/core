@@ -19,9 +19,9 @@ namespace ApiPlatform\Core\Attributes;
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-class Get extends Resource
+class Delete extends Resource
 {
     public function __construct(...$values) {
-        parent::__construct("GET", ...$values);
+        parent::__construct("DELETE", ...$values);
     }
 }

@@ -24,23 +24,36 @@ final class ResourceMetadata
 {
     private $shortName;
     private $description;
-    private $iri;
+
+    // deprecate these
+    private $iri; // renamed rdfTypes
     private $itemOperations;
     private $collectionOperations;
     private $subresourceOperations;
-    private $graphql;
+    // rename as extraProperties
     private $attributes;
+    private $graphql;
+
+    private array $rdfTypes;
+    private array $operations;
+    private array $extraProperties;
 
     public function __construct(string $shortName = null, string $description = null, string $iri = null, array $itemOperations = null, array $collectionOperations = null, array $attributes = null, array $subresourceOperations = null, array $graphql = null)
     {
         $this->shortName = $shortName;
         $this->description = $description;
         $this->iri = $iri;
+        $this->rdfTypes = [$iri];
+
         $this->itemOperations = $itemOperations;
         $this->collectionOperations = $collectionOperations;
         $this->subresourceOperations = $subresourceOperations;
+
         $this->graphql = $graphql;
+
         $this->attributes = $attributes;
+        $this->extraProperties = $attributes;
+        $this->operations = array_merge($itemOperations, $collectionOperations, $subresourceOperations);
     }
 
     /**
@@ -84,8 +97,54 @@ final class ResourceMetadata
     /**
      * Gets the associated IRI.
      */
+    public function getRdfTypes(): array
+    {
+        return $this->rdfTypes;
+    }
+
+    /**
+     * Returns a new instance with the given IRI.
+     */
+    public function withRdfTypes(array $rdfTypes): self
+    {
+        $metadata = clone $this;
+        $metadata->rdfTypes = $rdfTypes;
+
+        return $metadata;
+    }
+
+    public function getExtraProperties(): array
+    {
+        return $this->extraProperties;
+    }
+
+    public function withExtraProperties(array $extraProperties): self
+    {
+        $metadata = clone $this;
+        $metadata->extraProperties = $extraProperties;
+
+        return $metadata;
+    }
+
+    public function getOperations(): array
+    {
+        return $this->operations;
+    }
+
+    public function withOperations(array $operations): self
+    {
+        $metadata = clone $this;
+        $metadata->operations = $operations;
+
+        return $metadata;
+    }
+
+    /**
+     * Gets the associated IRI.
+     */
     public function getIri(): ?string
     {
+        @trigger_error('iri is deprecated, use rdfTypes instead', E_USER_DEPRECATED);
         return $this->iri;
     }
 
@@ -105,6 +164,7 @@ final class ResourceMetadata
      */
     public function getItemOperations(): ?array
     {
+        @trigger_error('item operations is deprecated, use operations instead', E_USER_DEPRECATED);
         return $this->itemOperations;
     }
 
@@ -124,6 +184,7 @@ final class ResourceMetadata
      */
     public function getCollectionOperations(): ?array
     {
+        @trigger_error('collection operations is deprecated, use operations instead', E_USER_DEPRECATED);
         return $this->collectionOperations;
     }
 
@@ -143,6 +204,7 @@ final class ResourceMetadata
      */
     public function getSubresourceOperations(): ?array
     {
+        @trigger_error('subresource operations is deprecated, use operations instead', E_USER_DEPRECATED);
         return $this->subresourceOperations;
     }
 
@@ -157,6 +219,19 @@ final class ResourceMetadata
         return $metadata;
     }
 
+    public function getOperationProperty(?string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
+    {
+        if (null !== $operationName && isset($this->operations[$operationName][$key])) {
+            return $this->operations[$operationName][$key];
+        }
+
+        if ($resourceFallback && isset($this->extraProperties[$key])) {
+            return $this->extraProperties[$key];
+        }
+
+        return $defaultValue;
+    }
+
     /**
      * Gets a collection operation attribute, optionally fallback to a resource attribute.
      *
@@ -164,6 +239,7 @@ final class ResourceMetadata
      */
     public function getCollectionOperationAttribute(?string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
     {
+        @trigger_error('collection operation attributes is deprecated, use getOperationProperty instead', E_USER_DEPRECATED);
         return $this->findOperationAttribute($this->collectionOperations, $operationName, $key, $defaultValue, $resourceFallback);
     }
 
@@ -174,6 +250,7 @@ final class ResourceMetadata
      */
     public function getItemOperationAttribute(?string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
     {
+        @trigger_error('item operation attributes is deprecated, use getOperationProperty instead', E_USER_DEPRECATED);
         return $this->findOperationAttribute($this->itemOperations, $operationName, $key, $defaultValue, $resourceFallback);
     }
 
@@ -184,9 +261,11 @@ final class ResourceMetadata
      */
     public function getSubresourceOperationAttribute(?string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
     {
+        @trigger_error('subresource operation attributes is deprecated, use getOperationProperty instead', E_USER_DEPRECATED);
         return $this->findOperationAttribute($this->subresourceOperations, $operationName, $key, $defaultValue, $resourceFallback);
     }
 
+    // TODO: deprecate this in favor of "extraProperties"
     public function getGraphqlAttribute(string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
     {
         if (isset($this->graphql[$operationName][$key])) {
@@ -233,6 +312,7 @@ final class ResourceMetadata
      */
     public function getTypedOperationAttribute(string $operationType, string $operationName, string $key, $defaultValue = null, bool $resourceFallback = false)
     {
+        // deprecate this
         switch ($operationType) {
             case OperationType::COLLECTION:
                 return $this->getCollectionOperationAttribute($operationName, $key, $defaultValue, $resourceFallback);
@@ -248,6 +328,7 @@ final class ResourceMetadata
      */
     public function getAttributes(): ?array
     {
+        @trigger_error('Attributes is deprecated use extraProperties', E_USER_DEPRECATED);
         return $this->attributes;
     }
 
@@ -258,6 +339,7 @@ final class ResourceMetadata
      */
     public function getAttribute(string $key, $defaultValue = null)
     {
+        @trigger_error('Attributes is deprecated use extraProperties', E_USER_DEPRECATED);
         return $this->attributes[$key] ?? $defaultValue;
     }
 
