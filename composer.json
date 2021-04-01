@@ -109,7 +109,8 @@
     },
     "autoload": {
         "psr-4": {
-            "ApiPlatform\\Core\\": "src/"
+            "ApiPlatform\\Core\\": "src/",
+            "ApiPlatform\\": "src/Core"
         }
     },
     "autoload-dev": {
