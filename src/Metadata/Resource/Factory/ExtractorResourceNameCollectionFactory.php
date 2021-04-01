@@ -42,9 +42,13 @@ final class ExtractorResourceNameCollectionFactory implements ResourceNameCollec
     public function create(): ResourceNameCollection
     {
         $classes = [];
+        $newClasses = [];
         if ($this->decorated) {
-            foreach ($this->decorated->create() as $resourceClass) {
+            foreach ($resourceNameCollection = $this->decorated->create() as $resourceClass) {
                 $classes[$resourceClass] = true;
+                if ($resourceNameCollection->isNewClass($resourceClass)) {
+                    $newClasses[$resourceClass] = true;
+                }
             }
         }
 
@@ -52,6 +56,6 @@ final class ExtractorResourceNameCollectionFactory implements ResourceNameCollec
             $classes[$resourceClass] = true;
         }
 
-        return new ResourceNameCollection(array_keys($classes));
+        return new ResourceNameCollection(array_keys($classes), array_keys($newClasses));
     }
 }

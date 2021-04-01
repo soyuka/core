@@ -76,7 +76,7 @@ final class ApiProperty
     /**
      * @var string
      */
-    public $iri;
+    public $iri; // todo renommer rdfTypes + en array
 
     /**
      * @var bool

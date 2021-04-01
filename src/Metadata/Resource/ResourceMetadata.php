@@ -31,7 +31,12 @@ final class ResourceMetadata
     private $graphql;
     private $attributes;
 
-    public function __construct(string $shortName = null, string $description = null, string $iri = null, array $itemOperations = null, array $collectionOperations = null, array $attributes = null, array $subresourceOperations = null, array $graphql = null)
+    private $isNewResource;
+    private $rdfTypes;
+    private $extraProperties;
+    private $operations;
+
+    public function __construct(string $shortName = null, string $description = null, string $iri = null, array $itemOperations = null, array $collectionOperations = null, array $attributes = null, array $subresourceOperations = null, array $graphql = null, array $rdfTypes = [], array $extraProperties = [], array $operations = [])
     {
         $this->shortName = $shortName;
         $this->description = $description;
@@ -41,6 +46,9 @@ final class ResourceMetadata
         $this->subresourceOperations = $subresourceOperations;
         $this->graphql = $graphql;
         $this->attributes = $attributes;
+        $this->rdfTypes = $rdfTypes;
+        $this->extraProperties = $extraProperties;
+        $this->operations = $operations;
     }
 
     /**
@@ -307,5 +315,59 @@ final class ResourceMetadata
         }
 
         return $defaultValue;
+    }
+
+    /**
+     * @internal
+     */
+    public function isNewResource(): ?bool
+    {
+        return $this->isNewResource;
+    }
+
+    public function withIsNewResource(bool $isNewResource): self
+    {
+        $metadata = clone $this;
+        $metadata->isNewResource = $isNewResource;
+        return $metadata;
+    }
+
+    public function getRdfTypes(): array
+    {
+        return $this->rdfTypes;
+    }
+
+    public function withRdfTypes(array $rdfTypes = [])
+    {
+        $metadata = clone $this;
+        $metadata->rdfTypes = $rdfTypes;
+
+        return $metadata;
+    }
+
+    public function getExtraProperties(): array
+    {
+        return $this->extraProperties;
+    }
+
+    public function withExtraProperties(array $extraProperties = [])
+    {
+        $metadata = clone $this;
+        $metadata->extraProperties = $extraProperties;
+
+        return $metadata;
+    }
+
+    public function getOperations(): array
+    {
+        return $this->operations;
+    }
+
+    public function withOperations(array $operations = [])
+    {
+        $metadata = clone $this;
+        $metadata->operations = $operations;
+
+        return $metadata;
     }
 }

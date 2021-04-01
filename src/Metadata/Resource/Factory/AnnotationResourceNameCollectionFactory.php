@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Attributes\Resource;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\Util\ReflectionClassRecursiveIterator;
 use Doctrine\Common\Annotations\Reader;
@@ -53,14 +54,18 @@ final class AnnotationResourceNameCollectionFactory implements ResourceNameColle
         }
 
         foreach (ReflectionClassRecursiveIterator::getReflectionClassesFromDirectories($this->paths) as $className => $reflectionClass) {
+            $bcLayer = false;
             if (
-                (\PHP_VERSION_ID >= 80000 && $reflectionClass->getAttributes(ApiResource::class)) ||
+                (\PHP_VERSION_ID >= 80000 && ($reflectionClass->getAttributes(ApiResource::class) || $bcLayer = $reflectionClass->getAttributes(Resource::class))) ||
                 (null !== $this->reader && $this->reader->getClassAnnotation($reflectionClass, ApiResource::class))
             ) {
                 $classes[$className] = true;
+                if ($bcLayer) {
+                    $newClasses[$className] = true;
+                }
             }
         }
 
-        return new ResourceNameCollection(array_keys($classes));
+        return new ResourceNameCollection(array_keys($classes), array_keys($newClasses));
     }
 }

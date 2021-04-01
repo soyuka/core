@@ -44,6 +44,7 @@
             <argument>%api_platform.graphql.graphiql.enabled%</argument>
             <argument>%api_platform.graphql.graphql_playground.enabled%</argument>
             <argument type="service" id="api_platform.identifiers_extractor.cached"></argument>
+            <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory"></argument>
 
             <tag name="routing.loader" />
         </service>

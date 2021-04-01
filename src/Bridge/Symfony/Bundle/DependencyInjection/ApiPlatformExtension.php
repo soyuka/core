@@ -256,6 +256,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     private function registerMetadataConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
     {
         $loader->load('metadata/metadata.xml');
+        $loader->load('metadata/attributes.xml');
         $loader->load('metadata/xml.xml');
 
         [$xmlResources, $yamlResources] = $this->getResourcesToWatch($container, $config);

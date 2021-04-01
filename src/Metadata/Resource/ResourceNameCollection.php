@@ -21,13 +21,15 @@ namespace ApiPlatform\Core\Metadata\Resource;
 final class ResourceNameCollection implements \IteratorAggregate, \Countable
 {
     private $classes;
+    private array $newClasses = [];
 
     /**
      * @param string[] $classes
      */
-    public function __construct(array $classes = [])
+    public function __construct(array $classes = [], array $newClasses = [])
     {
         $this->classes = $classes;
+        $this->newClasses = $newClasses;
     }
 
     /**
@@ -46,5 +48,9 @@ final class ResourceNameCollection implements \IteratorAggregate, \Countable
     public function count(): int
     {
         return \count($this->classes);
+    }
+
+    public function isNewClass(string $class) {
+        return \in_array($class, $this->newClasses);
     }
 }
