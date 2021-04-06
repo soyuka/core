@@ -35,6 +35,7 @@ final class ResourceMetadata
     private $rdfTypes;
     private $extraProperties;
     private $operations;
+    private $uriTemplate;
 
     public function __construct(string $shortName = null, string $description = null, string $iri = null, array $itemOperations = null, array $collectionOperations = null, array $attributes = null, array $subresourceOperations = null, array $graphql = null, array $rdfTypes = [], array $extraProperties = [], array $operations = [])
     {
@@ -325,6 +326,9 @@ final class ResourceMetadata
         return $this->isNewResource;
     }
 
+    /**
+     * @internal
+     */
     public function withIsNewResource(bool $isNewResource): self
     {
         $metadata = clone $this;
@@ -370,4 +374,17 @@ final class ResourceMetadata
 
         return $metadata;
     }
+
+    public function getUriTemplate(): string
+    {
+        return $this->uriTemplate;
+    }
+
+    public function withUriTemplate(string $uriTemplate): self
+    {
+        $metadata = clone $this;
+        $metadata->uriTemplate = $uriTemplate;
+        return $metadata;
+    }
+
 }

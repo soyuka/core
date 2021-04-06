@@ -13,40 +13,38 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Attributes\Resource;
 use ApiPlatform\Core\Attributes\Operation;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataCollection;
 
 /**
- * Creates a resource metadata from {@see ApiResource} annotations.
+ * Creates a resource metadata from {@see Resource} annotations.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
 final class AttributeResourceCollectionMetadataFactory implements ResourceCollectionMetadataFactoryInterface 
 {
-    private $pathSegmentNameGenerator;
     private $decorated;
     private $defaults;
 
-    public function __construct(PathSegmentNameGeneratorInterface $pathSegmentNameGenerator, ResourceCollectionMetadataFactoryInterface $decorated = null, array $defaults = [])
+    public function __construct(ResourceCollectionMetadataFactoryInterface $decorated = null, array $defaults = [])
     {
-        $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
         $this->decorated = $decorated;
         $this->defaults = $defaults + ['attributes' => []];
     }
 
     /**
      * {@inheritdoc}
+     * TODO: guess uriTemplate
      */
-    public function create(string $resourceClass): array
+    public function create(string $resourceClass): ResourceMetadataCollection
     {
         $parentResourceMetadata = [];
         if ($this->decorated) {
             try {
-                $parentResourceMetadata = $this->decorated->create($resourceClass);
+                $parentResourceMetadata = $this->decorated->create($resourceClass)->getArrayCopy();
             } catch (ResourceClassNotFoundException $resourceNotFoundException) {
                 // Ignore not found exception from decorated factories
             }
@@ -55,14 +53,13 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
         try {
             $reflectionClass = new \ReflectionClass($resourceClass);
         } catch (\ReflectionException $reflectionException) {
-            return $this->handleNotFound($parentResourceMetadata, $resourceClass);
+            throw new ResourceClassNotFoundException(sprintf('Resource "%s" not found.', $resourceClass));
         }
 
         $shortName = (false !== $pos = strrpos($resourceClass, '\\')) ? substr($resourceClass, $pos + 1) : $resourceClass;
 
-        if (\PHP_VERSION_ID >= 80000 && $attributes = array_merge($reflectionClass->getAttributes(Resource::class), $reflectionClass->getAttributes(Operation::class, \ReflectionAttribute::IS_INSTANCEOF))) {
-
-            foreach ($this->buildResourceOperations($attributes, $shortName) as $i => $resource) {
+        if (\PHP_VERSION_ID >= 80000 && $reflectionClass->getAttributes(Resource::class)) {
+            foreach ($this->buildResourceOperations($reflectionClass->getAttributes(), $shortName) as $i => $resource) {
                 foreach ($this->defaults['extraProperties'] ?? $this->defaults['attributes'] ?? [] as $key => $value) {
                     if (!isset($resource->extraProperties[$key])) {
                         $resource->extraProperties[$key] = $value;
@@ -70,7 +67,7 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
                 }
 
                 if (isset($parentResourceMetadata[$i])) {
-                    foreach (['shortName', 'description', 'rdfTypes', 'operations', 'graphql', 'extraProperties'] as $property) {
+                    foreach (['shortName', 'description', 'rdfTypes', 'operations', 'graphql', 'extraProperties', 'uriTemplate'] as $property) {
                         $parentResourceMetadata[$i] = $this->createWith($parentResourceMetadata[$i], $property, $resource->{$property});
                     }
                     $parentResourceMetadata[$i] = $parentResourceMetadata[$i]->withIsNewResource(true);
@@ -89,7 +86,7 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
                     $resource->rdfTypes ?? [],
                     $resource->extraProperties,
                     $resource->operations ?? $this->defaults['operations']
-                ))->withIsNewResource(true);
+                ))->withIsNewResource(true)->withUriTemplate($resource->uriTemplate);
             }
         }
 
@@ -97,7 +94,7 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
             throw new ResourceClassNotFoundException(sprintf('Resource "%s" not found.', $resourceClass));
         }
 
-        return $parentResourceMetadata;
+        return new ResourceMetadataCollection($parentResourceMetadata);
     }
 
     /**
@@ -138,21 +135,21 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
     private function buildResourceOperations(array $attributes, string $shortName): array
     {
             $resources = [];
-            $resource = null;
+            $index = -1;
             foreach ($attributes as $attribute) {
                 if ($attribute->getName() === Resource::class) {
-                    if ($resource) {
-                        $resouces[] = $resource;
-                    }
+                    $resources[++$index] = $attribute->newInstance();
+                    continue;
+                }
 
-                    $resource = $attribute->newInstance();
+                if (!is_subclass_of($attribute->getName(), Operation::class)) {
                     continue;
                 }
                 
                 $operation = $attribute->newInstance();
 
                 // Operation inherits Resource defaults
-                foreach ($resource as $property => $value) {
+                foreach ($resources[$index] as $property => $value) {
                     if ($operation->{$property} || !$value) {
                         continue;
                     }
@@ -160,10 +157,8 @@ final class AttributeResourceCollectionMetadataFactory implements ResourceCollec
                     $operation->{$property} = $value;
                 }
 
-                $resource->operations['_api_'.$this->pathSegmentNameGenerator->getSegmentName($shortName).'_'.strtolower($operation->method)] = $operation;
+                $resources[$index]->operations['_api'.str_replace(['/{', '{', '/', '}'], '_', str_replace('.{_format}', '', $operation->uriTemplate)).'_'.strtolower($operation->method)] = $operation;
             }
-
-            $resources[] = $resource;
 
             return $resources;
     }

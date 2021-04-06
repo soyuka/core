@@ -20,24 +20,9 @@ use ApiPlatform\Core\Attributes\Put;
 use ApiPlatform\Core\Attributes\Delete;
 use ApiPlatform\Core\Attributes\Post;
 
-#[Resource("/attribute_resources/{id}.{_format}")]
+#[Resource("/attribute_resources.{_format}")]
 #[Get]
-#[Put]
-#[Delete]
-#[Resource("/dummy/{dummyId}/attribute_resources/{id}", identifiers: ["dummyId" => [Dummy::class, "id"], "id" => [AttributeResource::class, "id"]])]
-#[Get]
-final class AttributeResource
+#[Post]
+final class AttributeResources extends \ArrayObject
 {
-    #[ApiProperty(identifier: true)]
-    private int $id;
-
-    public function __construct(int $id, public string $name)
-    {
-        $this->id = $id;
-    }
-
-    public function getId()
-    {
-        return $this->id;
-    }
 }

@@ -4,6 +4,8 @@ namespace ApiPlatform\Core\Attributes;
 
 trait AttributeTrait
 {
+    public array $extraProperties;
+
     /**
      * @param string       $uriTemplate
      * @param string       $description

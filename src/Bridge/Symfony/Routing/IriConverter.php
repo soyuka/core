@@ -131,8 +131,9 @@ final class IriConverter implements IriConverterInterface
      */
     public function getIriFromResourceClass(string $resourceClass, int $referenceType = null): string
     {
+        // TODO: use ResourceMetadataCollection somehow to fetch the correct route, this makes no sense as relying a lot on OperationType
         try {
-            return $this->router->generate($this->routeNameResolver->getRouteName($resourceClass, OperationType::COLLECTION), [], $this->getReferenceType($resourceClass, $referenceType));
+            return $this->router->generate($this->getRouteName($resourceClass, OperationType::COLLECTION), [], $this->getReferenceType($resourceClass, $referenceType));
         } catch (RoutingExceptionInterface $e) {
             throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
         }
@@ -143,7 +144,8 @@ final class IriConverter implements IriConverterInterface
      */
     public function getItemIriFromResourceClass(string $resourceClass, array $identifiers, int $referenceType = null): string
     {
-        $routeName = $this->routeNameResolver->getRouteName($resourceClass, OperationType::ITEM);
+        // TODO: use ResourceMetadataCollection somehow to fetch the correct route, this makes no sense as relying a lot on OperationType
+        $routeName = $this->getRouteName($resourceClass, OperationType::ITEM);
         $metadata = $this->resourceMetadataFactory->create($resourceClass);
 
         if (\count($identifiers) > 1 && true === $metadata->getAttribute('composite_identifier', true)) {
@@ -177,5 +179,26 @@ final class IriConverter implements IriConverterInterface
         }
 
         return $referenceType ?? UrlGeneratorInterface::ABS_PATH;
+    }
+
+    private function getRouteName(string $resourceClass, string $operationType)
+    {
+        if (null !== $this->resourceMetadataFactory) {
+            $metadata = $this->resourceMetadataFactory->create($resourceClass);
+            if ($metadata->isNewResource()) {
+                foreach ($metadata->getOperations() as $key => $operation) {
+                    // TODO: This is wrong as it can happen but as we need to keep a layer with declaring every operation on a single entity we need to keep the behavior
+                    if ($operationType === OperationType::COLLECTION && $operation->identifiers) {
+                        continue;
+                    }
+
+                    if ('GET' === $operation->method) {
+                        return $key;
+                    }
+                }
+            }
+        }
+
+        return $this->routeNameResolver->getRouteName($resourceClass, $operationType);
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
+use ApiPlatform\Core\DataProvider\DataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\OperationDataProviderTrait;
 use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
@@ -65,8 +66,8 @@ final class ReadListener
         if (
             !($attributes = RequestAttributesExtractor::extractAttributes($request))
             || !$attributes['receive']
-            || $request->isMethod('POST') && isset($attributes['collection_operation_name'])
-            || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
+            || $request->isMethod('POST') && (isset($attributes['collection_operation_name']) || !$attributes['identifiers'])
+            || (!isset($attributes['operation_name']) && $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)) //TODO: fix this via route attributes for read/write etc.
         ) {
             return;
         }
@@ -83,7 +84,9 @@ final class ReadListener
             $request->attributes->set('_api_normalization_context', $normalizationContext);
         }
 
-        if (isset($attributes['collection_operation_name'])) {
+        // TODO: implement a new DataProvider for operations instead of operationType-specific data providers
+
+        if (isset($attributes['collection_operation_name']) || (isset($attributes['operation_name']) && !$attributes['identifiers'])) {
             $request->attributes->set('data', $this->getCollectionData($attributes, $context));
 
             return;
@@ -98,7 +101,7 @@ final class ReadListener
         try {
             $identifiers = $this->extractIdentifiers($request->attributes->all(), $attributes);
 
-            if (isset($attributes['item_operation_name'])) {
+            if (isset($attributes['item_operation_name']) || isset($attributes['operation_name'])) {
                 $data = $this->getItemData($identifiers, $attributes, $context);
             } elseif (isset($attributes['subresource_operation_name'])) {
                 // Legacy
