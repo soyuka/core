@@ -84,7 +84,20 @@ final class ReadListener
             $request->attributes->set('_api_normalization_context', $normalizationContext);
         }
 
-        // TODO: implement a new DataProvider for operations instead of operationType-specific data providers
+        /**
+         * TODO: implement a new DataProvider for operations:
+         * if (isset($attributes['operation_name'])) {
+         *      $data = $this->dataProvider->retrieve($attributes['resource_class'], $attributes['identifiers'] ? $this->extractIdentifiers($request->attributes->all(), $attributes) : [], $context);
+         *      
+         *      if (null === $data && !$attributes['identifiers']) {
+         *          throw new NotFoundHttpException('Not Found');
+         *      }
+         *      
+         *      $request->attributes->set('data', $data);
+         *      $request->attributes->set('previous_data', $this->clone($data));
+         *      return;
+         * }
+         */
 
         if (isset($attributes['collection_operation_name']) || (isset($attributes['operation_name']) && !$attributes['identifiers'])) {
             $request->attributes->set('data', $this->getCollectionData($attributes, $context));

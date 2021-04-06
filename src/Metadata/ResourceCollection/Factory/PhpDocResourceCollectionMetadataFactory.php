@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataCollection;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
@@ -39,7 +40,7 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): array
+    public function create(string $resourceClass): ResourceMetadataCollection 
     {
         $resourceMetadataCollection = $this->decorated->create($resourceClass);
 
@@ -58,7 +59,7 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
             }
         }
 
-        return $resourceMetadataCollection;
+        return new ResourceMetadataCollection($resourceMetadataCollection);
     }
 }
 

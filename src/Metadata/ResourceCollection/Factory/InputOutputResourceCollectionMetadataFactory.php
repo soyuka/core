@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataCollection;
 
 /**
  * Transforms the given input/output metadata to a normalized one.
@@ -32,7 +33,7 @@ final class InputOutputResourceCollectionMetadataFactory implements ResourceColl
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): array
+    public function create(string $resourceClass): ResourceMetadataCollection
     {
         $resourceMetadataCollection = $this->decorated->create($resourceClass);
 
@@ -50,7 +51,7 @@ final class InputOutputResourceCollectionMetadataFactory implements ResourceColl
             $resourceMetadataCollection[$key] = $resourceMetadata->withExtraProperties($extraProperties);
         }
 
-        return $resourceMetadataCollection;
+        return new ResourceMetadataCollection($resourceMetadataCollection);
     }
 
     private function getTransformedOperations(array $operations, array $resourceAttributes): array

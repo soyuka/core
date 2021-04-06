@@ -5,6 +5,15 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+        <!-- Resource metadata -->
+        <service id="api_platform.metadata.resource_collection.metadata_factory.input_output" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\InputOutputResourceCollectionMetadataFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="30" public="false">
+            <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory.input_output.inner" />
+        </service>
+
+        <!-- <service id="api_platform.metadata.resource_collection.metadata_factory.short_name" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\ShortNameResourceCollectionMetadataFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration&#45;priority="20" public="false"> -->
+        <!--     <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory.short_name.inner" /> -->
+        <!-- </service> -->
+
         <service id="api_platform.metadata.resource_collection.metadata_factory.attributes" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="40" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\AttributeResourceCollectionMetadataFactory" public="false">
             <argument type="service" id="api_platform.path_segment_name_generator" />
         </service>
