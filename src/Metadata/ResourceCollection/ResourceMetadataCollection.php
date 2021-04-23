@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\ResourceCollection;
 
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Metadata\Resource;
 
 /**
- * @extends \ArrayObject<int, ResourceMetadata>
+ * @extends \ArrayObject<int, Resource>
  */
 final class ResourceMetadataCollection extends \ArrayObject
 {
@@ -36,13 +36,13 @@ final class ResourceMetadataCollection extends \ArrayObject
         foreach ($resourceMetadata->getOperations() as $operation) {
             if ($operation->method === $method) {
                 return isset($this->operationCache[$uriTemplate]) ? $this->operationCache[$uriTemplate][$method] = $operation : $this->operationCache[$uriTemplate] = [$method => $operation];
-            } 
+            }
         }
 
         return null;
     }
 
-    public function getResourceMetadata(string $uriTemplate): ?ResourceMetadata
+    public function getResourceMetadata(string $uriTemplate): ?Resource
     {
         if (isset($this->metadataCache[$uriTemplate])) {
             return $this->metadataCache[$uriTemplate];
@@ -51,11 +51,13 @@ final class ResourceMetadataCollection extends \ArrayObject
         $it = $this->getIterator();
 
         while ($it->valid()) {
-            /** @var ResourceMetadata **/
+            /** @var resource */
             $metadata = $it->current();
 
-            if ($metadata->getUriTemplate() === $uriTemplate) {
+            if ($metadata->uriTemplate === $uriTemplate) {
                 $this->metadataCache[$uriTemplate] = $metadata;
+
+                return $metadata;
             }
 
             $it->next();

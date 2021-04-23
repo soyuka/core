@@ -13,10 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\Operation\Factory;
 
-use ApiPlatform\Core\Attributes;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use Doctrine\Common\Annotations\Reader;
 
 final class AttributeOperationFactory implements OperationFactoryInterface
 {
@@ -41,7 +39,7 @@ final class AttributeOperationFactory implements OperationFactoryInterface
         }
 
         $default = $this->getDefaultAttribute();
-        // Maybe remove this and use the class? or directly compute path + identifiers here ? :D 
+        // Maybe remove this and use the class? or directly compute path + identifiers here ? :D
         $default->shortName = $this->getShortname($resourceClass);
         $operations = [];
         if ($attributes = $reflectionClass->getAttributes(Resource::class, \ReflectionAttribute::IS_INSTANCEOF)) {
@@ -66,7 +64,7 @@ final class AttributeOperationFactory implements OperationFactoryInterface
         return $resourceClass;
     }
 
-    private function mergeDefaults(Resource $resource, Resource $defaults): Resource   
+    private function mergeDefaults(Resource $resource, Resource $defaults): Resource
     {
         foreach ($defaults as $key => $value) {
             if ($value && !$resource->{$key}) {

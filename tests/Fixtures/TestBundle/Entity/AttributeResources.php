@@ -13,16 +13,18 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Core\Attributes\Resource;
-use ApiPlatform\Core\Attributes\Get;
-use ApiPlatform\Core\Attributes\Put;
-use ApiPlatform\Core\Attributes\Delete;
-use ApiPlatform\Core\Attributes\Post;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Resource;
+use IteratorAggregate;
 
-#[Resource("/attribute_resources.{_format}")]
+#[Resource('/attribute_resources.{_format}')]
 #[Get]
 #[Post]
-final class AttributeResources extends \ArrayObject
+final class AttributeResources implements IteratorAggregate
 {
+    public function getIterator()
+    {
+        return new ArrayIterator($this);
+    }
 }

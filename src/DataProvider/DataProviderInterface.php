@@ -23,11 +23,19 @@ interface DataProviderInterface
     /**
      * Retrieves data.
      *
-     * @param array $identifiers
-     *
      * @return object|array|null
      */
-    public function retrieve(string $resourceClass, array $identifiers = [], array $context = []);
+    public function retrieve(string $resourceClass, array $identifiers = [], array $context = [])
+    {
+        if (null === $identifiers['id']) {
+            return [];
+        }
 
-    public function supports(string $resourceClass, array $context = []): bool;
+        return new User();
+    }
+
+    public function supports(string $resourceClass, array $identifiers = [], array $context = []): bool
+    {
+        return User::class === $resourceClass;
+    }
 }

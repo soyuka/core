@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Attributes\Resource;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\Util\ReflectionClassRecursiveIterator;
+use ApiPlatform\Metadata\Resource;
 use Doctrine\Common\Annotations\Reader;
 
 /**
@@ -43,29 +43,37 @@ final class AnnotationResourceNameCollectionFactory implements ResourceNameColle
     /**
      * {@inheritdoc}
      */
-    public function create(): ResourceNameCollection
+    public function create(/* bool $legacy = true */): ResourceNameCollection
     {
+        $legacy = 1 === \func_num_args() ? func_get_arg(0) : true;
+
+        if (true === $legacy) {
+            @trigger_error(sprintf('Using a legacy %s is deprecated since 2.7 and will not be possible in 3.0.', __CLASS__), \E_USER_DEPRECATED);
+        }
+
         $classes = [];
 
         if ($this->decorated) {
-            foreach ($this->decorated->create() as $resourceClass) {
+            foreach ($this->decorated->create($legacy) as $resourceClass) {
                 $classes[$resourceClass] = true;
             }
         }
 
         foreach (ReflectionClassRecursiveIterator::getReflectionClassesFromDirectories($this->paths) as $className => $reflectionClass) {
-            $bcLayer = false;
+            if (\PHP_VERSION_ID >= 80000 && !$legacy && $reflectionClass->getAttributes(Resource::class)) {
+                $classes[$className] = true;
+                continue;
+            }
+
             if (
-                (\PHP_VERSION_ID >= 80000 && ($reflectionClass->getAttributes(ApiResource::class) || $bcLayer = $reflectionClass->getAttributes(Resource::class))) ||
-                (null !== $this->reader && $this->reader->getClassAnnotation($reflectionClass, ApiResource::class))
+                $legacy &&
+                ((\PHP_VERSION_ID >= 80000 && ($reflectionClass->getAttributes(ApiResource::class))) ||
+                (null !== $this->reader && $this->reader->getClassAnnotation($reflectionClass, ApiResource::class)))
             ) {
                 $classes[$className] = true;
-                if ($bcLayer) {
-                    $newClasses[$className] = true;
-                }
             }
         }
 
-        return new ResourceNameCollection(array_keys($classes), array_keys($newClasses));
+        return new ResourceNameCollection(array_keys($classes));
     }
 }

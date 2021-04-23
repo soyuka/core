@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Attributes\Resource;
+use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 
 /**
  * Creates a resource metadata value object.
@@ -26,7 +26,7 @@ interface OperationFactoryInterface
     /**
      * @throws ResourceClassNotFoundException
      *
-     * @return Resource[]
+     * @return resource[]
      */
     public function create(string $resourceClass): array;
 }

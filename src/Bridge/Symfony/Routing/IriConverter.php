@@ -188,7 +188,7 @@ final class IriConverter implements IriConverterInterface
             if ($metadata->isNewResource()) {
                 foreach ($metadata->getOperations() as $key => $operation) {
                     // TODO: This is wrong as it can happen but as we need to keep a layer with declaring every operation on a single entity we need to keep the behavior
-                    if ($operationType === OperationType::COLLECTION && $operation->identifiers) {
+                    if (OperationType::COLLECTION === $operationType && $operation->identifiers) {
                         continue;
                     }
 

@@ -11,20 +11,17 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Attributes;
+namespace ApiPlatform\Metadata;
 
 /**
- * Resource attribute
+ * Resource metadata attribute.
  *
- * @author Kévin Dunglas <dunglas@gmail.com>
+ * @author Antoine Bluchet <soyuka@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class Resource
 {
-    // public Operation[] $operations;
-    // uriTemplate => génére URI pour les operations /users/{id} 
-    // rdfTypes => IRI en ce moment, reosurces, types et propriétés en array 
-    // utiliser un trait pour ca
-    // public array $extraProperties;
     use AttributeTrait;
+    /** @var Operation[] */
+    public array $operations = [];
 }

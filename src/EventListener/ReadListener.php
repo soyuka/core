@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
-use ApiPlatform\Core\DataProvider\DataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\OperationDataProviderTrait;
 use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
@@ -87,18 +86,17 @@ final class ReadListener
         /**
          * TODO: implement a new DataProvider for operations:
          * if (isset($attributes['operation_name'])) {
-         *      $data = $this->dataProvider->retrieve($attributes['resource_class'], $attributes['identifiers'] ? $this->extractIdentifiers($request->attributes->all(), $attributes) : [], $context);
-         *      
+         *      $data = $this->dataProvider->retrieve($attributes['resource_class'], $attributes['identifiers'] ? $this->extractIdentifiers($request->attributes->all(), $attributes) : [], $context);.
+         *
          *      if (null === $data && !$attributes['identifiers']) {
          *          throw new NotFoundHttpException('Not Found');
          *      }
-         *      
+         *
          *      $request->attributes->set('data', $data);
          *      $request->attributes->set('previous_data', $this->clone($data));
          *      return;
          * }
          */
-
         if (isset($attributes['collection_operation_name']) || (isset($attributes['operation_name']) && !$attributes['identifiers'])) {
             $request->attributes->set('data', $this->getCollectionData($attributes, $context));
 

@@ -11,17 +11,14 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Attributes;
+namespace ApiPlatform\Metadata;
 
-/**
- * Resource attribute
- *
- * @author Kévin Dunglas <dunglas@gmail.com>
- */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-class Get extends Operation 
+class Put extends Operation
 {
-    public function __construct(...$values) {
+    public function __construct(...$values)
+    {
+        $this->method = 'PUT';
         parent::__construct(...$values);
     }
 }

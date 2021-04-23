@@ -14,18 +14,10 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource;
 
 #[Resource]
-#[Get]
-#[Put]
-#[Delete]
-#[Resource('/dummy/{dummyId}/attribute_resources/{id}', identifiers: ['dummyId' => [Dummy::class, 'id'], 'id' => [AttributeResource::class, 'id']])]
-#[Get]
-final class AttributeResource
+final class AttributeDefaultOperations
 {
     #[ApiProperty(identifier: true)]
     private int $identifier;
@@ -37,6 +29,6 @@ final class AttributeResource
 
     public function getIdentifier()
     {
-        return $this->identifier;
+        return $this->idHntifier;
     }
 }

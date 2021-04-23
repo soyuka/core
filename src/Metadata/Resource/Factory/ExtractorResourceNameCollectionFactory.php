@@ -39,23 +39,26 @@ final class ExtractorResourceNameCollectionFactory implements ResourceNameCollec
      *
      * @throws InvalidArgumentException
      */
-    public function create(): ResourceNameCollection
+    public function create(/* bool $legacy = true */): ResourceNameCollection
     {
+        $legacy = 1 === \func_num_args() ? func_get_arg(0) : true;
         $classes = [];
-        $newClasses = [];
+
         if ($this->decorated) {
-            foreach ($resourceNameCollection = $this->decorated->create() as $resourceClass) {
+            foreach ($this->decorated->create($legacy) as $resourceClass) {
                 $classes[$resourceClass] = true;
-                if ($resourceNameCollection->isNewClass($resourceClass)) {
-                    $newClasses[$resourceClass] = true;
-                }
             }
+        }
+
+        // TODO: Handle extractors
+        if (!$legacy) {
+            return new ResourceNameCollection(array_keys($classes));
         }
 
         foreach ($this->extractor->getResources() as $resourceClass => $resource) {
             $classes[$resourceClass] = true;
         }
 
-        return new ResourceNameCollection(array_keys($classes), array_keys($newClasses));
+        return new ResourceNameCollection(array_keys($classes));
     }
 }

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataCollection;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use phpDocumentor\Reflection\Types\ContextFactory;
@@ -40,12 +39,12 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadataCollection 
+    public function create(string $resourceClass): ResourceMetadataCollection
     {
         $resourceMetadataCollection = $this->decorated->create($resourceClass);
 
         foreach ($resourceMetadataCollection as $key => $resourceMetadata) {
-            if (null !== $resourceMetadata->getDescription()) {
+            if (null !== $resourceMetadata->description) {
                 continue;
             }
 
@@ -53,7 +52,8 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
 
             try {
                 $docBlock = $this->docBlockFactory->create($reflectionClass, $this->contextFactory->createFromReflector($reflectionClass));
-                $resourceMetadataCollection[$key] = $resourceMetadata->withDescription($docBlock->getSummary());
+                $resourceMetadata->description = $docBlock->getSummary();
+                $resourceMetadataCollection[$key] = $resourceMetadata;
             } catch (\InvalidArgumentException $e) {
                 // Ignore empty DocBlocks
             }
@@ -62,4 +62,3 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
         return new ResourceMetadataCollection($resourceMetadataCollection);
     }
 }
-

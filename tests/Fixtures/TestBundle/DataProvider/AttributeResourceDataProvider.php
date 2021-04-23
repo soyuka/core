@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\DataProvider;
 
 use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
-use ApiPlatform\Core\DataProvider\DataProviderInterface;
 use ApiPlatform\Core\DataProvider\DenormalizedIdentifiersAwareItemDataProviderInterface;
-use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\AttributeResource;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\AttributeResources;
@@ -35,6 +33,6 @@ class AttributeResourceDataProvider implements DenormalizedIdentifiersAwareItemD
 
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
-        return $resourceClass === AttributeResource::class || $resourceClass === AttributeResources::class;
+        return AttributeResource::class === $resourceClass || AttributeResources::class === $resourceClass;
     }
 }

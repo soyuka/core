@@ -11,18 +11,14 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Attributes;
+namespace ApiPlatform\Metadata;
 
-/**
- * Resource attribute
- *
- * @author Kévin Dunglas <dunglas@gmail.com>
- */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-class Delete extends Operation 
+class Patch extends Operation
 {
-    public function __construct(...$values) {
-        $this->method = 'DELETE';
+    public function __construct(...$values)
+    {
+        $this->method = 'PATCH';
         parent::__construct(...$values);
     }
 }

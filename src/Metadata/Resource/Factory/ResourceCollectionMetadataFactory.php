@@ -14,11 +14,11 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 
 /**
- * BC layer with the < 3.0 ResourceMetadata system
+ * BC layer with the < 3.0 ResourceMetadata system.
  *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
@@ -42,8 +42,10 @@ final class ResourceCollectionMetadataFactory implements ResourceMetadataFactory
             $resourceMetadata = $this->decorated->create($resourceClass);
         } catch (ResourceClassNotFoundException $e) {
             $resourceMetadataCollection = $this->resourceCollectionMetadataFactory->create($resourceClass);
-            // warn about that
-            return $resourceMetadataCollection[0];
+            if (isset($resourceMetadataCollection[0])) {
+                // warn about that
+                return $resourceMetadataCollection[0];
+            }
         }
 
         throw new ResourceClassNotFoundException(sprintf('Resource "%s" not found.', $resourceClass));

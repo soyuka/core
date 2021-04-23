@@ -39,10 +39,12 @@ final class CachedResourceNameCollectionFactory implements ResourceNameCollectio
     /**
      * {@inheritdoc}
      */
-    public function create(): ResourceNameCollection
+    public function create(/* bool $legacy = true */): ResourceNameCollection
     {
-        return $this->getCached(self::CACHE_KEY, function () {
-            return $this->decorated->create();
+        $legacy = 1 === \func_num_args() ? func_get_arg(0) : true;
+
+        return $this->getCached(sprintf('%s-%s', self::CACHE_KEY, $legacy), function () use ($legacy) {
+            return $this->decorated->create($legacy);
         });
     }
 }

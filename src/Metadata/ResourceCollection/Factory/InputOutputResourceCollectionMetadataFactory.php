@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataCollection;
+use ApiPlatform\Metadata\Resource;
 
 /**
  * Transforms the given input/output metadata to a normalized one.
@@ -38,47 +38,46 @@ final class InputOutputResourceCollectionMetadataFactory implements ResourceColl
         $resourceMetadataCollection = $this->decorated->create($resourceClass);
 
         foreach ($resourceMetadataCollection as $key => $resourceMetadata) {
-            $extraProperties = $resourceMetadata->getExtraProperties() ?: [];
-            $extraProperties['input'] = isset($extraProperties['input']) ? $this->transformInputOutput($extraProperties['input']) : null;
-            $extraProperties['output'] = isset($extraProperties['output']) ? $this->transformInputOutput($extraProperties['output']) : null;
+            $resourceMetadata->input = $resourceMetadata->input ? $this->transformInputOutput($resourceMetadata->input) : null;
+            $resourceMetadata->output = $resourceMetadata->output ? $this->transformInputOutput($resourceMetadata->output) : null;
 
-            $resourceMetadata = $resourceMetadata->withOperations($this->getTransformedOperations($resourceMetadata->getOperations(), $extraProperties));
+            $resourceMetadata->operations = $this->getTransformedOperations($resourceMetadata->operations, $resourceMetadata);
 
-            if (null !== $graphQlAttributes = $resourceMetadata->getGraphql()) {
-                $resourceMetadata = $resourceMetadata->withGraphql($this->getTransformedOperations($graphQlAttributes, $extraProperties));
+            if (null !== $graphQlAttributes = $resourceMetadata->graphql) {
+                $resourceMetadata->graphql = $this->getTransformedOperations($resourceMetadata->graphql, $resourceMetadata);
             }
 
-            $resourceMetadataCollection[$key] = $resourceMetadata->withExtraProperties($extraProperties);
+            $resourceMetadataCollection[$key] = $resourceMetadata;
         }
 
         return new ResourceMetadataCollection($resourceMetadataCollection);
     }
 
-    private function getTransformedOperations(array $operations, array $resourceAttributes): array
+    private function getTransformedOperations(array $operations, Resource $resourceMetadata): array
     {
         foreach ($operations as $key => &$operation) {
             if (!\is_array($operation)) {
                 continue;
             }
 
-            $operation['input'] = isset($operation['input']) ? $this->transformInputOutput($operation['input']) : $resourceAttributes['input'];
-            $operation['output'] = isset($operation['output']) ? $this->transformInputOutput($operation['output']) : $resourceAttributes['output'];
+            $operation->input = $operation->input ? $this->transformInputOutput($operation->input) : $resourceMetadata->input;
+            $operation->output = $operation->output ? $this->transformInputOutput($operation->output) : $resourceMetadata->output;
 
             if (
-                isset($operation['input'])
-                && \array_key_exists('class', $operation['input'])
-                && null === $operation['input']['class']
+                $operation->input
+                && \array_key_exists('class', $operation->input)
+                && null === $operation->input['class']
             ) {
-                $operation['deserialize'] ?? $operation['deserialize'] = false;
-                $operation['validate'] ?? $operation['validate'] = false;
+                $operation->deserialize = $operation->deserialize ?? false;
+                $operation->validate = $operation->validate ?? false;
             }
 
             if (
-                isset($operation['output'])
-                && \array_key_exists('class', $operation['output'])
-                && null === $operation['output']['class']
+                $operation->output
+                && \array_key_exists('class', $operation->output)
+                && null === $operation->output['class']
             ) {
-                $operation['status'] ?? $operation['status'] = 204;
+                $operation->status = $operation->status ?? 204;
             }
         }
 

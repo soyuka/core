@@ -25,5 +25,5 @@ interface ResourceNameCollectionFactoryInterface
     /**
      * Creates the resource name collection.
      */
-    public function create(): ResourceNameCollection;
+    public function create(/* bool $legacy = true */): ResourceNameCollection;
 }
