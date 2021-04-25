@@ -177,6 +177,12 @@
             <tag name="api_platform.doctrine.orm.query_extension.collection" priority="-32" />
         </service>
         <service id="ApiPlatform\Core\Bridge\Doctrine\Orm\Extension\OrderExtension" alias="api_platform.doctrine.orm.query_extension.order" />
+
+        <service id="api_platform.doctrine.state_provider" class="ApiPlatform\Bridge\Doctrine\State\LegacyProvider">
+            <argument type="service" id="api_platform.collection_data_provider" />
+            <argument type="service" id="api_platform.item_data_provider" />
+            <argument type="service" id="api_platform.subresource_data_provider" />
+        </service>
     </services>
 
 </container>

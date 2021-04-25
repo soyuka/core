@@ -33,7 +33,7 @@ final class ResourceMetadataCollection extends \ArrayObject
             return null;
         }
 
-        foreach ($resourceMetadata->getOperations() as $operation) {
+        foreach ($resourceMetadata->operations as $operation) {
             if ($operation->method === $method) {
                 return isset($this->operationCache[$uriTemplate]) ? $this->operationCache[$uriTemplate][$method] = $operation : $this->operationCache[$uriTemplate] = [$method => $operation];
             }

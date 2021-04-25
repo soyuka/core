@@ -29,6 +29,6 @@ final class AttributeDefaultOperations
 
     public function getIdentifier()
     {
-        return $this->idHntifier;
+        return $this->identifier;
     }
 }

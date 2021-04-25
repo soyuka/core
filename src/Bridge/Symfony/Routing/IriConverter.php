@@ -33,6 +33,7 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\AttributesExtractor;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
+use ApiPlatform\Metadata\Resource;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingExceptionInterface;
@@ -185,7 +186,7 @@ final class IriConverter implements IriConverterInterface
     {
         if (null !== $this->resourceMetadataFactory) {
             $metadata = $this->resourceMetadataFactory->create($resourceClass);
-            if ($metadata->isNewResource()) {
+            if ($metadata instanceof Resource) {
                 foreach ($metadata->getOperations() as $key => $operation) {
                     // TODO: This is wrong as it can happen but as we need to keep a layer with declaring every operation on a single entity we need to keep the behavior
                     if (OperationType::COLLECTION === $operationType && $operation->identifiers) {

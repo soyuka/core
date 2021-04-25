@@ -18,6 +18,7 @@ use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\CsvEncoder;
 
@@ -59,8 +60,8 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             $operationType = OperationType::SUBRESOURCE;
         }
 
-        if ($resourceMetadata->isNewResource()) {
-            $operation = $resourceMetadata->getOperations()[$attributes['operation_name']] ?? [];
+        if ($resourceMetadata instanceof Resource) {
+            $operation = $resourceMetadata->operations[$attributes['operation_name']] ?? [];
             $context = $operation->{$normalization ? 'normalizationContext' : 'denormalizationContext'} ?? [];
             $context['operation_name'] = $attributes['operation_name'];
             $context['input'] = $operation->input ?? null;

@@ -23,8 +23,13 @@ use IteratorAggregate;
 #[Post]
 final class AttributeResources implements IteratorAggregate
 {
+    private $collection;
+    public function __construct($collection) {
+        $this->collection = $collection;
+	}
+
     public function getIterator()
     {
-        return new ArrayIterator($this);
+        return new \ArrayIterator($this->collection);
     }
 }

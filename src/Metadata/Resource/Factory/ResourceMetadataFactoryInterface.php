@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Metadata\Resource;
 
 /**
  * Creates a resource metadata value object.
@@ -27,6 +28,8 @@ interface ResourceMetadataFactoryInterface
      * Creates a resource metadata.
      *
      * @throws ResourceClassNotFoundException
+     *
+     * @return ResourceMetadata | Resource 
      */
-    public function create(string $resourceClass): ResourceMetadata;
+    public function create(string $resourceClass);
 }

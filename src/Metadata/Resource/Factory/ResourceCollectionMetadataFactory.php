@@ -36,7 +36,7 @@ final class ResourceCollectionMetadataFactory implements ResourceMetadataFactory
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass): ResourceMetadata
+    public function create(string $resourceClass)
     {
         try {
             $resourceMetadata = $this->decorated->create($resourceClass);

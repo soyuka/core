@@ -143,6 +143,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $loader->load('api.xml');
         $loader->load('data_persister.xml');
         $loader->load('data_provider.xml');
+        $loader->load('state.xml');
         $loader->load('filter.xml');
 
         $container->getDefinition('api_platform.operation_method_resolver')
