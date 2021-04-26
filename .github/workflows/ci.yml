@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       PHP_CS_FIXER_FUTURE_MODE: '1'
@@ -40,10 +40,11 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       APP_DEBUG: '1' # https://github.com/phpstan/phpstan-symfony/issues/37
+      SYMFONY_PHPUNIT_VERSION: '9.5'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -69,8 +70,6 @@ jobs:
       - name: Require Symfony Uid
         run: composer require symfony/uid --dev --no-interaction --no-progress --ansi
       - name: Install PHPUnit
-        env:
-          SYMFONY_PHPUNIT_VERSION: '9.5'
         run: vendor/bin/simple-phpunit --version
       - name: Cache PHPStan results
         uses: actions/cache@v2
@@ -82,12 +81,11 @@ jobs:
             phpstan-
         continue-on-error: true
       - name: Clear test app cache
-        run: |
-          tests/Fixtures/app/console cache:clear --ansi
+        run: tests/Fixtures/app/console cache:clear --ansi
       - name: Run PHPStan analysis
-        env:
-          SYMFONY_PHPUNIT_VERSION: '9.5'
-        run: ./vendor/bin/phpstan analyse --no-interaction --no-progress --no-interaction --ansi
+        run: |
+          sed -i 's/AppKernelTestDebugContainer/appAppKernelTestDebugContainer/' phpstan.neon.dist
+          ./vendor/bin/phpstan analyse --no-interaction --no-progress --no-interaction --ansi
 
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php }})
@@ -96,10 +94,6 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.1'
-          - '7.2'
-          - '7.3'
-          - '7.4'
           - '8.0'
         include:
           - php: '8.0'
@@ -191,10 +185,6 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.1'
-          - '7.2'
-          - '7.3'
-          - '7.4'
           - '8.0'
         include:
           - php: '8.0'
@@ -317,7 +307,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     steps:
       - name: Checkout
@@ -357,7 +347,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     steps:
       - name: Checkout
@@ -398,7 +388,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       APP_ENV: postgres
@@ -449,7 +439,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     services:
       mysql:
@@ -500,7 +490,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       APP_ENV: mongodb
@@ -549,7 +539,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       APP_ENV: elasticsearch
@@ -603,7 +593,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
+          - '8.0'
       fail-fast: false
     env:
       SYMFONY_DEPRECATIONS_HELPER: max[total]=0
@@ -769,7 +759,6 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
           - '8.0'
       fail-fast: false
     env:
@@ -817,7 +806,6 @@ jobs:
     strategy:
       matrix:
         php:
-          - '7.4'
           - '8.0'
       fail-fast: false
     env:
