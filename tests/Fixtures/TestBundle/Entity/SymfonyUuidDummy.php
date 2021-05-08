@@ -15,47 +15,51 @@ namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-/**
- * @ORM\Entity
- * @ApiResource
- *
- * @author Vincent Chalamon <vincentchalamon@gmail.com>
- */
-class SymfonyUuidDummy
-{
+/* @TODO remove this check in 3.0 */
+if (\PHP_VERSION_ID >= 70200 && class_exists(Uuid::class) && class_exists(UuidType::class)) {
     /**
-     * @ORM\Id
-     * @ORM\Column(type="symfony_uuid", unique=true)
-     * @ORM\GeneratedValue(strategy="NONE")
+     * @ORM\Entity
+     * @ApiResource
+     *
+     * @author Vincent Chalamon <vincentchalamon@gmail.com>
      */
-    private $id;
-
-    /**
-     * @ORM\Column(nullable=true)
-     */
-    private $number;
-
-    public function __construct($id = null)
+    class SymfonyUuidDummy
     {
-        $this->id = $id ?? Uuid::v4();
-    }
+        /**
+         * @ORM\Id
+         * @ORM\Column(type="symfony_uuid", unique=true)
+         * @ORM\GeneratedValue(strategy="NONE")
+         */
+        private $id;
 
-    public function getId(): Uuid
-    {
-        return $this->id;
-    }
+        /**
+         * @ORM\Column(nullable=true)
+         */
+        private $number;
 
-    public function getNumber(): ?string
-    {
-        return $this->number;
-    }
+        public function __construct($id = null)
+        {
+            $this->id = $id ?? Uuid::v4();
+        }
 
-    public function setNumber(?string $number): self
-    {
-        $this->number = $number;
+        public function getId(): Uuid
+        {
+            return $this->id;
+        }
 
-        return $this;
+        public function getNumber(): ?string
+        {
+            return $this->number;
+        }
+
+        public function setNumber(?string $number): self
+        {
+            $this->number = $number;
+
+            return $this;
+        }
     }
 }
