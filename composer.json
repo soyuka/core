@@ -63,7 +63,7 @@
         "symfony/css-selector": "^3.4 || ^5.1",
         "symfony/debug": "^3.4 || ^5.1",
         "symfony/dependency-injection": "^3.4 || ^5.1",
-        "symfony/doctrine-bridge": "^3.4 || ^5.1",
+        "symfony/doctrine-bridge": "^3.4 || ^5.2",
         "symfony/dom-crawler": "^3.4 || ^5.1",
         "symfony/event-dispatcher": "^3.4 || ^5.1",
         "symfony/expression-language": "^3.4 || ^5.1",
