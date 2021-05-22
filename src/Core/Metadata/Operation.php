@@ -70,6 +70,7 @@ class Operation
      * @param bool         $compositeIdentifier
      * @param array        $identifiers
      * @param array        $graphQl
+     * @param bool         $collection
      */
     public function __construct(
         public string $method = 'GET',
@@ -126,6 +127,7 @@ class Operation
         public ?bool $compositeIdentifier = null,
         public ?array $identifiers = null,
         public ?array $graphQl = null,
+        public bool $collection = false,
         ...$extraProperties
     ) {
         $this->extraProperties = $extraProperties;

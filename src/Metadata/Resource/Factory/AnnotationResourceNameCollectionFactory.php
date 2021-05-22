@@ -16,7 +16,6 @@ namespace ApiPlatform\Core\Metadata\Resource\Factory;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\Util\ReflectionClassRecursiveIterator;
-use ApiPlatform\Metadata\Resource;
 use Doctrine\Common\Annotations\Reader;
 
 /**
@@ -24,7 +23,7 @@ use Doctrine\Common\Annotations\Reader;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class AnnotationResourceNameCollectionFactory implements LegacyResourceNameCollectionFactoryInterface
+final class AnnotationResourceNameCollectionFactory implements ResourceNameCollectionFactoryInterface
 {
     private $reader;
     private $paths;
@@ -43,30 +42,20 @@ final class AnnotationResourceNameCollectionFactory implements LegacyResourceNam
     /**
      * {@inheritdoc}
      */
-    public function create(bool $legacy = true): ResourceNameCollection
+    public function create(): ResourceNameCollection
     {
-        if (true === $legacy) {
-            @trigger_error(sprintf('Using a legacy %s is deprecated since 2.7 and will not be possible in 3.0.', __CLASS__), \E_USER_DEPRECATED);
-        }
-
         $classes = [];
 
         if ($this->decorated) {
-            foreach ($this->decorated instanceof LegacyResourceNameCollectionFactoryInterface ? $this->decorated->create($legacy) : $this->decorated->create() as $resourceClass) {
+            foreach ($this->decorated->create() as $resourceClass) {
                 $classes[$resourceClass] = true;
             }
         }
 
         foreach (ReflectionClassRecursiveIterator::getReflectionClassesFromDirectories($this->paths) as $className => $reflectionClass) {
-            if (\PHP_VERSION_ID >= 80000 && !$legacy && $reflectionClass->getAttributes(Resource::class)) {
-                $classes[$className] = true;
-                continue;
-            }
-
             if (
-                $legacy &&
-                ((\PHP_VERSION_ID >= 80000 && ($reflectionClass->getAttributes(ApiResource::class))) ||
-                (null !== $this->reader && $this->reader->getClassAnnotation($reflectionClass, ApiResource::class)))
+                (\PHP_VERSION_ID >= 80000 && $reflectionClass->getAttributes(ApiResource::class)) ||
+                (null !== $this->reader && $this->reader->getClassAnnotation($reflectionClass, ApiResource::class))
             ) {
                 $classes[$className] = true;
             }

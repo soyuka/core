@@ -95,7 +95,7 @@ final class ApiLoader extends Loader
         $this->loadExternalFiles($routeCollection);
 
         if ($this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface) {
-            foreach ($this->resourceNameCollectionFactory->create(false) as $resourceClass) {
+            foreach ($this->resourceNameCollectionFactory->create(true) as $resourceClass) {
                 foreach ($this->resourceCollectionMetadataFactory->create($resourceClass) as $resourceMetadata) {
                     foreach ($resourceMetadata->operations as $operationName => $operation) {
                         $route = new Route(
