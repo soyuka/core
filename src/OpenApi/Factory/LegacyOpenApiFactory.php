@@ -34,15 +34,13 @@ use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
-use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Resource;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\PropertyInfo\Type;
 
 /**
  * Generates an Open API v3 specification.
  */
-final class OpenApiFactory implements OpenApiFactoryInterface
+final class LegacyOpenApiFactory implements OpenApiFactoryInterface
 {
     use FilterLocatorTrait;
     use ResourceToResourceMetadataTrait;
@@ -55,15 +53,15 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     private $propertyNameCollectionFactory;
     private $propertyMetadataFactory;
     private $operationPathResolver;
+    private $subresourceOperationFactory;
     private $formats;
     private $jsonSchemaFactory;
     private $jsonSchemaTypeFactory;
     private $openApiOptions;
     private $paginationOptions;
     private $identifiersExtractor;
-    private $decorated;
 
-    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceCollectionMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, SchemaFactoryInterface $jsonSchemaFactory, TypeFactoryInterface $jsonSchemaTypeFactory, OperationPathResolverInterface $operationPathResolver, ContainerInterface $filterLocator, IdentifiersExtractorInterface $identifiersExtractor = null, array $formats = [], Options $openApiOptions = null, PaginationOptions $paginationOptions = null, LegacyOpenApiFactory $decorated = null)
+    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, SchemaFactoryInterface $jsonSchemaFactory, TypeFactoryInterface $jsonSchemaTypeFactory, OperationPathResolverInterface $operationPathResolver, ContainerInterface $filterLocator, SubresourceOperationFactoryInterface $subresourceOperationFactory, IdentifiersExtractorInterface $identifiersExtractor = null, array $formats = [], Options $openApiOptions = null, PaginationOptions $paginationOptions = null)
     {
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
         $this->jsonSchemaFactory = $jsonSchemaFactory;
@@ -74,10 +72,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
         $this->propertyMetadataFactory = $propertyMetadataFactory;
         $this->operationPathResolver = $operationPathResolver;
+        $this->subresourceOperationFactory = $subresourceOperationFactory;
         $this->identifiersExtractor = $identifiersExtractor;
         $this->openApiOptions = $openApiOptions ?: new Options('API Platform');
         $this->paginationOptions = $paginationOptions ?: new PaginationOptions();
-        $this->decorated = $decorated;
     }
 
     /**
@@ -85,10 +83,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
      */
     public function __invoke(array $context = []): OpenApi
     {
-        if (!$this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface) {
-            return $this->decorated->__invoke($context);
-        }
-
         $baseUrl = $context[self::BASE_URL] ?? '/';
         $contact = null === $this->openApiOptions->getContactUrl() || null === $this->openApiOptions->getContactEmail() ? null : new Model\Contact($this->openApiOptions->getContactName(), $this->openApiOptions->getContactUrl(), $this->openApiOptions->getContactEmail());
         $license = null === $this->openApiOptions->getLicenseName() ? null : new Model\License($this->openApiOptions->getLicenseName(), $this->openApiOptions->getLicenseUrl());
@@ -98,12 +92,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $links = [];
         $schemas = new \ArrayObject();
 
-        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
-            $resources = $this->resourceMetadataFactory->create($resourceClass);
+        foreach ($this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface ? $this->resourceNameCollectionFactory->create(true) : $this->resourceNameCollectionFactory->create() as $resourceClass) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
-            foreach ($resources as $resource) {
-                $this->collectPaths($resource, $resourceClass, $context, $paths, $links, $schemas);
-            }
+            // Items needs to be parsed first to be able to reference the lines from the collection operation
+            $this->collectPaths($resourceMetadata, $resourceClass, OperationType::ITEM, $context, $paths, $links, $schemas);
+            $this->collectPaths($resourceMetadata, $resourceClass, OperationType::COLLECTION, $context, $paths, $links, $schemas);
+
+            $this->collectPaths($resourceMetadata, $resourceClass, OperationType::SUBRESOURCE, $context, $paths, $links, $schemas);
         }
 
         $securitySchemes = $this->getSecuritySchemes();
@@ -130,43 +126,38 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         );
     }
 
-    private function collectPaths(Resource $resource, string $resourceClass, array $context, Model\Paths $paths, array &$links, \ArrayObject $schemas): void
+    private function collectPaths(ResourceMetadata $resourceMetadata, string $resourceClass, string $operationType, array $context, Model\Paths $paths, array &$links, \ArrayObject $schemas): void
     {
-        $resourceShortName = $resource->shortName;
-
-        if (!$resource->operations) {
+        $resourceShortName = $resourceMetadata->getShortName();
+        $operations = OperationType::COLLECTION === $operationType ? $resourceMetadata->getCollectionOperations() : (OperationType::ITEM === $operationType ? $resourceMetadata->getItemOperations() : $this->subresourceOperationFactory->create($resourceClass));
+        if (!$operations) {
             return;
         }
 
         $rootResourceClass = $resourceClass;
+        foreach ($operations as $operationName => $operation) {
+            if (OperationType::COLLECTION === $operationType && !$resourceMetadata->getItemOperations()) {
+                $identifiers = [];
+            } else {
+                $identifiers = (array) ($operation['identifiers'] ?? $resourceMetadata->getAttribute('identifiers', null === $this->identifiersExtractor ? ['id'] : $this->identifiersExtractor->getIdentifiersFromResourceClass($resourceClass)));
+            }
+            if (\count($identifiers) > 1 ? $resourceMetadata->getAttribute('composite_identifier', true) : false) {
+                $identifiers = ['id'];
+            }
 
-        foreach ($resource->operations as $operationName => $operation) {
-            $identifiers = $operation->identifiers;
-            $resourceClass = $operation->class ?? $rootResourceClass;
-            $path = $operation->uriTemplate;
-            $method = $operation->method;
-
-            [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($operation);
-
-            $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
-
-            // On en fait quoi de $linkedOperationId ?
+            $resourceClass = $operation['resource_class'] ?? $rootResourceClass;
+            $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
+            $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET');
+            [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($resourceClass, $operationName, $operationType, $resourceMetadata);
+            $operationId = $operation['openapi_context']['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
-
             $pathItem = $paths->getPath($path) ?: new Model\PathItem();
-
-            // J'en fais quoi de $forceSchemaCollection ?
-            $forceSchemaCollection = false; //OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
-
+            $forceSchemaCollection = OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
             $schema = new Schema('openapi');
             $schema->setDefinitions($schemas);
 
             $operationOutputSchemas = [];
-
-            $operationType = 'GET'; // Là il faut soit qu'on l'initialise bien, soit il faut modifier SchemaFactory ou en faire un Legacy pour qu'il ne prenne plus en paramètre $operationType
-
             foreach ($responseMimeTypes as $operationFormat) {
-                // buildSchema est à modifier; Rien en dessous de cette ligne est testé
                 $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
                 $this->appendSchemaDefinitions($schemas, $operationOutputSchema->getDefinitions());
@@ -175,51 +166,65 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $parameters = [];
             $responses = [];
 
-            if ($operation->openapiContext['parameters'] ?? false) {
-                foreach ($operation->openapiContext['parameters'] as $parameter) {
+            if ($operation['openapi_context']['parameters'] ?? false) {
+                foreach ($operation['openapi_context']['parameters'] as $parameter) {
                     $parameters[] = new Model\Parameter($parameter['name'], $parameter['in'], $parameter['description'] ?? '', $parameter['required'] ?? false, $parameter['deprecated'] ?? false, $parameter['allowEmptyValue'] ?? false, $parameter['schema'] ?? [], $parameter['style'] ?? null, $parameter['explode'] ?? false, $parameter['allowReserved '] ?? false, $parameter['example'] ?? null, isset($parameter['examples']) ? new \ArrayObject($parameter['examples']) : null, isset($parameter['content']) ? new \ArrayObject($parameter['content']) : null);
                 }
             }
 
             // Set up parameters
-            if ($operation->identifiers) {
-                foreach ($operation->identifiers as $parameterName => [$class, $property]) {
-                    $parameter = new Model\Parameter($parameterName, 'path', $resource->shortName.' identifier', true, false, false, ['type' => 'string']);
+            if (OperationType::ITEM === $operationType) {
+                foreach ($identifiers as $parameterName => $identifier) {
+                    $parameterName = \is_string($parameterName) ? $parameterName : $identifier;
+                    $parameter = new Model\Parameter($parameterName, 'path', 'Resource identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
                     }
 
                     $parameters[] = $parameter;
                 }
-            } else {
-                $subresourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-                // Mauvais typage avec getFiltersParameters
-                /*
-                foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($subresourceMetadata, $operationName, $resourceClass)) as $parameter) {
+                $links[$operationId] = $this->getLink($resourceClass, $operationId, $path);
+            } elseif (OperationType::COLLECTION === $operationType && 'GET' === $method) {
+                foreach (array_merge($this->getPaginationParameters($resourceMetadata, $operationName), $this->getFiltersParameters($resourceMetadata, $operationName, $resourceClass)) as $parameter) {
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
                     }
 
                     $parameters[] = $parameter;
-                }*/
+                }
+            } elseif (OperationType::SUBRESOURCE === $operationType) {
+                foreach ($operation['identifiers'] as $parameterName => [$class, $property]) {
+                    $parameter = new Model\Parameter($parameterName, 'path', $this->resourceMetadataFactory->create($class)->getShortName().' identifier', true, false, false, ['type' => 'string']);
+                    if ($this->hasParameter($parameter, $parameters)) {
+                        continue;
+                    }
+
+                    $parameters[] = $parameter;
+                }
+
+                if ($operation['collection']) {
+                    $subresourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+                    foreach (array_merge($this->getPaginationParameters($resourceMetadata, $operationName), $this->getFiltersParameters($subresourceMetadata, $operationName, $resourceClass)) as $parameter) {
+                        if ($this->hasParameter($parameter, $parameters)) {
+                            continue;
+                        }
+
+                        $parameters[] = $parameter;
+                    }
+                }
             }
 
             // Create responses
-            /*
-             *  Idem je sais pas ce que retourne l'ancien getTypedOperationAttribute, à priori un $operations[$operationName][$key]
-             * donc nous ça correspondrait à une classe fille de Resource GET PUT DELETE etc ?
-            */
-
             switch ($method) {
                 case 'GET':
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'status', '200');
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
                     $responses[$successStatus] = new Model\Response(sprintf('%s %s', $resourceShortName, OperationType::COLLECTION === $operationType ? 'collection' : 'resource'), $responseContent);
                     break;
                 case 'POST':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'status', '201');
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource created', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
@@ -227,38 +232,34 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 case 'PATCH':
                 case 'PUT':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'status', '200');
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource updated', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
                     break;
                 case 'DELETE':
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'status', '204');
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource deleted', $resourceShortName));
                     break;
             }
 
-
-            // Ça existe plus $operationType
-            /*
             if (OperationType::ITEM === $operationType) {
                 $responses['404'] = new Model\Response('Resource not found');
             }
-            */
 
             if (!$responses) {
                 $responses['default'] = new Model\Response('Unexpected error');
             }
 
-            if ($contextResponses = $operation->openapiContext['responses'] ?? false) {
+            if ($contextResponses = $operation['openapi_context']['responses'] ?? false) {
                 foreach ($contextResponses as $statusCode => $contextResponse) {
                     $responses[$statusCode] = new Model\Response($contextResponse['description'] ?? '', isset($contextResponse['content']) ? new \ArrayObject($contextResponse['content']) : null, isset($contextResponse['headers']) ? new \ArrayObject($contextResponse['headers']) : null, isset($contextResponse['links']) ? new \ArrayObject($contextResponse['links']) : null);
                 }
             }
 
             $requestBody = null;
-            if ($contextRequestBody = $operation->openapiContext['requestBody'] ?? false) {
+            if ($contextRequestBody = $operation['openapi_context']['requestBody'] ?? false) {
                 $requestBody = new Model\RequestBody($contextRequestBody['description'] ?? '', new \ArrayObject($contextRequestBody['content']), $contextRequestBody['required'] ?? false);
             } elseif ('PUT' === $method || 'POST' === $method || 'PATCH' === $method) {
                 $operationInputSchemas = [];
@@ -273,20 +274,20 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $pathItem = $pathItem->{'with'.ucfirst($method)}(new Model\Operation(
                 $operationId,
-                $operation->openapiContext['tags'] ?? ([$operation->shortName] ?? [$resourceShortName]),
+                $operation['openapi_context']['tags'] ?? (OperationType::SUBRESOURCE === $operationType ? $operation['shortNames'] : [$resourceShortName]),
                 $responses,
-                $operation->openapiContext['summary'] ?? $this->getPathDescription($resourceShortName, $method),
-                $operation->openapiContext['description'] ?? $this->getPathDescription($resourceShortName, $method),
-                isset($operation->openapiContext['externalDocs']) ? new ExternalDocumentation($operation->openapiContext['externalDocs']['description'] ?? null, $operation->openapiContext['externalDocs']['url']) : null,
+                $operation['openapi_context']['summary'] ?? $this->getPathDescription($resourceShortName, $method, $operationType),
+                $operation['openapi_context']['description'] ?? $this->getPathDescription($resourceShortName, $method, $operationType),
+                isset($operation['openapi_context']['externalDocs']) ? new ExternalDocumentation($operation['openapi_context']['externalDocs']['description'] ?? null, $operation['openapi_context']['externalDocs']['url']) : null,
                 $parameters,
                 $requestBody,
-                isset($operation->openapiContext['callbacks']) ? new \ArrayObject($operation->openapiContext['callbacks']) : null,
-                $operation->openapiContext['deprecated'] ?? (bool) $operation->deprecationReason,//$resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', false, true),
-                $operation->openapiContext['security'] ?? null,
-                $operation->openapiContext['servers'] ?? null,
-                array_filter($operation->openapiContext ?? [], static function ($item) {
+                isset($operation['openapi_context']['callbacks']) ? new \ArrayObject($operation['openapi_context']['callbacks']) : null,
+                $operation['openapi_context']['deprecated'] ?? (bool) $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', false, true),
+                $operation['openapi_context']['security'] ?? null,
+                $operation['openapi_context']['servers'] ?? null,
+                array_filter($operation['openapi_context'] ?? [], static function ($item) {
                     return preg_match('/^x-.*$/i', $item);
-                }, \ARRAY_FILTER_USE_KEY),
+                }, \ARRAY_FILTER_USE_KEY)
             ));
 
             $paths->addPath($path, $pathItem);
@@ -304,16 +305,11 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         return $content;
     }
 
-    private function getMimeTypes(Operation $operation): array
+    private function getMimeTypes(string $resourceClass, string $operationName, string $operationType, ResourceMetadata $resourceMetadata = null): array
     {
+        $requestFormats = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'input_formats', $this->formats, true);
+        $responseFormats = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'output_formats', $this->formats, true);
 
-        // Operation Type se récupère depuis $resource
-        $requestFormats = $operation->inputFormats;
-        $responseFormats = $operation->outputFormats;
-        /*
-        $requestFormats = $resource->getTypedOperationAttribute($resource->method, $operationName, 'input_formats', $this->formats, true);
-        $responseFormats = $resource->getTypedOperationAttribute($resource->method, $operationName, 'output_formats', $this->formats, true);
-*/
         $requestMimeTypes = $this->flattenMimeTypes($requestFormats);
         $responseMimeTypes = $this->flattenMimeTypes($responseFormats);
 
@@ -340,23 +336,21 @@ final class OpenApiFactory implements OpenApiFactoryInterface
      *
      * @see https://github.com/OAI/OpenAPI-Specification/issues/93
      */
-    private function getPath(string $path): string
+    private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType): string
     {
+        $path = $operation['uri_template'] ?? $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
         if ('.{_format}' === substr($path, -10)) {
             $path = substr($path, 0, -10);
         }
 
-        return str_starts_with($path, '/') ? $path : '/'.$path;
+        return 0 === strpos($path, '/') ? $path : '/'.$path;
     }
 
-    private function getPathDescription(string $resourceShortName, string $method): string
+    private function getPathDescription(string $resourceShortName, string $method, string $operationType): string
     {
         switch ($method) {
-            // Là je suppose que le GET il faut virer le ::Collection en dessous et mettre uniquement retrieves the resource
-            // J'ai enlevé l'attribut $operationType de la méthode
             case 'GET':
-                $pathSummary = 'Retrieves a %s resource.';
-                //$pathSummary = OperationType::COLLECTION === $operationType ? 'Retrieves the collection of %s resources.' : 'Retrieves a %s resource.';
+                $pathSummary = OperationType::COLLECTION === $operationType ? 'Retrieves the collection of %s resources.' : 'Retrieves a %s resource.';
                 break;
             case 'POST':
                 $pathSummary = 'Creates a %s resource.';
@@ -404,10 +398,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * Gets parameters corresponding to enabled filters.
      */
-    private function getFiltersParameters(Resource $resource, string $operationName, string $resourceClass): array
+    private function getFiltersParameters(ResourceMetadata $resourceMetadata, string $operationName, string $resourceClass): array
     {
         $parameters = [];
-        $resourceFilters = $resource->getOperation($operationName)->filters;
+        $resourceFilters = $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true);
         foreach ($resourceFilters as $filterId) {
             if (!$filter = $this->getFilter($filterId)) {
                 continue;
@@ -424,24 +418,20 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     $data['openapi']['deprecated'] ?? false,
                     $data['openapi']['allowEmptyValue'] ?? true,
                     $schema,
-                    'array' === $schema['type'] && \in_array(
-                        $data['type'],
-                        [Type::BUILTIN_TYPE_ARRAY, Type::BUILTIN_TYPE_OBJECT],
-                        true
-                    ) ? 'deepObject' : 'form',
+                    'array' === $schema['type'] && \in_array($data['type'],
+                    [Type::BUILTIN_TYPE_ARRAY, Type::BUILTIN_TYPE_OBJECT], true) ? 'deepObject' : 'form',
                     $data['openapi']['explode'] ?? ('array' === $schema['type']),
                     $data['openapi']['allowReserved'] ?? false,
                     $data['openapi']['example'] ?? null,
                     isset($data['openapi']['examples']
-                    ) ? new \ArrayObject($data['openapi']['examples']) : null
-                );
+                ) ? new \ArrayObject($data['openapi']['examples']) : null);
             }
         }
 
         return $parameters;
     }
 
-    private function getPaginationParameters(Resource $resource, string $operationName): array
+    private function getPaginationParameters(ResourceMetadata $resourceMetadata, string $operationName): array
     {
         if (!$this->paginationOptions->isPaginationEnabled()) {
             return [];
@@ -449,17 +439,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         $parameters = [];
 
-        if ($resource->paginationEnabled) {
+        if ($resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_enabled', true, true)) {
             $parameters[] = new Model\Parameter($this->paginationOptions->getPaginationPageParameterName(), 'query', 'The collection page number', false, false, true, ['type' => 'integer', 'default' => 1]);
 
-            if ($resource->paginationClientItemsPerPage) {
+            if ($resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_client_items_per_page', $this->paginationOptions->getClientItemsPerPage(), true)) {
                 $schema = [
                     'type' => 'integer',
-                    'default' => $resource->paginationItemsPerPage,
+                    'default' => $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_items_per_page', 30, true),
                     'minimum' => 0,
                 ];
 
-                if (null !== $maxItemsPerPage = $resource->paginationMaximumItemsPerPage) {
+                if (null !== $maxItemsPerPage = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_maximum_items_per_page', null, true)) {
                     $schema['maximum'] = $maxItemsPerPage;
                 }
 
@@ -467,7 +457,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
         }
 
-        if ($resource->paginationClientEnabled) {
+        if ($resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_client_enabled', $this->paginationOptions->getPaginationClientEnabled(), true)) {
             $parameters[] = new Model\Parameter($this->paginationOptions->getPaginationClientEnabledParameterName(), 'query', 'Enable or disable pagination', false, false, true, ['type' => 'boolean']);
         }
 

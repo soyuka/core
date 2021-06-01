@@ -41,7 +41,7 @@ final class UriTemplateResourceCollectionMetadataFactory implements ResourceColl
         $parentResourceMetadata = [];
         if ($this->decorated) {
             try {
-                $parentResourceMetadata = $this->decorated->create($resourceClass)->getArrayCopy();
+                $parentResourceMetadata = $this->decorated->create($resourceClass);
             } catch (ResourceClassNotFoundException $resourceNotFoundException) {
                 // Ignore not found exception from decorated factories
             }
@@ -50,6 +50,10 @@ final class UriTemplateResourceCollectionMetadataFactory implements ResourceColl
         foreach ($parentResourceMetadata as $i => $resource) {
             if (!$resource->uriTemplate) {
                 foreach ($resource->operations as $key => $operation) {
+                    if ($operation->uriTemplate) {
+                        continue;
+                    }
+
                     $operation->uriTemplate = $this->generateUriTemplate($operation);
                     // Change the operation key
                     unset($resource->operations[$key]);
@@ -60,7 +64,7 @@ final class UriTemplateResourceCollectionMetadataFactory implements ResourceColl
             $parentResourceMetadata[$i] = $resource;
         }
 
-        return new ResourceCollection($parentResourceMetadata);
+        return $parentResourceMetadata;
     }
 
     private function generateUriTemplate(Operation $operation): string

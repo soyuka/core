@@ -60,6 +60,6 @@ final class PhpDocResourceCollectionMetadataFactory implements ResourceCollectio
             }
         }
 
-        return new ResourceCollection($resourceMetadataCollection);
+        return $resourceMetadataCollection;
     }
 }

@@ -54,7 +54,7 @@ final class InputOutputResourceCollectionMetadataFactory implements ResourceColl
             $resourceMetadataCollection[$key] = $resourceMetadata;
         }
 
-        return new ResourceCollection($resourceMetadataCollection);
+        return $resourceMetadataCollection;
     }
 
     private function getTransformedOperations(array $operations, Resource $resourceMetadata): array

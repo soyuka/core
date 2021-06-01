@@ -28,6 +28,7 @@ class Resource
      * @param string            $uriTemplate
      * @param string            $description
      * @param array             $types
+     * @param Operation[]       $operations
      * @param string            $shortName
      * @param array             $cacheHeaders                   https://api-platform.com/docs/core/performance/#setting-custom-http-cache-headers
      * @param array             $denormalizationContext         https://api-platform.com/docs/core/serialization/#using-serialization-groups
