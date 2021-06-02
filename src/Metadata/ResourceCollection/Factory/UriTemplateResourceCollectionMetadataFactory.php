@@ -67,10 +67,10 @@ final class UriTemplateResourceCollectionMetadataFactory implements ResourceColl
     {
         $uriTemplate = $operation->routePrefix ?: '';
         if (!$operation->identifiers) {
-            return sprintf('%s/%s.{_format}', $uriTemplate, $this->pathSegmentNameGenerator->getSegmentName($operation->shortName));
+            return sprintf('%s/%s.{_format}', $uriTemplate, $this->pathSegmentNameGenerator->getSegmentName($operation->shortName ?? 'NO_NAME'));
         }
 
-        $uriTemplate = sprintf('%s/%s', $uriTemplate, $this->pathSegmentNameGenerator->getSegmentName($operation->shortName));
+        $uriTemplate = sprintf('%s/%s', $uriTemplate, $this->pathSegmentNameGenerator->getSegmentName($operation->shortName ?? 'NO_NAME'));
         foreach (array_keys($operation->identifiers) as $parameterName) {
             $uriTemplate .= sprintf('/{%s}', $parameterName);
         }

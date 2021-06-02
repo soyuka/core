@@ -47,6 +47,12 @@
             <tag name="cache.pool" />
         </service>
 
+        <service id="api_platform.metadata.resource_collection.metadata_factory.legacy_resource_metadata" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="100" public="false">
+            <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory.legacy_resource_metadata.inner" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+            <argument>%api_platform.defaults%</argument>
+        </service>
+
     </services>
 
 </container>
