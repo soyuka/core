@@ -141,20 +141,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         }
 
         $rootResourceClass = $resourceClass;
+
         foreach ($resource->operations as $operationName => $operation) {
 
             $identifiers = $operation->identifiers;
-
             $resourceClass = $operation->class ?? $rootResourceClass;
-            // Pas sûr que ce soit bien uriTemplate
             $path = $operation->uriTemplate;
             $method = $operation->method;
 
             [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($operation);
-            //[$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($resourceClass, $operationName, $resource);
 
-            $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);//.ucfirst($operation->method);
-            //$operationId = $operation['openapi_context']['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
+            $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
             // On en fait quoi de $linkedOperationId ?
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
@@ -169,9 +166,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationOutputSchemas = [];
 
-            $operationType = 'GET';// Temp, to remove
-            // Là j'en ai aucune idée de quoi modifier ça utilise des dépendences je sais pas s'il faut faire un legacy
+            $operationType = 'GET'; // Là il faut soit qu'on l'initialise bien, soit il faut modifier SchemaFactory ou en faire un Legacy pour qu'il ne prenne plus en paramètre $operationType
             foreach ($responseMimeTypes as $operationFormat) {
+                //dump($operationName.'----');
+                // buildSchema est à modifier
                 $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
                 $this->appendSchemaDefinitions($schemas, $operationOutputSchema->getDefinitions());

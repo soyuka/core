@@ -20,7 +20,8 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Metadata\ResourceCollection\ResourceMetadataResourceCollectionFactory;
+use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
@@ -75,6 +76,7 @@ final class SchemaFactory implements SchemaFactoryInterface
     {
         $schema = $schema ? clone $schema : new Schema();
         if (null === $metadata = $this->getMetadata($className, $type, $operationType, $operationName, $serializerContext)) {
+            // On ne rentre jamais ici
             return $schema;
         }
         [$resourceMetadata, $serializerContext, $validationGroups, $inputOrOutputClass] = $metadata;
@@ -126,8 +128,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         $definition = new \ArrayObject(['type' => 'object']);
         $definitions[$definitionName] = $definition;
 
-        if($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             if (null !== $resourceMetadata && null !== $description = $resourceMetadata->getDescription()) {
                 $definition['description'] = $description;
             }
@@ -154,7 +155,6 @@ final class SchemaFactory implements SchemaFactoryInterface
             if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getIri()) {
                 $definition['externalDocs'] = ['url' => $iri];
             }
-
         } else { // New interface
 
             if (null !== $resourceMetadata && null !== $description = $resourceMetadata->getOperation($operationName)->description) {
@@ -184,7 +184,6 @@ final class SchemaFactory implements SchemaFactoryInterface
             if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getOperation($operationName)->uriTemplate) {
                 $definition['externalDocs'] = ['url' => $iri];
             }
-
         }
 
 
@@ -352,9 +351,9 @@ final class SchemaFactory implements SchemaFactoryInterface
             ];
         }
 
-
         // Old interface
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            dd('ON VA JAMAIS LA');
             $resourceMetadata = $this->resourceMetadataFactory->create($className);
             $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
             if (null === $operationType || null === $operationName) {
@@ -371,14 +370,24 @@ final class SchemaFactory implements SchemaFactoryInterface
             // Si c'est le nouveau systeme, on aura un resourceCollection
             // New system with ResourceMetadataResourceCollectionFactory
             $resourceMetadata = $this->resourceMetadataFactory->create($className);
+            // J'ai pas compris encore ce que fait output et input mais il y a bien parfois les deux
             $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
-            $inputOrOutput = $resourceMetadata->getOperation($operationName);
+
+            if (!$resourceMetadata->getOperation($operationName)) {
+                //dump('not working');
+            }else{
+                // Ca ca marche bien !
+                $inputOrOutput = $resourceMetadata->getOperation($operationName)->{$attribute};
+            }
+
+
+            // TODO: le pb est vers là, on a pas d'attribut ->class il est tjr nul
 
             // $inputOrOuput est un objet Operation, où est l'attribut class ? il existe ?
-            /*if (null === ($inputOrOutput['class'] ?? null)) {
+            if (null === ($inputOrOutput->class ?? null)) {
                 // input or output disabled
                 return null;
-            }*/
+            }
         }
 
         return [

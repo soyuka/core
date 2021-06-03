@@ -28,7 +28,7 @@
             <argument>%api_platform.defaults%</argument>
         </service>
 
-        <service id="api_platform.metadata.resource_collection.metadata_factory.identifier" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\IdentifierResourceCollectionMetadataFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="10" public="false">
+        <service id="api_platform.metadata.resource_collection.metadata_factory.identifier" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\IdentifierResourceCollectionMetadataFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="15" public="false">
             <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory.identifier.inner" />
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.identifier_metadata_factory" />
@@ -47,7 +47,7 @@
             <tag name="cache.pool" />
         </service>
 
-        <service id="api_platform.metadata.resource_collection.metadata_factory.legacy_resource_metadata" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="100" public="false">
+        <service id="api_platform.metadata.resource_collection.metadata_factory.legacy_resource_metadata" class="ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory" decorates="api_platform.metadata.resource_collection.metadata_factory" decoration-priority="10" public="false">
             <argument type="service" id="api_platform.metadata.resource_collection.metadata_factory.legacy_resource_metadata.inner" />
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
             <argument>%api_platform.defaults%</argument>
