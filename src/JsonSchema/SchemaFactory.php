@@ -87,16 +87,12 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         $version = $schema->getVersion();
-        $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $resourceMetadata, $serializerContext);
+        $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $resourceMetadata->getOperation($operationName), $serializerContext);
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            if (null === $operationType || null === $operationName) {
-                $method = Schema::TYPE_INPUT === $type ? 'POST' : 'GET';
-            } else {
-                $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method');
-            }
-        } else { // New interface
-            $method = $resourceMetadata->getOperation($operationName)->method;
+        if (null === $operationType || null === $operationName) {
+            $method = Schema::TYPE_INPUT === $type ? 'POST' : 'GET';
+        } else {
+            $method = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method') : $resourceMetadata->getOperation($operationName)->method;
         }
 
         if (Schema::TYPE_OUTPUT !== $type && !\in_array($method, ['POST', 'PATCH', 'PUT'], true)) {
@@ -290,44 +286,31 @@ final class SchemaFactory implements SchemaFactoryInterface
 
     private function buildDefinitionName(string $className, string $format = 'json', ?string $inputOrOutputClass = null, $resourceMetadata = null, ?array $serializerContext = null): string
     {
-        // Old interface
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            $prefix = $resourceMetadata ? $resourceMetadata->getShortName() : (new \ReflectionClass($className))->getShortName();
-            if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
-                $parts = explode('\\', $inputOrOutputClass);
-                $shortName = end($parts);
-                $prefix .= '.' . $shortName;
-            }
-
-            if (isset($this->distinctFormats[$format])) {
-                // JSON is the default, and so isn't included in the definition name
-                $prefix .= '.' . $format;
-            }
-
-            $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
-            if ($definitionName) {
-                $name = sprintf('%s-%s', $prefix, $definitionName);
-            } else {
-                $groups = (array)($serializerContext[AbstractNormalizer::GROUPS] ?? []);
-                $name = $groups ? sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
-            }
-        } else { // New interface
-            // Là j'ai du hardcoder car mon $resourceMetadata n'avait un operationCache vide
-
-            if ($resourceMetadata) {
-                $prefix = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getShortName() : $resourceMetadata->shortName;
-            } else {
-                $prefix = (new \ReflectionClass($className))->getShortName();
-            }
-
-            $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
-            if ($definitionName) {
-                $name = sprintf('%s-%s', $prefix, $definitionName);
-            } else {
-                $groups = (array)($serializerContext[AbstractNormalizer::GROUPS] ?? []);
-                $name = $groups ? sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
-            }
+        if ($resourceMetadata) {
+            $prefix = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getShortName() : $resourceMetadata->shortName;
+        } else {
+            $prefix = (new \ReflectionClass($className))->getShortName();
         }
+
+        if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
+            $parts = explode('\\', $inputOrOutputClass);
+            $shortName = end($parts);
+            $prefix .= '.' . $shortName;
+        }
+
+        if (isset($this->distinctFormats[$format])) {
+            // JSON is the default, and so isn't included in the definition name
+            $prefix .= '.' . $format;
+        }
+
+        $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
+        if ($definitionName) {
+            $name = sprintf('%s-%s', $prefix, $definitionName);
+        } else {
+            $groups = (array)($serializerContext[AbstractNormalizer::GROUPS] ?? []);
+            $name = $groups ? sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
+        }
+
         return $this->encodeDefinitionName($name);
     }
 
@@ -347,48 +330,33 @@ final class SchemaFactory implements SchemaFactoryInterface
             ];
         }
 
-        // Old interface
+        $resourceMetadata = $this->resourceMetadataFactory->create($className);
+        $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
+
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            dd('ON NE DOIT PAS ALLER LA pendant mes tests (à suppr)');
-            $resourceMetadata = $this->resourceMetadataFactory->create($className);
-            $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
             if (null === $operationType || null === $operationName) {
                 $inputOrOutput = $resourceMetadata->getAttribute($attribute, ['class' => $className]);
             } else {
                 $inputOrOutput = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, ['class' => $className], true);
             }
-
-            if (null === ($inputOrOutput['class'] ?? null)) {
-                // input or output disabled
-                return null;
-            }
         } else {
-            // Si c'est le nouveau systeme, on aura un resourceCollection
-            // New system with ResourceMetadataResourceCollectionFactory
-            $resourceMetadata = $this->resourceMetadataFactory->create($className);
-
-            $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
-
-            if($resourceMetadata->getOperation($operationName)){
-                $inputOrOutput = $resourceMetadata->getOperation($operationName)->{$attribute};
-            }else{
-                dd('INTENTIONAL STOP -   failedBY:'.$operationName.'   inside class:'.$className);
-                //dump($resourceMetadata);
-            }
-
-            if (null === ($inputOrOutput->class ?? null)) {
-                // input or output disabled
+            if(!$operation = $resourceMetadata->getOperation($operationName)){
                 return null;
             }
+
+            $inputOrOutput = $operation->{$attribute};
         }
 
-
+        if (null === ($inputOrOutput['class'] ?? $inputOrOutput->class ?? null)) {
+            // input or output disabled
+            return null;
+        }
 
         return [
             $resourceMetadata,
             $serializerContext ?? $this->getSerializerContext($resourceMetadata, $type, $operationType, $operationName),
             $this->getValidationGroups($resourceMetadata, $operationType, $operationName),
-            $this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface ? $inputOrOutput['class'] : $inputOrOutput->class,
+            $inputOrOutput['class'] ?? $inputOrOutput->class,
         ];
     }
 

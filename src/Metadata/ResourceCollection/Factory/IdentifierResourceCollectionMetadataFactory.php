@@ -17,6 +17,8 @@ use ApiPlatform\Core\Exception\PropertyNotFoundException;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Book;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\SlugParentDummy;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 
@@ -68,7 +70,7 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
 
             $formatted = [];
             foreach ($resource->identifiers as $identifier) {
-                $formatted[$identifier] = [$identifier => $resourceClass];
+                $formatted[$identifier] = [$identifier, $resourceClass];
             }
 
             $resource->identifiers = $formatted;
@@ -76,13 +78,24 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
             foreach ($resource->operations as $key => $operation) {
                 if (!$operation->identifiers) {
                     $resource->operations[$key]->identifiers = $formatted;
+                    continue;
+                }
+
+                foreach ($operation->identifiers as $identifier) {
+                    if (is_string($identifier)) {
+                        $resource->operations[$key]->identifiers[$identifier] = [$identifier, $resourceClass];
+                    }
                 }
             }
 
             $resourceMetadataCollection[$i] = $resource;
         }
 
-        return new ResourceCollection($resourceMetadataCollection);
+        // if ($resourceClass === Book::class) {
+        //     dd($resourceMetadataCollection);
+        // }
+
+        return $resourceMetadataCollection;
     }
 
     private function getIdentifiersFromResourceClass(string $resourceClass): array

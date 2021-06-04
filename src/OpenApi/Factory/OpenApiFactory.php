@@ -98,15 +98,13 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $links = [];
         $schemas = new \ArrayObject();
 
-        foreach ($this->resourceNameCollectionFactory->create(false) as $resourceClass) {
+        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
             $resources = $this->resourceMetadataFactory->create($resourceClass);
 
             foreach ($resources as $resource) {
                 $this->collectPaths($resource, $resourceClass, $context, $paths, $links, $schemas);
             }
         }
-
-
 
         $securitySchemes = $this->getSecuritySchemes();
         $securityRequirements = [];
@@ -142,10 +140,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         $rootResourceClass = $resourceClass;
 
-        dump('OPENAPIFACTORY_L145');
         foreach ($resource->operations as $operationName => $operation) {
-            // $operationName ressort comme -_api_/attribute_resources/{identifier}.{_format}_get alors qu'au moment où on l'envoie à buildSchema, il vaut get, post etc ? Comment ça marche
-
             $identifiers = $operation->identifiers;
             $resourceClass = $operation->class ?? $rootResourceClass;
             $path = $operation->uriTemplate;
@@ -171,7 +166,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $operationType = 'GET'; // Là il faut soit qu'on l'initialise bien, soit il faut modifier SchemaFactory ou en faire un Legacy pour qu'il ne prenne plus en paramètre $operationType
 
             foreach ($responseMimeTypes as $operationFormat) {
-                echo '*'.$operationName.'*';
                 // buildSchema est à modifier; Rien en dessous de cette ligne est testé
                 $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
@@ -190,6 +184,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             // Set up parameters
             if ($operation->identifiers) {
                 foreach ($operation->identifiers as $parameterName => [$class, $property]) {
+                    // TODO: fix identifiers normalization 
+                    if (is_int($parameterName)) {
+                        continue;
+                    }
                     $parameter = new Model\Parameter($parameterName, 'path', $resource->shortName.' identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
