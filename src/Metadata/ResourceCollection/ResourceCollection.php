@@ -36,7 +36,10 @@ final class ResourceCollection extends \ArrayObject
             /** @var resource */
             $metadata = $it->current();
 
+            echo print_r(array_keys($metadata->operations));
             foreach ($metadata->operations as $name => $operation) {
+                // $name est bon, $operationName est pas bon il vaut get au lieu de get_collection
+                echo '--'.$name.'=?='.$operationName.'--';
                 if ($name === $operationName) {
                     return $operation;
                 }
@@ -44,6 +47,7 @@ final class ResourceCollection extends \ArrayObject
 
             $it->next();
         }
+        echo '%%';
 
         return null;
     }

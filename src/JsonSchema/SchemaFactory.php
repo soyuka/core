@@ -20,6 +20,7 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
@@ -50,7 +51,7 @@ final class SchemaFactory implements SchemaFactoryInterface
     {
         $this->typeFactory = $typeFactory;
         if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The %s interface is deprecated since version 2.7 and will be removed in 3.0. Provide an implementation of %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataResourceCollectionFactory::class), \E_USER_DEPRECATED);
+            @trigger_error(sprintf('The %s interface is deprecated since version 2.7 and will be removed in 3.0. Provide an implementation of %s instead.', ResourceMetadataFactoryInterface::class, ResourceCollectionMetadataFactoryInterface::class), \E_USER_DEPRECATED);
         }
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
@@ -76,9 +77,9 @@ final class SchemaFactory implements SchemaFactoryInterface
     {
         $schema = $schema ? clone $schema : new Schema();
         if (null === $metadata = $this->getMetadata($className, $type, $operationType, $operationName, $serializerContext)) {
-            // On ne rentre jamais ici
             return $schema;
         }
+
         [$resourceMetadata, $serializerContext, $validationGroups, $inputOrOutputClass] = $metadata;
 
         if (null === $resourceMetadata && (null !== $operationType || null !== $operationName)) {
@@ -180,8 +181,9 @@ final class SchemaFactory implements SchemaFactoryInterface
             }
             // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
             // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-            // TODO: Surement pas bon ici le ->uriTemplate
-            if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getOperation($operationName)->uriTemplate) {
+            // TODO: Types est un tableau alors que $iri pas sur, à vérifier
+            //dump($definition);
+            if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getOperation($operationName)->types) {
                 $definition['externalDocs'] = ['url' => $iri];
             }
         }
@@ -311,17 +313,11 @@ final class SchemaFactory implements SchemaFactoryInterface
             }
         } else { // New interface
             // Là j'ai du hardcoder car mon $resourceMetadata n'avait un operationCache vide
-            $prefix = 'AttributeResource';
-            //$prefix = $resourceMetadata ? $resourceMetadata->getOperation('GET')->shortName : (new \ReflectionClass($className))->shortName;
-            if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
-                $parts = explode('\\', $inputOrOutputClass);
-                $shortName = end($parts);
-                $prefix .= '.' . $shortName;
-            }
 
-            if (isset($this->distinctFormats[$format])) {
-                // JSON is the default, and so isn't included in the definition name
-                $prefix .= '.' . $format;
+            if ($resourceMetadata) {
+                $prefix = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getShortName() : $resourceMetadata->shortName;
+            } else {
+                $prefix = (new \ReflectionClass($className))->getShortName();
             }
 
             $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
@@ -353,7 +349,7 @@ final class SchemaFactory implements SchemaFactoryInterface
 
         // Old interface
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            dd('ON VA JAMAIS LA');
+            dd('ON NE DOIT PAS ALLER LA pendant mes tests (à suppr)');
             $resourceMetadata = $this->resourceMetadataFactory->create($className);
             $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
             if (null === $operationType || null === $operationName) {
@@ -370,25 +366,23 @@ final class SchemaFactory implements SchemaFactoryInterface
             // Si c'est le nouveau systeme, on aura un resourceCollection
             // New system with ResourceMetadataResourceCollectionFactory
             $resourceMetadata = $this->resourceMetadataFactory->create($className);
-            // J'ai pas compris encore ce que fait output et input mais il y a bien parfois les deux
+
             $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
 
-            if (!$resourceMetadata->getOperation($operationName)) {
-                //dump('not working');
-            }else{
-                // Ca ca marche bien !
+            if($resourceMetadata->getOperation($operationName)){
                 $inputOrOutput = $resourceMetadata->getOperation($operationName)->{$attribute};
+            }else{
+                dd('INTENTIONAL STOP -   failedBY:'.$operationName.'   inside class:'.$className);
+                //dump($resourceMetadata);
             }
 
-
-            // TODO: le pb est vers là, on a pas d'attribut ->class il est tjr nul
-
-            // $inputOrOuput est un objet Operation, où est l'attribut class ? il existe ?
             if (null === ($inputOrOutput->class ?? null)) {
                 // input or output disabled
                 return null;
             }
         }
+
+
 
         return [
             $resourceMetadata,

@@ -142,7 +142,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         $rootResourceClass = $resourceClass;
 
+        dump('OPENAPIFACTORY_L145');
         foreach ($resource->operations as $operationName => $operation) {
+            // $operationName ressort comme -_api_/attribute_resources/{identifier}.{_format}_get alors qu'au moment où on l'envoie à buildSchema, il vaut get, post etc ? Comment ça marche
 
             $identifiers = $operation->identifiers;
             $resourceClass = $operation->class ?? $rootResourceClass;
@@ -167,9 +169,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $operationOutputSchemas = [];
 
             $operationType = 'GET'; // Là il faut soit qu'on l'initialise bien, soit il faut modifier SchemaFactory ou en faire un Legacy pour qu'il ne prenne plus en paramètre $operationType
+
             foreach ($responseMimeTypes as $operationFormat) {
-                //dump($operationName.'----');
-                // buildSchema est à modifier
+                echo '*'.$operationName.'*';
+                // buildSchema est à modifier; Rien en dessous de cette ligne est testé
                 $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
                 $this->appendSchemaDefinitions($schemas, $operationOutputSchema->getDefinitions());
