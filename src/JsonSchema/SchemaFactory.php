@@ -27,6 +27,7 @@ use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
@@ -107,7 +108,8 @@ final class SchemaFactory implements SchemaFactoryInterface
             } else { // New Interface
                 $method = $resourceMetadata->getOperation($operationName)->method;
             }
-            if ($forceCollection || (OperationType::COLLECTION === $operationType && 'POST' !== $method)) {
+
+            if ($forceCollection || (OperationType::COLLECTION === $operationType && 'POST' !== $method)) { // TODO: If statement never used (always goes in else)
                 $schema['type'] = 'array';
                 $schema['items'] = ['$ref' => $ref];
             } else {
@@ -116,6 +118,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         $definitions = $schema->getDefinitions();
+
         if (isset($definitions[$definitionName])) {
             // Already computed
             return $schema;
@@ -125,74 +128,47 @@ final class SchemaFactory implements SchemaFactoryInterface
         $definition = new \ArrayObject(['type' => 'object']);
         $definitions[$definitionName] = $definition;
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            if (null !== $resourceMetadata && null !== $description = $resourceMetadata->getDescription()) {
-                $definition['description'] = $description;
-            }
-
-            // additionalProperties are allowed by default, so it does not need to be set explicitly, unless allow_extra_attributes is false
-            // See https://json-schema.org/understanding-json-schema/reference/object.html#properties
-            if (false === ($serializerContext[AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES] ?? true)) {
-                $definition['additionalProperties'] = false;
-            }
-
-            // see https://github.com/json-schema-org/json-schema-spec/pull/737
-            if (
-                Schema::VERSION_SWAGGER !== $version &&
-                null !== $resourceMetadata &&
-                (
-                    (null !== $operationType && null !== $operationName && null !== $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', null, true)) ||
-                    null !== $resourceMetadata->getAttribute('deprecation_reason', null)
-                )
-            ) {
-                $definition['deprecated'] = true;
-            }
-            // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
-            // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-            if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getIri()) {
-                $definition['externalDocs'] = ['url' => $iri];
-            }
-        } else { // New interface
-
-            if (null !== $resourceMetadata && null !== $description = $resourceMetadata->getOperation($operationName)->description) {
-                $definition['description'] = $description;
-            }
-
-            // additionalProperties are allowed by default, so it does not need to be set explicitly, unless allow_extra_attributes is false
-            // See https://json-schema.org/understanding-json-schema/reference/object.html#properties
-            if (false === ($serializerContext[AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES] ?? true)) {
-                $definition['additionalProperties'] = false;
-            }
-
-            // see https://github.com/json-schema-org/json-schema-spec/pull/737
-            if (
-                Schema::VERSION_SWAGGER !== $version &&
-                null !== $resourceMetadata &&
-                (
-                    (null !== $operationType && null !== $operationName && null !== $resourceMetadata->getOperation($operationName)->deprecationReason) ||
-                    null !== $resourceMetadata->getOperation($operationName)->deprecationReason
-                )
-            ) {
-                $definition['deprecated'] = true;
-            }
-            // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
-            // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-            // TODO: Types est un tableau alors que $iri pas sur, à vérifier
-            //dump($definition);
-            if (null !== $resourceMetadata && null !== $iri = $resourceMetadata->getOperation($operationName)->types) {
-                $definition['externalDocs'] = ['url' => $iri];
-            }
+        if (null !== $resourceMetadata && null !== $description = ($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getDescription() : $resourceMetadata->getOperation($operationName)->description)) {
+            $definition['description'] = $description;
         }
 
+        // additionalProperties are allowed by default, so it does not need to be set explicitly, unless allow_extra_attributes is false
+        // See https://json-schema.org/understanding-json-schema/reference/object.html#properties
+        if (false === ($serializerContext[AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES] ?? true)) {
+            $definition['additionalProperties'] = false;
+        }
 
+        // see https://github.com/json-schema-org/json-schema-spec/pull/737
+        if (
+            Schema::VERSION_SWAGGER !== $version &&
+            null !== $resourceMetadata &&
+            (
+                (null !== $operationType && null !== $operationName && null !== ($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', null, true) : $resourceMetadata->getOperation($operationName)->deprecationReason)) ||
+                null !== ($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getAttribute('deprecation_reason', null) : $resourceMetadata->getOperation($operationName)->deprecationReason)
+            )
+        ) {
+            $definition['deprecated'] = true;
+        }
+
+        // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
+        // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
+        if (null !== $resourceMetadata && null !== $iri = ($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getIri() : $resourceMetadata->getOperation($operationName)->types)) {
+            $definition['externalDocs'] = ['url' => $iri];
+        }
+
+        // TODO: getFactoryOptions should be refactored because Item & Collection Operations don't exist anymore (API Platform 3.0)
         $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationType, $operationName);
+
         foreach ($this->propertyNameCollectionFactory->create($inputOrOutputClass, $options) as $propertyName) {
             $propertyMetadata = $this->propertyMetadataFactory->create($inputOrOutputClass, $propertyName, $options);
+
             if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
                 continue;
             }
 
             $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $inputOrOutputClass, $format, $serializerContext) : $propertyName;
+
+            // TODO: if below is never used
             if ($propertyMetadata->isRequired()) {
                 $definition['required'][] = $normalizedPropertyName;
             }
@@ -221,6 +197,7 @@ final class SchemaFactory implements SchemaFactoryInterface
                 $basePropertySchemaAttribute = 'json_schema_context';
         }
 
+        // TODO: $propertySchema's value is always [] (is it normal?)
         $propertySchema = array_merge(
             $propertySchema,
             $propertyMetadata->getAttributes()[$basePropertySchemaAttribute] ?? []
@@ -276,11 +253,13 @@ final class SchemaFactory implements SchemaFactoryInterface
             $valueSchema = $this->typeFactory->getType(new Type($builtinType, $type->isNullable(), $className, $isCollection), $format, $propertyMetadata->isReadableLink(), $serializerContext, $schema);
         }
 
+        // TODO: always going in else (is it normal?)
         if (\array_key_exists('type', $propertySchema) && \array_key_exists('$ref', $valueSchema)) {
             $propertySchema = new \ArrayObject($propertySchema);
         } else {
             $propertySchema = new \ArrayObject($propertySchema + $valueSchema);
         }
+
         $schema->getDefinitions()[$definitionName]['properties'][$normalizedPropertyName] = $propertySchema;
     }
 
@@ -340,7 +319,7 @@ final class SchemaFactory implements SchemaFactoryInterface
                 $inputOrOutput = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, ['class' => $className], true);
             }
         } else {
-            if(!$operation = $resourceMetadata->getOperation($operationName)){
+            if (!$operation = $resourceMetadata->getOperation($operationName)) {
                 return null;
             }
 
@@ -362,25 +341,23 @@ final class SchemaFactory implements SchemaFactoryInterface
 
     private function getSerializerContext($resourceMetadata, string $type = Schema::TYPE_OUTPUT, ?string $operationType = null, ?string $operationName = null): array
     {
-        // Old interface
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            $attribute = Schema::TYPE_OUTPUT === $type ? 'normalization_context' : 'denormalization_context';
+        $attribute = Schema::TYPE_OUTPUT === $type ? 'normalization_context' : 'denormalization_context';
 
-            if (null === $operationType || null === $operationName) {
-                return $resourceMetadata->getAttribute($attribute, []);
-            }
+        if (!($resourceMetadata instanceof ResourceMetadata)) {
+            $converter = new CamelCaseToSnakeCaseNameConverter();
 
-            return $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true);
-        } else { // New Interface
-            $attribute = Schema::TYPE_OUTPUT === $type ? 'normalizationContext' : 'denormalizationContext';
-
-            return [$resourceMetadata->getOperation($operationName)->{$attribute}];
+            $attribute = $converter->denormalize($attribute);
         }
+
+        if (null === $operationType || null === $operationName) {
+            return $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getAttribute($attribute, []) : $resourceMetadata->{$attribute};
+        }
+
+        return $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true) : [$resourceMetadata->getOperation($operationName)->{$attribute}];
     }
 
     private function getValidationGroups($resourceMetadata, ?string $operationType, ?string $operationName): array
     {
-        // Old interface
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             $attribute = 'validation_groups';
 

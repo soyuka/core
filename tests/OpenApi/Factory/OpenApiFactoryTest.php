@@ -84,12 +84,13 @@ class OpenApiFactoryTest extends TestCase
             description: 'This is a dummy.',
             types: ['http://schema.example.com/Dummy'],
             operations: [
-                new Get(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                new Put(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                new Delete(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                // Je suppose CUSTOM = Operation ?
-                new Operation(
+                'get' => new Get(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'custom' => new Operation(
                     method: 'HEAD',
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats'],
                     openapiContext: [
                         'x-visibility' => 'hide',
                         'description' => 'Custom description',
@@ -133,49 +134,45 @@ class OpenApiFactoryTest extends TestCase
                             ],
                         ],
                     ],
-                    path: '/foo/{id}',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
+                    path: '/foo/{id}'
                 ),
-                new Put(
+                'formats' => new Put(
                     path: '/formatted/{id}',
-                    inputformats: ['json' => ['application/json'], 'csv' => ['text/csv']],
-                    outputformats: ['json' => ['application/json'], 'csv' => ['text/csv']]
+                    inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
+                    outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
                 ),
-                // J'ai mis ici aussi les collectionOperation vu que ça existe plus en tant que tel
-                new Get(
+                'get_collection' => new Get(
                     openapiContext: [
                         'parameters' => [
                             ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
                         ]
                     ],
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
                 ),
-                new Post(
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
+                'post_collection' => new Post(
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
                 ),
                 // Filtered
-                new Get(
+                'filtered_collection' => new Get(
                     filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
                     path: '/filtered',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
                 ),
                 // Paginated
-                new Get(
+                'paginated_collection' => new Get(
                     paginationClientEnabled: true,
                     paginationClientItemsPerPage: true,
                     paginationItemsPerPage: 20,
                     path: '/paginated',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
                 )
             ],
-            // subresourceOperations qu'est-il devenu dans Resource.php ?
             output: [
-            'class' => OutputDto::class
+                'class' => OutputDto::class
             ],
             paginationClientItemsPerPage: true,
         );
@@ -184,7 +181,7 @@ class OpenApiFactoryTest extends TestCase
         $subresourceOperationFactoryProphecy->create(Argument::any())->willReturn([]);
 
         $resourceNameCollectionFactoryProphecy = $this->prophesize(LegacyResourceNameCollectionFactoryInterface::class);
-        $resourceNameCollectionFactoryProphecy->create(false)->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
+        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
 
         $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
         $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceCollection([$dummyResource]));
@@ -253,8 +250,6 @@ class OpenApiFactoryTest extends TestCase
         $propertyMetadataFactory = $propertyMetadataFactoryProphecy->reveal();
 
         $typeFactory = new TypeFactory();
-        // SchemaFactory à modifier pour le 2eme argument
-        //$schemaFactory = new SchemaFactory($typeFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
         $typeFactory->setSchemaFactory($schemaFactory);
 
@@ -330,6 +325,7 @@ class OpenApiFactoryTest extends TestCase
         $this->assertEquals($openApi->getServers(), [new Model\Server('/app_dev.php/')]);
 
         $components = $openApi->getComponents();
+        dump($dummySchema->getDefinitions());
         $this->assertInstanceOf(Model\Components::class, $components);
 
         $this->assertEquals($components->getSchemas(), new \ArrayObject(['Dummy' => $dummySchema->getDefinitions(), 'Dummy.OutputDto' => $dummySchema->getDefinitions()]));

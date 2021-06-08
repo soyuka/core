@@ -63,7 +63,7 @@ class OpenApiCommandTest extends KernelTestCase
         $expected = <<<YAML
   /dummy_cars:
     get:
-      operationId: getDummyCarCollection
+      operationId: '_api_/dummy_cars.{_format}_getDummyCar'
       tags:
         - DummyCar
 YAML;
@@ -78,6 +78,7 @@ YAML;
 YAML;
 
         $this->assertStringContainsString(str_replace(\PHP_EOL, "\n", $expected), $result, 'arrays should be correctly formatted.');
+
         $this->assertStringContainsString('openapi: '.OpenApi::VERSION, $result);
 
         $expected = <<<YAML
