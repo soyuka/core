@@ -53,50 +53,49 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
         foreach ($resourceMetadataCollection as $i => $resource) {
             if (!$resource->identifiers) {
                 $resource->identifiers = $identifiers ?: ($identifiers = $this->getIdentifiersFromResourceClass($resourceClass));
-            }
 
-            $resource->identifiers = $this->normalizeIdentifiers($resource->identifiers, $resourceClass);
-
-            // Copy identifiers to operations if not defined
-            foreach ($resource->operations as $key => $operation) {
-                if (!$operation->identifiers && !$operation instanceof Post && !$operation instanceof GetCollection) {
-                    $operation->identifiers = $identifiers;
+                foreach ($resource->operations as $key => $operation) {
+                    if (!$operation->identifiers && !$operation instanceof Post && !$operation instanceof GetCollection) {
+                        $resource->operations[$key]->identifiers = $identifiers;
+                    }
                 }
 
-                $operation->identifiers = $this->normalizeIdentifiers($operation->identifiers, $resourceClass);
-                $resource->operations[$key] = $operation;
+                $resourceMetadataCollection[$i] = $resource;
+                continue;
+            }
+
+            if (!\is_string(current($resource->identifiers))) {
+                continue;
+            }
+
+            $formatted = [];
+            foreach ($resource->identifiers as $identifier) {
+                $formatted[$identifier] = [$identifier, $resourceClass];
+            }
+
+            $resource->identifiers = $formatted;
+
+            foreach ($resource->operations as $key => $operation) {
+                if (!$operation->identifiers) {
+                    $resource->operations[$key]->identifiers = $formatted;
+                    continue;
+                }
+
+                foreach ($operation->identifiers as $identifier) {
+                    if (is_string($identifier)) {
+                        $resource->operations[$key]->identifiers[$identifier] = [$identifier, $resourceClass];
+                    }
+                }
             }
 
             $resourceMetadataCollection[$i] = $resource;
         }
 
-        dump($resourceMetadataCollection);
+        // if ($resourceClass === Book::class) {
+        //     dd($resourceMetadataCollection);
+        // }
+
         return $resourceMetadataCollection;
-    }
-
-    private function normalizeIdentifiers(mixed $identifiers, string $resourceClass): array
-    {
-        if (!$identifiers) {
-            return [];
-        }
-
-        if (is_string($identifiers)) {
-            return [$identifiers => [$resourceClass, $identifiers]];
-        }
-
-        $normalized = [];
-
-        foreach ($identifiers as $parameterName => $identifier) {
-            if (is_int($parameterName)) {
-                $normalized[$identifier] = [$resourceClass, $identifier];
-            } else if (is_string($identifier)) {
-                $normalized[$parameterName] = [$resourceClass, $identifier];
-            } else {
-                $normalized[$parameterName] = $identifier;
-            }
-        }
-
-        return $normalized;
     }
 
     private function getIdentifiersFromResourceClass(string $resourceClass): array
