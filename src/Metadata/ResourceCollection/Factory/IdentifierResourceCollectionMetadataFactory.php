@@ -91,10 +91,6 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
             $resourceMetadataCollection[$i] = $resource;
         }
 
-        // if ($resourceClass === Book::class) {
-        //     dd($resourceMetadataCollection);
-        // }
-
         return $resourceMetadataCollection;
     }
 

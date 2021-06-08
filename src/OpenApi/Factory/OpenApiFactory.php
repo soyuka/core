@@ -157,6 +157,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
             // TODO: How to initialize $linkedOperationId ?
+            // REP: Loop over operations and find first method=GET with identifiers
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
 
             // TODO: This should be made shorter
@@ -174,10 +175,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationOutputSchemas = [];
 
-            $operationType = 'GET'; // TODO: How to initialize this value ?
-
             foreach ($responseMimeTypes as $operationFormat) {
-                $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
+                $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, null, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
                 $this->appendSchemaDefinitions($schemas, $operationOutputSchema->getDefinitions());
             }
@@ -194,7 +193,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             // Set up parameters
             if ($operation->identifiers) {
                 foreach ($operation->identifiers as $parameterName => [$class, $property]) {
-                    // TODO: fix identifiers normalization
                     if (is_int($parameterName)) {
                         continue;
                     }
@@ -232,7 +230,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 case 'GET':
                     $successStatus = (string) $resource->status;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $responses[$successStatus] = new Model\Response(sprintf('%s %s', $resourceShortName, OperationType::COLLECTION === $operationType ? 'collection' : 'resource'), $responseContent);
+                    $responses[$successStatus] = new Model\Response(sprintf('%s resource', $resourceShortName), $responseContent);
                     break;
                 case 'POST':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
@@ -257,14 +255,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     break;
             }
 
-
-            // $operationType doesn't exist anymore, can we remove this ?
-            /*
-            if (OperationType::ITEM === $operationType) {
-                $responses['404'] = new Model\Response('Resource not found');
-            }
-            */
-
             if (!$responses) {
                 $responses['default'] = new Model\Response('Unexpected error');
             }
@@ -281,7 +271,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             } elseif ('PUT' === $method || 'POST' === $method || 'PATCH' === $method) {
                 $operationInputSchemas = [];
                 foreach ($requestMimeTypes as $operationFormat) {
-                    $operationInputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_INPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
+                    $operationInputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_INPUT, null, $operationName, $schema, null, $forceSchemaCollection);
                     $operationInputSchemas[$operationFormat] = $operationInputSchema;
                     $this->appendSchemaDefinitions($schemas, $operationInputSchema->getDefinitions());
                 }
@@ -299,7 +289,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $parameters,
                 $requestBody,
                 isset($operation->openapiContext['callbacks']) ? new \ArrayObject($operation->openapiContext['callbacks']) : null,
-                $operation->openapiContext['deprecated'] ?? (bool) $operation->deprecationReason,//$resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', false, true),
+                $operation->openapiContext['deprecated'] ?? (bool) $operation->deprecationReason,
                 $operation->openapiContext['security'] ?? null,
                 $operation->openapiContext['servers'] ?? null,
                 array_filter($operation->openapiContext ?? [], static function ($item) {
