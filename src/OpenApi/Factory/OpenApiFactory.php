@@ -28,6 +28,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
@@ -138,14 +139,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             return;
         }
 
-        // No path to return
-        if(!$resource->uriTemplate){
-            return;
-        }
-
         $rootResourceClass = $resourceClass;
 
         foreach ($resource->operations as $operationName => $operation) {
+            // No path to return
+            if (null === $operation->uriTemplate) {
+                continue;
+            }
+
             $identifiers = $operation->identifiers;
             $resourceClass = $operation->class ?? $rootResourceClass;
             $path = $operation->uriTemplate;
@@ -158,7 +159,12 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             // TODO: How to initialize $linkedOperationId ?
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
 
-            $pathItem = $paths->getPath($path) ?: new Model\PathItem();
+            // TODO: This should be made shorter
+            if (null !== $path) {
+                $pathItem = $paths->getPath($path) ?: new Model\PathItem();
+            } else {
+                $pathItem = new Model\PathItem();
+            }
 
             // TODO: no more subresource, how to initialize $forceSchemaCollection ?
             $forceSchemaCollection = false; //OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
@@ -411,11 +417,12 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * Gets parameters corresponding to enabled filters.
      */
-    private function getFiltersParameters(Resource $resource, string $operationName, string $resourceClass): array
+    private function getFiltersParameters(ResourceCollection $resource, string $operationName, string $resourceClass): array
     {
         $parameters = [];
+
         $resourceFilters = $resource->getOperation($operationName)->filters;
-        foreach ($resourceFilters as $filterId) {
+        foreach ($resourceFilters ?? [] as $filterId) {
             if (!$filter = $this->getFilter($filterId)) {
                 continue;
             }

@@ -89,6 +89,7 @@ class OpenApiFactoryTest extends TestCase
                 'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
                 'custom' => new Operation(
                     method: 'HEAD',
+                    uriTemplate: '/foo/{id}',
                     inputFormats: self::OPERATION_FORMATS['input_formats'],
                     outputFormats: self::OPERATION_FORMATS['output_formats'],
                     openapiContext: [
@@ -133,11 +134,10 @@ class OpenApiFactoryTest extends TestCase
                                 ],
                             ],
                         ],
-                    ],
-                    path: '/foo/{id}'
+                    ]
                 ),
                 'formats' => new Put(
-                    path: '/formatted/{id}',
+                    uriTemplate: '/formatted/{id}',
                     inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
                     outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
                 ),
@@ -157,7 +157,7 @@ class OpenApiFactoryTest extends TestCase
                 // Filtered
                 'filtered_collection' => new Get(
                     filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
-                    path: '/filtered',
+                    uriTemplate: '/filtered',
                     inputFormats: self::OPERATION_FORMATS['input_formats'],
                     outputFormats: self::OPERATION_FORMATS['output_formats']
                 ),
@@ -166,7 +166,7 @@ class OpenApiFactoryTest extends TestCase
                     paginationClientEnabled: true,
                     paginationClientItemsPerPage: true,
                     paginationItemsPerPage: 20,
-                    path: '/paginated',
+                    uriTemplate: '/paginated',
                     inputFormats: self::OPERATION_FORMATS['input_formats'],
                     outputFormats: self::OPERATION_FORMATS['output_formats']
                 )
@@ -250,7 +250,12 @@ class OpenApiFactoryTest extends TestCase
         $propertyMetadataFactory = $propertyMetadataFactoryProphecy->reveal();
 
         $typeFactory = new TypeFactory();
-        $schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
+        // TODO: Check $schemaFactory parameters
+        // I believe $propertyNameCollectionFactory, $propertyMetadataFactory are not correct because during the test,
+        // inside SchemaFactory->buildSchema(...), the data is correct but once used in OpenApiFactory, the data is lost.
+        // Or maybe a decorator overrides buildSchema and removes its data
+        //$schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
+        $schemaFactory = new SchemaFactory($typeFactory, $resourceCollectionMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $typeFactory->setSchemaFactory($schemaFactory);
 
         $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
@@ -325,9 +330,9 @@ class OpenApiFactoryTest extends TestCase
         $this->assertEquals($openApi->getServers(), [new Model\Server('/app_dev.php/')]);
 
         $components = $openApi->getComponents();
-        dump($dummySchema->getDefinitions());
         $this->assertInstanceOf(Model\Components::class, $components);
 
+        // TODO: $components is almost completely empty except securitySchemes whereas its not the case if dumping data inside the classes like SchemaFactory
         $this->assertEquals($components->getSchemas(), new \ArrayObject(['Dummy' => $dummySchema->getDefinitions(), 'Dummy.OutputDto' => $dummySchema->getDefinitions()]));
 
         $this->assertEquals($components->getSecuritySchemes(), new \ArrayObject([
