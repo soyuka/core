@@ -84,99 +84,96 @@ class OpenApiFactoryTest extends TestCase
             description: 'This is a dummy.',
             types: ['http://schema.example.com/Dummy'],
             operations: [
-                new Get(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                new Put(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                new Delete(inputformats: self::OPERATION_FORMATS['input_formats'], outputformats: self::OPERATION_FORMATS['output_formats']),
-                // Je suppose CUSTOM = Operation ?
-                new Operation(
-                    method: 'HEAD',
-                    openapiContext: [
-                        'x-visibility' => 'hide',
-                        'description' => 'Custom description',
-                        'parameters' => [
-                            ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
-                            ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
-                        ],
-                        'tags' => ['Dummy', 'Profile'],
-                        'responses' => [
-                            '202' => [
-                                'description' => 'Success',
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => ['$ref' => '#/components/schemas/Dummy'],
-                                    ],
-                                ],
-                                'headers' => [
-                                    'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
-                                ],
-                                'links' => [
-                                    'Foo' => ['$ref' => '#/components/schemas/Dummy'],
+            'get' => new Get(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+            'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+            'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+            'custom' => new Operation(
+                method: 'HEAD',
+                uriTemplate: '/foo/{id}',
+                inputFormats: self::OPERATION_FORMATS['input_formats'],
+                outputFormats: self::OPERATION_FORMATS['output_formats'],
+                openapiContext: [
+                    'x-visibility' => 'hide',
+                    'description' => 'Custom description',
+                    'parameters' => [
+                        ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
+                        ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
+                    ],
+                    'tags' => ['Dummy', 'Profile'],
+                    'responses' => [
+                        '202' => [
+                            'description' => 'Success',
+                            'content' => [
+                                'application/json' => [
+                                    'schema' => ['$ref' => '#/components/schemas/Dummy'],
                                 ],
                             ],
-                            '205' => [],
+                            'headers' => [
+                                'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
+                            ],
+                            'links' => [
+                                'Foo' => ['$ref' => '#/components/schemas/Dummy'],
+                            ],
                         ],
-                        'requestBody' => [
-                            'required' => true,
-                            'description' => 'Custom request body',
-                            'content' => [
-                                'multipart/form-data' => [
-                                    'schema' => [
-                                        'type' => 'object',
-                                        'properties' => [
-                                            'file' => [
-                                                'type' => 'string',
-                                                'format' => 'binary',
-                                            ],
+                        '205' => [],
+                    ],
+                    'requestBody' => [
+                        'required' => true,
+                        'description' => 'Custom request body',
+                        'content' => [
+                            'multipart/form-data' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'file' => [
+                                            'type' => 'string',
+                                            'format' => 'binary',
                                         ],
                                     ],
                                 ],
                             ],
                         ],
                     ],
-                    path: '/foo/{id}',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
-                ),
-                new Put(
-                    path: '/formatted/{id}',
-                    inputformats: ['json' => ['application/json'], 'csv' => ['text/csv']],
-                    outputformats: ['json' => ['application/json'], 'csv' => ['text/csv']]
-                ),
-                // J'ai mis ici aussi les collectionOperation vu que ça existe plus en tant que tel
-                new Get(
-                    openapiContext: [
-                        'parameters' => [
-                            ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
-                        ]
-                    ],
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
-                ),
-                new Post(
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
-                ),
-                // Filtered
-                new Get(
-                    filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
-                    path: '/filtered',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
-                ),
-                // Paginated
-                new Get(
-                    paginationClientEnabled: true,
-                    paginationClientItemsPerPage: true,
-                    paginationItemsPerPage: 20,
-                    path: '/paginated',
-                    inputformats: self::OPERATION_FORMATS['input_formats'],
-                    outputformats: self::OPERATION_FORMATS['output_formats']
-                )
+                ]
+            ),
+            'formats' => new Put(
+                uriTemplate: '/formatted/{id}',
+                inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
+                outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
+            ),
+            'get_collection' => new Get(
+                openapiContext: [
+                'parameters' => [
+                    ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
+                ]
             ],
-            // subresourceOperations qu'est-il devenu dans Resource.php ?
+                inputFormats: self::OPERATION_FORMATS['input_formats'],
+                outputFormats: self::OPERATION_FORMATS['output_formats']
+            ),
+            'post_collection' => new Post(
+                inputFormats: self::OPERATION_FORMATS['input_formats'],
+                outputFormats: self::OPERATION_FORMATS['output_formats']
+            ),
+            // Filtered
+            'filtered_collection' => new Get(
+                filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
+                uriTemplate: '/filtered',
+                inputFormats: self::OPERATION_FORMATS['input_formats'],
+                outputFormats: self::OPERATION_FORMATS['output_formats']
+            ),
+            // Paginated
+            'paginated_collection' => new Get(
+                paginationClientEnabled: true,
+                paginationClientItemsPerPage: true,
+                paginationItemsPerPage: 20,
+                uriTemplate: '/paginated',
+                inputFormats: self::OPERATION_FORMATS['input_formats'],
+                outputFormats: self::OPERATION_FORMATS['output_formats']
+            )
+        ],
             output: [
             'class' => OutputDto::class
-            ],
+        ],
             paginationClientItemsPerPage: true,
         );
 
@@ -184,7 +181,7 @@ class OpenApiFactoryTest extends TestCase
         $subresourceOperationFactoryProphecy->create(Argument::any())->willReturn([]);
 
         $resourceNameCollectionFactoryProphecy = $this->prophesize(LegacyResourceNameCollectionFactoryInterface::class);
-        $resourceNameCollectionFactoryProphecy->create(false)->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
+        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
 
         $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
         $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceCollection([$dummyResource]));
@@ -253,9 +250,12 @@ class OpenApiFactoryTest extends TestCase
         $propertyMetadataFactory = $propertyMetadataFactoryProphecy->reveal();
 
         $typeFactory = new TypeFactory();
-        // SchemaFactory à modifier pour le 2eme argument
-        //$schemaFactory = new SchemaFactory($typeFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
-        $schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
+        // TODO: Check $schemaFactory parameters
+        // I believe $propertyNameCollectionFactory, $propertyMetadataFactory are not correct because during the test,
+        // inside SchemaFactory->buildSchema(...), the data is correct but once used in OpenApiFactory, the data is lost.
+        // Or maybe a decorator overrides buildSchema and removes its data
+        //$schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
+        $schemaFactory = new SchemaFactory($typeFactory, $resourceCollectionMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $typeFactory->setSchemaFactory($schemaFactory);
 
         $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
@@ -332,6 +332,7 @@ class OpenApiFactoryTest extends TestCase
         $components = $openApi->getComponents();
         $this->assertInstanceOf(Model\Components::class, $components);
 
+        // TODO: $components is almost completely empty except securitySchemes whereas its not the case if dumping data inside the classes like SchemaFactory
         $this->assertEquals($components->getSchemas(), new \ArrayObject(['Dummy' => $dummySchema->getDefinitions(), 'Dummy.OutputDto' => $dummySchema->getDefinitions()]));
 
         $this->assertEquals($components->getSecuritySchemes(), new \ArrayObject([

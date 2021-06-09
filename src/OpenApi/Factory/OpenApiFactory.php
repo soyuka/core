@@ -28,6 +28,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
@@ -141,6 +142,11 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $rootResourceClass = $resourceClass;
 
         foreach ($resource->operations as $operationName => $operation) {
+            // No path to return
+            if (null === $operation->uriTemplate) {
+                continue;
+            }
+
             $identifiers = $operation->identifiers;
             $resourceClass = $operation->class ?? $rootResourceClass;
             $path = $operation->uriTemplate;
@@ -150,12 +156,18 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
-            // On en fait quoi de $linkedOperationId ?
+            // TODO: How to initialize $linkedOperationId ?
+            // REP: Loop over operations and find first method=GET with identifiers
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
 
-            $pathItem = $paths->getPath($path) ?: new Model\PathItem();
+            // TODO: This should be made shorter
+            if (null !== $path) {
+                $pathItem = $paths->getPath($path) ?: new Model\PathItem();
+            } else {
+                $pathItem = new Model\PathItem();
+            }
 
-            // J'en fais quoi de $forceSchemaCollection ?
+            // TODO: no more subresource, how to initialize $forceSchemaCollection ?
             $forceSchemaCollection = false; //OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
 
             $schema = new Schema('openapi');
@@ -163,11 +175,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationOutputSchemas = [];
 
-            $operationType = 'GET'; // Là il faut soit qu'on l'initialise bien, soit il faut modifier SchemaFactory ou en faire un Legacy pour qu'il ne prenne plus en paramètre $operationType
-
             foreach ($responseMimeTypes as $operationFormat) {
-                // buildSchema est à modifier; Rien en dessous de cette ligne est testé
-                $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
+                $operationOutputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_OUTPUT, null, $operationName, $schema, null, $forceSchemaCollection);
                 $operationOutputSchemas[$operationFormat] = $operationOutputSchema;
                 $this->appendSchemaDefinitions($schemas, $operationOutputSchema->getDefinitions());
             }
@@ -184,6 +193,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             // Set up parameters
             if ($operation->identifiers) {
                 foreach ($operation->identifiers as $parameterName => [$class, $property]) {
+                    if (is_int($parameterName)) {
+                        continue;
+                    }
                     $parameter = new Model\Parameter($parameterName, 'path', $resource->shortName.' identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -192,9 +204,18 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     $parameters[] = $parameter;
                 }
             } else {
-                $subresourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-                // Mauvais typage avec getFiltersParameters
+                $resources = $this->resourceMetadataFactory->create($resourceClass);
+                // TODO: getFiltersParameters has wrong input parameters currently, but it should be implemented; currently it is skipped
+                // I tried this implementation
+                foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($resources, $operationName, $resourceClass)) as $parameter) {
+                    if ($this->hasParameter($parameter, $parameters)) {
+                        continue;
+                    }
+
+                    $parameters[] = $parameter;
+                }
                 /*
+                $subresourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
                 foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($subresourceMetadata, $operationName, $resourceClass)) as $parameter) {
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -205,16 +226,11 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
 
             // Create responses
-            /*
-             *  Idem je sais pas ce que retourne l'ancien getTypedOperationAttribute, à priori un $operations[$operationName][$key]
-             * donc nous ça correspondrait à une classe fille de Resource GET PUT DELETE etc ?
-            */
-
             switch ($method) {
                 case 'GET':
                     $successStatus = (string) $resource->status;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $responses[$successStatus] = new Model\Response(sprintf('%s %s', $resourceShortName, OperationType::COLLECTION === $operationType ? 'collection' : 'resource'), $responseContent);
+                    $responses[$successStatus] = new Model\Response(sprintf('%s resource', $resourceShortName), $responseContent);
                     break;
                 case 'POST':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
@@ -239,14 +255,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     break;
             }
 
-
-            // Ça existe plus $operationType
-            /*
-            if (OperationType::ITEM === $operationType) {
-                $responses['404'] = new Model\Response('Resource not found');
-            }
-            */
-
             if (!$responses) {
                 $responses['default'] = new Model\Response('Unexpected error');
             }
@@ -263,7 +271,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             } elseif ('PUT' === $method || 'POST' === $method || 'PATCH' === $method) {
                 $operationInputSchemas = [];
                 foreach ($requestMimeTypes as $operationFormat) {
-                    $operationInputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_INPUT, $operationType, $operationName, $schema, null, $forceSchemaCollection);
+                    $operationInputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_INPUT, null, $operationName, $schema, null, $forceSchemaCollection);
                     $operationInputSchemas[$operationFormat] = $operationInputSchema;
                     $this->appendSchemaDefinitions($schemas, $operationInputSchema->getDefinitions());
                 }
@@ -281,7 +289,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $parameters,
                 $requestBody,
                 isset($operation->openapiContext['callbacks']) ? new \ArrayObject($operation->openapiContext['callbacks']) : null,
-                $operation->openapiContext['deprecated'] ?? (bool) $operation->deprecationReason,//$resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', false, true),
+                $operation->openapiContext['deprecated'] ?? (bool) $operation->deprecationReason,
                 $operation->openapiContext['security'] ?? null,
                 $operation->openapiContext['servers'] ?? null,
                 array_filter($operation->openapiContext ?? [], static function ($item) {
@@ -306,14 +314,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
     private function getMimeTypes(Operation $operation): array
     {
-
-        // Operation Type se récupère depuis $resource
         $requestFormats = $operation->inputFormats;
         $responseFormats = $operation->outputFormats;
-        /*
-        $requestFormats = $resource->getTypedOperationAttribute($resource->method, $operationName, 'input_formats', $this->formats, true);
-        $responseFormats = $resource->getTypedOperationAttribute($resource->method, $operationName, 'output_formats', $this->formats, true);
-*/
+
         $requestMimeTypes = $this->flattenMimeTypes($requestFormats);
         $responseMimeTypes = $this->flattenMimeTypes($responseFormats);
 
@@ -404,11 +407,12 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * Gets parameters corresponding to enabled filters.
      */
-    private function getFiltersParameters(Resource $resource, string $operationName, string $resourceClass): array
+    private function getFiltersParameters(ResourceCollection $resource, string $operationName, string $resourceClass): array
     {
         $parameters = [];
+
         $resourceFilters = $resource->getOperation($operationName)->filters;
-        foreach ($resourceFilters as $filterId) {
+        foreach ($resourceFilters ?? [] as $filterId) {
             if (!$filter = $this->getFilter($filterId)) {
                 continue;
             }
