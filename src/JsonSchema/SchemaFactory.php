@@ -312,7 +312,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         $resourceMetadata = $this->resourceMetadataFactory->create($className);
         $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+        if ($resourceMetadata instanceof ResourceMetadata) {
             if (null === $operationType || null === $operationName) {
                 $inputOrOutput = $resourceMetadata->getAttribute($attribute, ['class' => $className]);
             } else {
@@ -334,7 +334,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         return [
             $resourceMetadata,
             $serializerContext ?? $this->getSerializerContext($resourceMetadata, $type, $operationType, $operationName),
-            $this->getValidationGroups($resourceMetadata, $operationType, $operationName),
+            $this->getValidationGroups($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $operation, $operationType, $operationName),
             $inputOrOutput['class'] ?? $inputOrOutput->class,
         ];
     }
@@ -359,8 +359,7 @@ final class SchemaFactory implements SchemaFactoryInterface
      */
     private function getValidationGroups($resourceMetadata, ?string $operationType, ?string $operationName): array
     {
-        // TODO:Check resourcemetadata and use operation directly
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+        if ($resourceMetadata instanceof ResourceMetadata) {
             $attribute = 'validation_groups';
 
             if (null === $operationType || null === $operationName) {
@@ -369,7 +368,7 @@ final class SchemaFactory implements SchemaFactoryInterface
 
             return \is_array($validationGroups = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true)) ? $validationGroups : [];
         } else { // New interface
-            return \is_array($validationGroups = $resourceMetadata->getOperation($operationName)->validationGroups) ? $validationGroups : [];
+            return \is_array($validationGroups = $resourceMetadata->validationGroups) ? $validationGroups : [];
         }
     }
 

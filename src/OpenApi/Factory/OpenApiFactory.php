@@ -156,9 +156,16 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
-            // TODO: How to initialize $linkedOperationId ?
-            // REP: Loop over operations and find first method=GET with identifiers
+            // TODO: initialize $linkedOperationId : Loop over operations and find first method=GET with identifiers
+            // Is it correct (with foreach below)?
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
+
+            foreach ($resource->operations as $linkedOperationName => $linkedOperation) {
+                if ($linkedOperation->method === 'GET' && $linkedOperation->identifiers !== null) {
+                    $linkedOperationId = 'get'.ucfirst($linkedOperation->shortName).ucfirst(OperationType::ITEM);
+                    break;
+                }
+            }
 
             // TODO: This should be made shorter
             if (null !== $path) {

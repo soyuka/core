@@ -181,7 +181,7 @@ class OpenApiFactoryTest extends TestCase
         $subresourceOperationFactoryProphecy->create(Argument::any())->willReturn([]);
 
         $resourceNameCollectionFactoryProphecy = $this->prophesize(LegacyResourceNameCollectionFactoryInterface::class);
-        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
+        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled(false)->willReturn(new ResourceNameCollection([Dummy::class]));
 
         $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
         $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceCollection([$dummyResource]));

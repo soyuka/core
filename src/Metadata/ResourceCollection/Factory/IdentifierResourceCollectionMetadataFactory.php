@@ -70,7 +70,6 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
             $resourceMetadataCollection[$i] = $resource;
         }
 
-        dump($resourceMetadataCollection);
         return $resourceMetadataCollection;
     }
 
