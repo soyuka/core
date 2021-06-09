@@ -34,7 +34,6 @@ class ApiResourceTest extends TestCase
      */
     public function testConstruct()
     {
-        $this->expectDeprecation('Since api-platform/core 2.7: The class ApiPlatform\Core\Api\UrlGeneratorInterface is deprecated, use ApiPlatform\Api\UrlGeneratorInterface instead.');
         $resource = new ApiResource([
             'security' => 'is_granted("ROLE_FOO")',
             'securityMessage' => 'You are not foo.',

@@ -970,6 +970,7 @@ class ApiPlatformExtensionTest extends TestCase
                 OptimisticLockException::class => Response::HTTP_CONFLICT,
             ],
             'api_platform.title' => 'title',
+            'api_platform.metadata_backward_compatibility_layer' => false,
             'api_platform.version' => 'version',
             'api_platform.show_webby' => true,
             // TODO: to remove in 3.0
@@ -1491,6 +1492,7 @@ class ApiPlatformExtensionTest extends TestCase
             'api_platform.problem.encoder',
             'api_platform.problem.normalizer.constraint_violation_list',
             'api_platform.problem.normalizer.error',
+            'api_platform.rector.command',
             'api_platform.swagger.action.ui',
             'api_platform.swagger.listener.ui',
             'api_platform.validator',

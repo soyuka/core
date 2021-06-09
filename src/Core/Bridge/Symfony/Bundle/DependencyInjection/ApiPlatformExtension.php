@@ -130,6 +130,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerMakerConfiguration($container, $config, $loader);
         $this->registerArgumentResolverConfiguration($container, $loader);
         $this->registerLegacyServices($container, $config);
+        $this->registerRectorConfiguration($container, $loader);
 
         $container->registerForAutoconfiguration(DataPersisterInterface::class)
             ->addTag('api_platform.data_persister');
@@ -172,6 +173,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $loader->load('symfony_uid.xml');
         }
 
+        $container->setParameter('api_platform.metadata_backward_compatibility_layer', $config['metadata_backward_compatibility_layer']);
         $container->setParameter('api_platform.enable_entrypoint', $config['enable_entrypoint']);
         $container->setParameter('api_platform.enable_docs', $config['enable_docs']);
         $container->setParameter('api_platform.title', $config['title']);
@@ -778,6 +780,8 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
     private function registerLegacyServices(ContainerBuilder $container, array $config): void
     {
+        $container->setParameter('api_platform.metadata_backward_compatibility_layer', $config['metadata_backward_compatibility_layer']);
+
         if (!$config['metadata_backward_compatibility_layer']) {
             return;
         }
@@ -790,6 +794,11 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
         $container->removeDefinition('api_platform.openapi.factory');
         $container->setAlias('api_platform.openapi.factory', 'api_platform.openapi.factory.legacy');
+    }
+
+    private function registerRectorConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
+    {
+        $loader->load('rector.xml');
     }
 
     private function buildDeprecationArgs(string $version, string $message): array
