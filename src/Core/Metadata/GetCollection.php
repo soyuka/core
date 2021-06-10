@@ -19,5 +19,6 @@ class GetCollection extends Operation
     public function __construct(...$values)
     {
         parent::__construct(...$values);
+        $this->collection = true;
     }
 }

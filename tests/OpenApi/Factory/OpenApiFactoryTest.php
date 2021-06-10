@@ -250,11 +250,6 @@ class OpenApiFactoryTest extends TestCase
         $propertyMetadataFactory = $propertyMetadataFactoryProphecy->reveal();
 
         $typeFactory = new TypeFactory();
-        // TODO: Check $schemaFactory parameters
-        // I believe $propertyNameCollectionFactory, $propertyMetadataFactory are not correct because during the test,
-        // inside SchemaFactory->buildSchema(...), the data is correct but once used in OpenApiFactory, the data is lost.
-        // Or maybe a decorator overrides buildSchema and removes its data
-        //$schemaFactory = $this->prophesize(SchemaFactoryInterface::class)->reveal();
         $schemaFactory = new SchemaFactory($typeFactory, $resourceCollectionMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, new CamelCaseToSnakeCaseNameConverter());
         $typeFactory->setSchemaFactory($schemaFactory);
 
@@ -332,7 +327,6 @@ class OpenApiFactoryTest extends TestCase
         $components = $openApi->getComponents();
         $this->assertInstanceOf(Model\Components::class, $components);
 
-        // TODO: $components is almost completely empty except securitySchemes whereas its not the case if dumping data inside the classes like SchemaFactory
         $this->assertEquals($components->getSchemas(), new \ArrayObject(['Dummy' => $dummySchema->getDefinitions(), 'Dummy.OutputDto' => $dummySchema->getDefinitions()]));
 
         $this->assertEquals($components->getSecuritySchemes(), new \ArrayObject([

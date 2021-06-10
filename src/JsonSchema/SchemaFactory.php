@@ -108,7 +108,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         if (!isset($schema['$ref']) && !isset($schema['type'])) {
             $ref = Schema::VERSION_OPENAPI === $version ? '#/components/schemas/'.$definitionName : '#/definitions/'.$definitionName;
 
-            if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            if ($resourceMetadata instanceof ResourceMetadata) {
                 $method = null !== $operationType && null !== $operationName ? $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET') : 'GET';
             } else { // New Interface
                 $method = $operation->method;
@@ -162,7 +162,6 @@ final class SchemaFactory implements SchemaFactoryInterface
 
         // TODO: getFactoryOptions should be refactored because Item & Collection Operations don't exist anymore (API Platform 3.0)
         $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationType, $operationName);
-
         foreach ($this->propertyNameCollectionFactory->create($inputOrOutputClass, $options) as $propertyName) {
             $propertyMetadata = $this->propertyMetadataFactory->create($inputOrOutputClass, $propertyName, $options);
             if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
@@ -170,7 +169,6 @@ final class SchemaFactory implements SchemaFactoryInterface
             }
 
             $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $inputOrOutputClass, $format, $serializerContext) : $propertyName;
-
             if ($propertyMetadata->isRequired()) {
                 $definition['required'][] = $normalizedPropertyName;
             }
@@ -259,7 +257,6 @@ final class SchemaFactory implements SchemaFactoryInterface
         } else {
             $propertySchema = new \ArrayObject($propertySchema + $valueSchema);
         }
-
         $schema->getDefinitions()[$definitionName]['properties'][$normalizedPropertyName] = $propertySchema;
     }
 

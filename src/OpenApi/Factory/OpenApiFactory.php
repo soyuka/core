@@ -23,9 +23,7 @@ use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\LegacyResourceNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
@@ -33,7 +31,6 @@ use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
-use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource;
@@ -156,26 +153,22 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
-            // TODO: initialize $linkedOperationId : Loop over operations and find first method=GET with identifiers
-            // Is it correct (with foreach below)?
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
 
             foreach ($resource->operations as $linkedOperationName => $linkedOperation) {
-                if ($linkedOperation->method === 'GET' && $linkedOperation->identifiers !== null) {
-                    $linkedOperationId = 'get'.ucfirst($linkedOperation->shortName).ucfirst(OperationType::ITEM);
+                if ($linkedOperation->method === 'GET' && $linkedOperation->identifiers) {
+                    $linkedOperationId = 'get'.ucfirst($linkedOperationName).ucfirst(OperationType::ITEM);
                     break;
                 }
             }
 
-            // TODO: This should be made shorter
-            if (null !== $path) {
+            if ($path) {
                 $pathItem = $paths->getPath($path) ?: new Model\PathItem();
             } else {
                 $pathItem = new Model\PathItem();
             }
 
-            // TODO: no more subresource, how to initialize $forceSchemaCollection ?
-            $forceSchemaCollection = false; //OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
+            $forceSchemaCollection = false;
 
             $schema = new Schema('openapi');
             $schema->setDefinitions($schemas);
@@ -198,11 +191,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
 
             // Set up parameters
-            if ($operation->identifiers) {
-                foreach ($operation->identifiers as $parameterName => [$class, $property]) {
-                    if (is_int($parameterName)) {
-                        continue;
-                    }
+            if ($identifiers) {
+                foreach ($identifiers as $parameterName => [$class, $property]) {
                     $parameter = new Model\Parameter($parameterName, 'path', $resource->shortName.' identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -210,10 +200,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
                     $parameters[] = $parameter;
                 }
-            } else {
+            }
+            if ($operation->collection) {
                 $resources = $this->resourceMetadataFactory->create($resourceClass);
-                // TODO: getFiltersParameters has wrong input parameters currently, but it should be implemented; currently it is skipped
-                // I tried this implementation
+
                 foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($resources, $operationName, $resourceClass)) as $parameter) {
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -221,15 +211,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
                     $parameters[] = $parameter;
                 }
-                /*
-                $subresourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-                foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($subresourceMetadata, $operationName, $resourceClass)) as $parameter) {
-                    if ($this->hasParameter($parameter, $parameters)) {
-                        continue;
-                    }
-
-                    $parameters[] = $parameter;
-                }*/
             }
 
             // Create responses
@@ -260,6 +241,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     $successStatus = (string) $resource->status;
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource deleted', $resourceShortName));
                     break;
+            }
+
+            if (!$operation->collection) {
+                $responses['404'] = new Model\Response('Resource not found');
             }
 
             if (!$responses) {
@@ -362,11 +347,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     private function getPathDescription(string $resourceShortName, string $method): string
     {
         switch ($method) {
-            // Là je suppose que le GET il faut virer le ::Collection en dessous et mettre uniquement retrieves the resource
-            // J'ai enlevé l'attribut $operationType de la méthode
             case 'GET':
                 $pathSummary = 'Retrieves a %s resource.';
-                //$pathSummary = OperationType::COLLECTION === $operationType ? 'Retrieves the collection of %s resources.' : 'Retrieves a %s resource.';
                 break;
             case 'POST':
                 $pathSummary = 'Creates a %s resource.';
