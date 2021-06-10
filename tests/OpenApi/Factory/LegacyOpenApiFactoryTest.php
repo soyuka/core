@@ -29,7 +29,6 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
-use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;

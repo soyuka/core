@@ -17,8 +17,6 @@ use ApiPlatform\Core\Exception\PropertyNotFoundException;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Book;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\SlugParentDummy;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 
@@ -79,16 +77,16 @@ final class IdentifierResourceCollectionMetadataFactory implements ResourceColle
             return [];
         }
 
-        if (is_string($identifiers)) {
+        if (\is_string($identifiers)) {
             return [$identifiers => [$resourceClass, $identifiers]];
         }
 
         $normalized = [];
 
         foreach ($identifiers as $parameterName => $identifier) {
-            if (is_int($parameterName)) {
+            if (\is_int($parameterName)) {
                 $normalized[$identifier] = [$resourceClass, $identifier];
-            } else if (is_string($identifier)) {
+            } elseif (\is_string($identifier)) {
                 $normalized[$parameterName] = [$resourceClass, $identifier];
             } else {
                 $normalized[$parameterName] = $identifier;

@@ -27,7 +27,6 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;

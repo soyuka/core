@@ -15,14 +15,12 @@ namespace ApiPlatform\Core\OpenApi\Factory;
 
 use ApiPlatform\Core\Api\FilterLocatorTrait;
 use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
-use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\DataProvider\PaginationOptions;
 use ApiPlatform\Core\JsonSchema\Schema;
 use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\LegacyResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
@@ -83,24 +81,19 @@ final class OpenApiFactory implements OpenApiFactoryInterface
      */
     public function __invoke(array $context = []): OpenApi
     {
-        if (!$this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface) {
-            return $this->decorated->__invoke($context);
-        }
-
         $baseUrl = $context[self::BASE_URL] ?? '/';
         $contact = null === $this->openApiOptions->getContactUrl() || null === $this->openApiOptions->getContactEmail() ? null : new Model\Contact($this->openApiOptions->getContactName(), $this->openApiOptions->getContactUrl(), $this->openApiOptions->getContactEmail());
         $license = null === $this->openApiOptions->getLicenseName() ? null : new Model\License($this->openApiOptions->getLicenseName(), $this->openApiOptions->getLicenseUrl());
         $info = new Model\Info($this->openApiOptions->getTitle(), $this->openApiOptions->getVersion(), trim($this->openApiOptions->getDescription()), $this->openApiOptions->getTermsOfService(), $contact, $license);
         $servers = '/' === $baseUrl || '' === $baseUrl ? [new Model\Server('/')] : [new Model\Server($baseUrl)];
         $paths = new Model\Paths();
-        $links = [];
         $schemas = new \ArrayObject();
 
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
             $resources = $this->resourceMetadataFactory->create($resourceClass);
 
             foreach ($resources as $resource) {
-                $this->collectPaths($resource, $resourceClass, $context, $paths, $links, $schemas);
+                $this->collectPaths($resource, $resourceClass, $context, $paths, $schemas);
             }
         }
 
@@ -128,8 +121,9 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         );
     }
 
-    private function collectPaths(Resource $resource, string $resourceClass, array $context, Model\Paths $paths, array &$links, \ArrayObject $schemas): void
+    private function collectPaths(Resource $resource, string $resourceClass, array $context, Model\Paths $paths, \ArrayObject $schemas): void
     {
+        $links = [];
         $resourceShortName = $resource->shortName;
 
         if (!$resource->operations) {
@@ -153,14 +147,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             $operationId = $operation->openapiContext['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName);
 
-            $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
-
-            foreach ($resource->operations as $linkedOperationName => $linkedOperation) {
-                if ($linkedOperation->method === 'GET' && $linkedOperation->identifiers) {
-                    $linkedOperationId = 'get'.ucfirst($linkedOperationName).ucfirst(OperationType::ITEM);
-                    break;
-                }
-            }
+            $linkedOperationId = $this->getLinkedOperationName($resource->operations);
 
             if ($path) {
                 $pathItem = $paths->getPath($path) ?: new Model\PathItem();
@@ -192,7 +179,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
             // Set up parameters
             if ($identifiers) {
-                foreach ($identifiers as $parameterName => [$class, $property]) {
+                foreach (array_keys($identifiers) as $parameterName) {
                     $parameter = new Model\Parameter($parameterName, 'path', $resource->shortName.' identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -211,19 +198,20 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
                     $parameters[] = $parameter;
                 }
+                $links[$operationId] = $this->getLinks($resources, $operationName, $path);
             }
 
             // Create responses
             switch ($method) {
                 case 'GET':
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) \array_key_exists('status', $resource->extraProperties) ? $resource->extraProperties['status'] : 200;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource', $resourceShortName), $responseContent);
                     break;
                 case 'POST':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) \array_key_exists('status', $resource->extraProperties) ? $resource->extraProperties['status'] : 201;
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource created', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
@@ -231,14 +219,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 case 'PATCH':
                 case 'PUT':
                     $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) \array_key_exists('status', $resource->extraProperties) ? $resource->extraProperties['status'] : 200;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource updated', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
                     break;
                 case 'DELETE':
-                    $successStatus = (string) $resource->status;
+                    $successStatus = (string) \array_key_exists('status', $resource->extraProperties) ? $resource->extraProperties['status'] : 204;
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource deleted', $resourceShortName));
                     break;
             }
@@ -372,21 +360,23 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#linkObject.
      */
-    private function getLink(string $resourceClass, string $operationId, string $path): Model\Link
+    private function getLinks(ResourceCollection $resources, string $operationName, string $path): Model\Link
     {
         $parameters = [];
 
-        foreach ($this->propertyNameCollectionFactory->create($resourceClass) as $propertyName) {
-            $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
-            if (!$propertyMetadata->isIdentifier()) {
-                continue;
+        foreach ($resources as $resource) {
+            foreach ($resource->operations as $operationName => $operation) {
+                if ('GET' !== $operation->method || $operation->collection) {
+                    continue;
+                }
+                foreach ($resource->identifiers as $parameterName => [$class, $propertyName]) {
+                    $parameters[$parameterName] = sprintf('$response.body#/%s', $propertyName);
+                }
             }
-
-            $parameters[$propertyName] = sprintf('$response.body#/%s', $propertyName);
         }
 
         return new Model\Link(
-            $operationId,
+            $operationName, // operationName
             new \ArrayObject($parameters),
             null,
             1 === \count($parameters) ? sprintf('The `%1$s` value returned in the response can be used as the `%1$s` parameter in `GET %2$s`.', key($parameters), $path) : sprintf('The values returned in the response can be used in `GET %s`.', $path)
@@ -533,5 +523,16 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         }
 
         return false;
+    }
+
+    private function getLinkedOperationName($operations): ?string
+    {
+        foreach ($operations as $operationName => $operation) {
+            if ('GET' === $operation->method && $operation->identifiers) {
+                return $operationName;
+            }
+        }
+
+        return null;
     }
 }

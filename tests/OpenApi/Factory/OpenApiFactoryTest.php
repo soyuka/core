@@ -14,41 +14,29 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\OpenApi\Factory;
 
 use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
-use ApiPlatform\Core\Bridge\Symfony\Routing\RouterOperationPathResolver;
 use ApiPlatform\Core\DataProvider\PaginationOptions;
 use ApiPlatform\Core\JsonSchema\Schema;
 use ApiPlatform\Core\JsonSchema\SchemaFactory;
-use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Core\JsonSchema\TypeFactory;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Metadata\Property\SubresourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\LegacyResourceNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
-use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
-use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
-use ApiPlatform\Core\OpenApi\Serializer\OpenApiNormalizer;
-use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactory;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\Operation\UnderscorePathSegmentNameGenerator;
 use ApiPlatform\Core\PathResolver\CustomOperationPathResolver;
 use ApiPlatform\Core\PathResolver\OperationPathResolver;
 use ApiPlatform\Core\Tests\Fixtures\DummyFilter;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Answer;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Question;
 use ApiPlatform\Core\Tests\ProphecyTrait;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -60,13 +48,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\PropertyInfo\Type;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 
 class OpenApiFactoryTest extends TestCase
 {
@@ -84,96 +66,96 @@ class OpenApiFactoryTest extends TestCase
             description: 'This is a dummy.',
             types: ['http://schema.example.com/Dummy'],
             operations: [
-            'get' => new Get(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-            'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-            'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-            'custom' => new Operation(
-                method: 'HEAD',
-                uriTemplate: '/foo/{id}',
-                inputFormats: self::OPERATION_FORMATS['input_formats'],
-                outputFormats: self::OPERATION_FORMATS['output_formats'],
-                openapiContext: [
-                    'x-visibility' => 'hide',
-                    'description' => 'Custom description',
-                    'parameters' => [
-                        ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
-                        ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
-                    ],
-                    'tags' => ['Dummy', 'Profile'],
-                    'responses' => [
-                        '202' => [
-                            'description' => 'Success',
-                            'content' => [
-                                'application/json' => [
-                                    'schema' => ['$ref' => '#/components/schemas/Dummy'],
+                'get' => new Get(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+                'custom' => new Operation(
+                    method: 'HEAD',
+                    uriTemplate: '/foo/{id}',
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats'],
+                    openapiContext: [
+                        'x-visibility' => 'hide',
+                        'description' => 'Custom description',
+                        'parameters' => [
+                            ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
+                            ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
+                        ],
+                        'tags' => ['Dummy', 'Profile'],
+                        'responses' => [
+                            '202' => [
+                                'description' => 'Success',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => ['$ref' => '#/components/schemas/Dummy'],
+                                    ],
+                                ],
+                                'headers' => [
+                                    'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
+                                ],
+                                'links' => [
+                                    'Foo' => ['$ref' => '#/components/schemas/Dummy'],
                                 ],
                             ],
-                            'headers' => [
-                                'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
-                            ],
-                            'links' => [
-                                'Foo' => ['$ref' => '#/components/schemas/Dummy'],
-                            ],
+                            '205' => [],
                         ],
-                        '205' => [],
-                    ],
-                    'requestBody' => [
-                        'required' => true,
-                        'description' => 'Custom request body',
-                        'content' => [
-                            'multipart/form-data' => [
-                                'schema' => [
-                                    'type' => 'object',
-                                    'properties' => [
-                                        'file' => [
-                                            'type' => 'string',
-                                            'format' => 'binary',
+                        'requestBody' => [
+                            'required' => true,
+                            'description' => 'Custom request body',
+                            'content' => [
+                                'multipart/form-data' => [
+                                    'schema' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'file' => [
+                                                'type' => 'string',
+                                                'format' => 'binary',
+                                            ],
                                         ],
                                     ],
                                 ],
                             ],
                         ],
+                    ]
+                ),
+                'formats' => new Put(
+                    uriTemplate: '/formatted/{id}',
+                    inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
+                    outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
+                ),
+                'get_collection' => new Get(
+                    openapiContext: [
+                        'parameters' => [
+                            ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
+                        ],
                     ],
-                ]
-            ),
-            'formats' => new Put(
-                uriTemplate: '/formatted/{id}',
-                inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
-                outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
-            ),
-            'get_collection' => new Get(
-                openapiContext: [
-                'parameters' => [
-                    ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
-                ]
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
+                ),
+                'post_collection' => new Post(
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
+                ),
+                // Filtered
+                'filtered_collection' => new Get(
+                    filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
+                    uriTemplate: '/filtered',
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
+                ),
+                // Paginated
+                'paginated_collection' => new Get(
+                    paginationClientEnabled: true,
+                    paginationClientItemsPerPage: true,
+                    paginationItemsPerPage: 20,
+                    uriTemplate: '/paginated',
+                    inputFormats: self::OPERATION_FORMATS['input_formats'],
+                    outputFormats: self::OPERATION_FORMATS['output_formats']
+                ),
             ],
-                inputFormats: self::OPERATION_FORMATS['input_formats'],
-                outputFormats: self::OPERATION_FORMATS['output_formats']
-            ),
-            'post_collection' => new Post(
-                inputFormats: self::OPERATION_FORMATS['input_formats'],
-                outputFormats: self::OPERATION_FORMATS['output_formats']
-            ),
-            // Filtered
-            'filtered_collection' => new Get(
-                filters: ['f1', 'f2', 'f3', 'f4', 'f5'],
-                uriTemplate: '/filtered',
-                inputFormats: self::OPERATION_FORMATS['input_formats'],
-                outputFormats: self::OPERATION_FORMATS['output_formats']
-            ),
-            // Paginated
-            'paginated_collection' => new Get(
-                paginationClientEnabled: true,
-                paginationClientItemsPerPage: true,
-                paginationItemsPerPage: 20,
-                uriTemplate: '/paginated',
-                inputFormats: self::OPERATION_FORMATS['input_formats'],
-                outputFormats: self::OPERATION_FORMATS['output_formats']
-            )
-        ],
             output: [
-            'class' => OutputDto::class
-        ],
+                'class' => OutputDto::class,
+            ],
             paginationClientItemsPerPage: true,
         );
 
@@ -181,7 +163,7 @@ class OpenApiFactoryTest extends TestCase
         $subresourceOperationFactoryProphecy->create(Argument::any())->willReturn([]);
 
         $resourceNameCollectionFactoryProphecy = $this->prophesize(LegacyResourceNameCollectionFactoryInterface::class);
-        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled(false)->willReturn(new ResourceNameCollection([Dummy::class]));
+        $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
 
         $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
         $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceCollection([$dummyResource]));

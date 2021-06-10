@@ -21,14 +21,12 @@ use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceMetadataResourceCollectionFactory;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use ApiPlatform\Metadata\Operation;
 use Symfony\Component\PropertyInfo\Type;
-use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
@@ -88,9 +86,7 @@ final class SchemaFactory implements SchemaFactoryInterface
             throw new \LogicException('The $operationType and $operationName arguments must be null for non-resource class.');
         }
 
-        if ($resourceMetadata instanceof ResourceCollection) {
-            $operation = $resourceMetadata->getOperation($operationName);
-        }
+        $operation = $resourceMetadata instanceof ResourceCollection ? $resourceMetadata->getOperation($operationName) : null;
 
         $version = $schema->getVersion();
         $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $operation, $serializerContext);
@@ -271,19 +267,19 @@ final class SchemaFactory implements SchemaFactoryInterface
         if (null !== $inputOrOutputClass && $className !== $inputOrOutputClass) {
             $parts = explode('\\', $inputOrOutputClass);
             $shortName = end($parts);
-            $prefix .= '.' . $shortName;
+            $prefix .= '.'.$shortName;
         }
 
         if (isset($this->distinctFormats[$format])) {
             // JSON is the default, and so isn't included in the definition name
-            $prefix .= '.' . $format;
+            $prefix .= '.'.$format;
         }
 
         $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
         if ($definitionName) {
             $name = sprintf('%s-%s', $prefix, $definitionName);
         } else {
-            $groups = (array)($serializerContext[AbstractNormalizer::GROUPS] ?? []);
+            $groups = (array) ($serializerContext[AbstractNormalizer::GROUPS] ?? []);
             $name = $groups ? sprintf('%s-%s', $prefix, implode('_', $groups)) : $prefix;
         }
 
@@ -306,17 +302,19 @@ final class SchemaFactory implements SchemaFactoryInterface
             ];
         }
 
+        /** @var ResourceMetadata|ResourceCollection $resourceMetadata */
         $resourceMetadata = $this->resourceMetadataFactory->create($className);
         $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
+        $operation = ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) ? null : $resourceMetadata->getOperation($operationName);
 
-        if ($resourceMetadata instanceof ResourceMetadata) {
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             if (null === $operationType || null === $operationName) {
                 $inputOrOutput = $resourceMetadata->getAttribute($attribute, ['class' => $className]);
             } else {
                 $inputOrOutput = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, ['class' => $className], true);
             }
         } else {
-            if (!$operation = $resourceMetadata->getOperation($operationName)) {
+            if (!$operation) {
                 return null;
             }
 
@@ -331,7 +329,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         return [
             $resourceMetadata,
             $serializerContext ?? $this->getSerializerContext($resourceMetadata, $type, $operationType, $operationName),
-            $this->getValidationGroups($resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $operation, $operationType, $operationName),
+            $this->getValidationGroups($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface ? $resourceMetadata : $operation, $operationType, $operationName),
             $inputOrOutput['class'] ?? $inputOrOutput->class,
         ];
     }
@@ -364,9 +362,9 @@ final class SchemaFactory implements SchemaFactoryInterface
             }
 
             return \is_array($validationGroups = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true)) ? $validationGroups : [];
-        } else { // New interface
-            return \is_array($validationGroups = $resourceMetadata->validationGroups) ? $validationGroups : [];
-        }
+        }   // New interface
+
+        return \is_array($validationGroups = $resourceMetadata->validationGroups) ? $validationGroups : [];
     }
 
     /**

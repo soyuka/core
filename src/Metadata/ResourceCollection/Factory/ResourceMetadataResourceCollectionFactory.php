@@ -13,13 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\ResourceCollection\Factory;
 
-use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -111,12 +108,12 @@ final class ResourceMetadataResourceCollectionFactory implements ResourceCollect
             }
 
             // Avoiding operation name collision by adding _collection, this is rewritten by the UriTemplateResourceCollectionMetadataFactory
-            yield sprintf('%s%s', $operationName, $type === OperationType::COLLECTION && $operationName === 'get' ? '_collection' : '') => $newOperation;
+            yield sprintf('%s%s', $operationName, OperationType::COLLECTION === $type && 'get' === $operationName ? '_collection' : '') => $newOperation;
         }
     }
 
     public function sanitizeValueFromKey(string $key, $value)
     {
-        return in_array($key, ['identifiers', 'validation_groups'], true) && !is_array($key) ? [$value] : $value;
+        return \in_array($key, ['identifiers', 'validation_groups'], true) ? [$value] : $value;
     }
 }
