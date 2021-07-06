@@ -15,7 +15,9 @@ namespace ApiPlatform\Core\JsonApi\Serializer;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
+use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
 use ApiPlatform\Core\Util\ClassInfoTrait;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -35,11 +37,14 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
     private $resourceClassResolver;
     private $resourceMetadataFactory;
 
-    public function __construct(NormalizerInterface $decorated, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ResourceMetadataFactoryInterface $resourceMetadataFactory)
+    public function __construct(NormalizerInterface $decorated, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, $resourceMetadataFactory)
     {
         $this->decorated = $decorated;
         $this->iriConverter = $iriConverter;
         $this->resourceClassResolver = $resourceClassResolver;
+        if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceCollectionMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        }
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 

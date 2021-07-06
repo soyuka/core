@@ -15,6 +15,8 @@ namespace ApiPlatform\Core\JsonApi\Serializer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\Serializer\AbstractCollectionNormalizer;
 use ApiPlatform\Core\Util\IriHelper;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
@@ -30,8 +32,11 @@ final class CollectionNormalizer extends AbstractCollectionNormalizer
 {
     public const FORMAT = 'jsonapi';
 
-    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, ResourceMetadataFactoryInterface $resourceMetadataFactory)
+    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, $resourceMetadataFactory)
     {
+        if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceCollectionMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        }
         parent::__construct($resourceClassResolver, $pageParameterName, $resourceMetadataFactory);
     }
 
@@ -44,7 +49,7 @@ final class CollectionNormalizer extends AbstractCollectionNormalizer
         $parsed = IriHelper::parseIri($context['uri'] ?? '/', $this->pageParameterName);
 
         $metadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? '');
-        $urlGenerationStrategy = $metadata->getAttribute('url_generation_strategy');
+        $urlGenerationStrategy = $metadata instanceof ResourceCollection ? $metadata->getOperation($context['operation_name'] ?? null)->getUrlGenerationStrategy() : $metadata->getAttribute('url_generation_strategy');
 
         $data = [
             'links' => [

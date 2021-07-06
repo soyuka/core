@@ -372,7 +372,7 @@ final class SchemaFactory implements SchemaFactoryInterface
             return \is_array($validationGroups = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true)) ? $validationGroups : [];
         }
 
-        return $resourceMetadata ? $resourceMetadata->getValidationGroups() : [];
+        return $resourceMetadata ? ($resourceMetadata->getValidationContext()['groups'] ?? []) : [];
     }
 
     /**
