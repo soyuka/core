@@ -35,7 +35,6 @@ class Operation
      * @param array|string    $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array|string    $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array           $identifiers
-     * @param array           $links
      * @param string          $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
      * @param string          $routeName
      * @param array           $defaults
@@ -100,7 +99,6 @@ class Operation
         protected mixed $inputFormats = null,
         protected mixed $outputFormats = null,
         protected mixed $identifiers = [],
-        protected array $links = [],
         protected string $routePrefix = '',
         protected ?string $routeName = null,
         protected array $defaults = [],
@@ -300,19 +298,6 @@ class Operation
     {
         $self = clone $this;
         $self->identifiers = $identifiers;
-
-        return $self;
-    }
-
-    public function getLinks(): array
-    {
-        return $this->links;
-    }
-
-    public function withLinks(array $links = []): self
-    {
-        $self = clone $this;
-        $self->links = $links;
 
         return $self;
     }

@@ -109,10 +109,11 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             $operation = $resourceMetadata->getOperation($attributes['operation_name']);
             $context = $normalization ? $operation->getNormalizationContext() : $operation->getDenormalizationContext();
             $context['operation_name'] = $attributes['operation_name'];
+            $context['operation'] = $operation;
+            // TODO: use $context['operation'] instead?
             $context['iri_only'] = $operation->getNormalizationContext()['iri_only'] ?? false;
             $context['input'] = $operation->getInput();
             $context['output'] = $operation->getOutput();
-            $context['links'] = $operation->getLinks();
             $context['types'] = $operation->getTypes();
         } else {
             $context = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], $key, [], true);

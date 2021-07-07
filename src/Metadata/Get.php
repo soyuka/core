@@ -31,7 +31,6 @@ final class Get extends Operation
         mixed $inputFormats = null,
         mixed $outputFormats = null,
         array $identifiers = [],
-        array $links = [],
         string $routePrefix = '',
         ?string $routeName = null,
         array $defaults = [],
