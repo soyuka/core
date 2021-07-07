@@ -28,7 +28,7 @@ class ClientTest extends ApiTestCase
         /**
          * @var EntityManagerInterface
          */
-        $manager = (method_exists(static::class, 'getContainer') ? static::getContainer() : static::$container)->get('doctrine')->getManager();
+        $manager = self::$container->get('doctrine')->getManager();
         /** @var \Doctrine\ORM\Mapping\ClassMetadata[] $classes */
         $classes = $manager->getMetadataFactory()->getAllMetadata();
         $schemaTool = new SchemaTool($manager);
@@ -41,7 +41,8 @@ class ClientTest extends ApiTestCase
     {
         $client = self::createClient();
         $client->getKernelBrowser();
-        $this->assertSame(static::$kernel, $client->getKernel());
+        $this->assertSame(self::$kernel->getContainer(), $client->getContainer());
+        $this->assertSame(self::$kernel, $client->getKernel());
 
         $client->enableProfiler();
         $response = $client->request('GET', '/');

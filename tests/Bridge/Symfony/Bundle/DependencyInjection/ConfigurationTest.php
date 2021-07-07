@@ -224,9 +224,6 @@ class ConfigurationTest extends TestCase
                 'backward_compatibility_layer' => true,
                 'swagger_ui_extra_configuration' => [],
             ],
-            'maker' => [
-                'enabled' => true,
-            ],
         ], $config);
     }
 

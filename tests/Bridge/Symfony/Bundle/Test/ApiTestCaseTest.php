@@ -143,7 +143,7 @@ JSON;
         $this->recreateSchema();
 
         /** @var EntityManagerInterface $manager */
-        $manager = (method_exists(static::class, 'getContainer') ? static::getContainer() : static::$container)->get('doctrine')->getManager();
+        $manager = self::$container->get('doctrine')->getManager();
         $dummyDtoInputOutput = new DummyDtoInputOutput();
         $dummyDtoInputOutput->str = 'lorem';
         $dummyDtoInputOutput->num = 54;
@@ -187,8 +187,7 @@ JSON;
         ]);
         $this->assertResponseIsSuccessful();
 
-        $container = method_exists(static::class, 'getContainer') ? static::getContainer() : static::$container;
-        $resource = 'mongodb' === $container->getParameter('kernel.environment') ? DummyDocument::class : Dummy::class;
+        $resource = 'mongodb' === self::$container->getParameter('kernel.environment') ? DummyDocument::class : Dummy::class;
         $this->assertMatchesRegularExpression('~^/dummies/\d+~', self::findIriBy($resource, ['name' => 'Kevin']));
         $this->assertNull(self::findIriBy($resource, ['name' => 'not-exist']));
     }
@@ -198,7 +197,7 @@ JSON;
         self::bootKernel();
 
         /** @var EntityManagerInterface $manager */
-        $manager = (method_exists(static::class, 'getContainer') ? static::getContainer() : static::$container)->get('doctrine')->getManager();
+        $manager = self::$container->get('doctrine')->getManager();
         /** @var \Doctrine\ORM\Mapping\ClassMetadata[] $classes */
         $classes = $manager->getMetadataFactory()->getAllMetadata();
         $schemaTool = new SchemaTool($manager);
