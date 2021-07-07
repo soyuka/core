@@ -42,11 +42,15 @@ final class SerializeListener
     private $serializer;
     private $serializerContextBuilder;
 
-    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, ResourceMetadataFactoryInterface $resourceMetadataFactory = null)
+    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, $resourceMetadataFactory = null)
     {
         $this->serializer = $serializer;
         $this->serializerContextBuilder = $serializerContextBuilder;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if ($resourceMetadataFactory && $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        }
     }
 
     /**
@@ -72,7 +76,6 @@ final class SerializeListener
         }
 
         $context = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
-
         if (isset($context['output']) && \array_key_exists('class', $context['output']) && null === $context['output']['class']) {
             $event->setControllerResult(null);
 
@@ -91,7 +94,6 @@ final class SerializeListener
         $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources_to_push';
 
         $request->attributes->set('_api_normalization_context', $context);
-
         $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
 
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);

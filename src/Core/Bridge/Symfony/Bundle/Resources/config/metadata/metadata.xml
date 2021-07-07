@@ -14,6 +14,7 @@
         <service id="ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface" alias="api_platform.metadata.resource.name_collection_factory" />
 
         <!-- Resource metadata -->
+
         <service id="api_platform.metadata.resource.metadata_factory.input_output" class="ApiPlatform\Core\Metadata\Resource\Factory\InputOutputResourceMetadataFactory" decorates="api_platform.metadata.resource.metadata_factory" decoration-priority="30" public="false">
             <argument type="service" id="api_platform.metadata.resource.metadata_factory.input_output.inner" />
         </service>
@@ -67,6 +68,7 @@
             <argument type="service" id="serializer.mapping.class_metadata_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory.serializer.inner" />
             <argument type="service" id="api_platform.resource_class_resolver" />
+            <argument type="service" id="api_platform.router" />
         </service>
 
         <service id="api_platform.metadata.property.metadata_factory.cached" class="ApiPlatform\Core\Metadata\Property\Factory\CachedPropertyMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="-10" public="false">

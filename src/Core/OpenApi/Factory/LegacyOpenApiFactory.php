@@ -22,12 +22,13 @@ use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\Factory\LegacyResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
-use ApiPlatform\Core\OpenApi\Model\PathItem;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
@@ -38,9 +39,10 @@ use Symfony\Component\PropertyInfo\Type;
 /**
  * Generates an Open API v3 specification.
  */
-final class OpenApiFactory implements OpenApiFactoryInterface
+final class LegacyOpenApiFactory implements OpenApiFactoryInterface
 {
     use FilterLocatorTrait;
+    use ResourceToResourceMetadataTrait;
 
     public const BASE_URL = 'base_url';
     public const OPENAPI_DEFINITION_NAME = 'openapi_definition_name';
@@ -89,7 +91,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $links = [];
         $schemas = new \ArrayObject();
 
-        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
+        foreach ($this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface ? $this->resourceNameCollectionFactory->create(true) : $this->resourceNameCollectionFactory->create() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             // Items needs to be parsed first to be able to reference the lines from the collection operation
@@ -145,11 +147,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $resourceClass = $operation['resource_class'] ?? $rootResourceClass;
             $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
             $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET');
-
-            if (!\in_array($method, PathItem::$methods, true)) {
-                continue;
-            }
-
             [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($resourceClass, $operationName, $operationType, $resourceMetadata);
             $operationId = $operation['openapi_context']['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
@@ -340,7 +337,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
      */
     private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType): string
     {
-        $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
+        $path = $operation['uri_template'] ?? $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
         if ('.{_format}' === substr($path, -10)) {
             $path = substr($path, 0, -10);
         }

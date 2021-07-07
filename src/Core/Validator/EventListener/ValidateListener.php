@@ -35,10 +35,14 @@ final class ValidateListener
     private $validator;
     private $resourceMetadataFactory;
 
-    public function __construct(ValidatorInterface $validator, ResourceMetadataFactoryInterface $resourceMetadataFactory)
+    public function __construct(ValidatorInterface $validator, ResourceMetadataFactoryInterface $resourceMetadataFactory = null)
     {
         $this->validator = $validator;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if ($this->resourceMetadataFactory) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        }
     }
 
     /**
@@ -62,9 +66,15 @@ final class ValidateListener
             return;
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+        $validationContext = $attributes['operation']['validation_context'] ?? [];
 
-        $validationGroups = $resourceMetadata->getOperationAttribute($attributes, 'validation_groups', null, true);
-        $this->validator->validate($controllerResult, ['groups' => $validationGroups]);
+        if (!isset($attributes['operation']) && $this->resourceMetadataFactory) {
+            @trigger_error('When using a "route_name", be sure to define the "_api_operation" route defaults as we will not rely on metadata in API Platform 3.0.', \E_USER_DEPRECATED);
+            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+            $validationGroups = $resourceMetadata->getOperationAttribute($attributes, 'validation_groups', null, true);
+            $validationContext = ['groups' => $validationGroups];
+        }
+
+        $this->validator->validate($controllerResult, $validationContext);
     }
 }

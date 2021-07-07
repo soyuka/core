@@ -114,11 +114,7 @@ final class YamlExtractor extends AbstractExtractor
                 'identifier' => $this->phpize($propertyValues, 'identifier', 'bool'),
                 'iri' => $this->phpize($propertyValues, 'iri', 'string'),
                 'attributes' => $propertyValues['attributes'] ?? [],
-                'subresource' => isset($propertyValues['subresource']) ? [
-                    'collection' => $this->phpize($propertyValues['subresource'], 'collection', 'bool'),
-                    'resourceClass' => $this->phpize($propertyValues['subresource'], 'resourceClass', 'string'),
-                    'maxDepth' => $this->phpize($propertyValues['subresource'], 'maxDepth', 'integer'),
-                ] : null,
+                'subresource' => $propertyValues['subresource'] ?? null,
             ];
         }
     }
@@ -128,7 +124,7 @@ final class YamlExtractor extends AbstractExtractor
      *
      * @throws InvalidArgumentException
      *
-     * @return bool|int|string|null
+     * @return bool|string|null
      */
     private function phpize(array $array, string $key, string $type)
     {
@@ -139,11 +135,6 @@ final class YamlExtractor extends AbstractExtractor
         switch ($type) {
             case 'bool':
                 if (\is_bool($array[$key])) {
-                    return $array[$key];
-                }
-                break;
-            case 'integer':
-                if (\is_int($array[$key])) {
                     return $array[$key];
                 }
                 break;

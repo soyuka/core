@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\JsonLd\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
+use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
@@ -44,9 +46,13 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
     private $contextBuilder;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ContextBuilderInterface $contextBuilder, PropertyAccessorInterface $propertyAccessor = null, NameConverterInterface $nameConverter = null, ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], iterable $dataTransformers = [], ResourceAccessCheckerInterface $resourceAccessChecker = null)
+    public function __construct($resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, IriConverterInterface $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ContextBuilderInterface $contextBuilder, PropertyAccessorInterface $propertyAccessor = null, NameConverterInterface $nameConverter = null, ClassMetadataFactoryInterface $classMetadataFactory = null, array $defaultContext = [], iterable $dataTransformers = [], ResourceAccessCheckerInterface $resourceAccessChecker = null)
     {
         parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, $classMetadataFactory, null, false, $defaultContext, $dataTransformers, $resourceMetadataFactory, $resourceAccessChecker);
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
 
         $this->contextBuilder = $contextBuilder;
     }
@@ -72,23 +78,51 @@ final class ItemNormalizer extends AbstractItemNormalizer
             return parent::normalize($object, $format, $context);
         }
 
-        $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null);
-        $context = $this->initContext($resourceClass, $context);
-        $iri = $this->iriConverter->getIriFromItem($object);
-        $context['iri'] = $iri;
-        $context['api_normalize'] = true;
-
+        // TODO: we should not remove the resource_class in the normalizeRawCollection as we would find out it's not the same anyway as the requested one
+        $previousResourceClass = $context['resource_class'] ?? null;
+        $context = $this->initContext($context['resource_class'] ?? $outputClass ?? $objectClass, $context);
+        $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class']);
         $metadata = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
+
+        if ($this->iriConverter instanceof IriConverterInterface) {
+            if ($previousResourceClass === $resourceClass) {
+                $iri = $this->iriConverter->getIriFromItem($object, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
+            } else {
+                $operationName = null;
+                if ($this->resourceMetadataFactory) {
+                    $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
+                    foreach ($resourceMetadataCollection->getOperations() as $operationName => $operation) {
+                        if (!$operation->isCollection()) {
+                            $operationName = $operationName;
+                            break;
+                        }
+                    }
+                }
+
+                $iri = $this->iriConverter->getIriFromItem($object, $operationName);
+            }
+        } else {
+            $iri = $this->iriConverter->getIriFromItem($object);
+        }
+
+        $context['iri'] = $iri;
+        $metadata['@id'] = $iri;
+        $context['api_normalize'] = true;
 
         $data = parent::normalize($object, $format, $context);
         if (!\is_array($data)) {
             return $data;
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-
-        $metadata['@id'] = $iri;
-        $metadata['@type'] = $resourceMetadata->getIri() ?: $resourceMetadata->getShortName();
+        // TODO: remove in 3.0
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+            $metadata['@type'] = $resourceMetadata->getIri() ?: $resourceMetadata->getShortName();
+        } elseif ($this->resourceMetadataFactory) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass)->getOperation();
+            $types = $resourceMetadata->getTypes() ?? [$resourceMetadata->getShortName()];
+            $metadata['@type'] = 1 === \count($types) ? $types[0] : $types;
+        }
 
         return $metadata + $data;
     }
