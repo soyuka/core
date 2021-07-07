@@ -19,6 +19,7 @@ use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Mapping\AttributeMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface as SerializerClassMetadataFactoryInterface;
 
@@ -34,13 +35,15 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
 
     private $serializerClassMetadataFactory;
     private $decorated;
+    private $router;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, SerializerClassMetadataFactoryInterface $serializerClassMetadataFactory, PropertyMetadataFactoryInterface $decorated, ResourceClassResolverInterface $resourceClassResolver = null)
+    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, SerializerClassMetadataFactoryInterface $serializerClassMetadataFactory, PropertyMetadataFactoryInterface $decorated, ResourceClassResolverInterface $resourceClassResolver = null, RouterInterface $router = null)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->serializerClassMetadataFactory = $serializerClassMetadataFactory;
         $this->decorated = $decorated;
         $this->resourceClassResolver = $resourceClassResolver;
+        $this->router = $router;
     }
 
     /**
@@ -168,6 +171,15 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
             return [$groups, $groups];
         }
 
+        if (isset($options['operation_name'])) {
+            $operation = $this->router->getRouteCollection()->get($options['operation_name']);
+
+            return [
+                $operation->getDefault('_api_operation')['normalization_context']['groups'] ?? null,
+                $operation->getDefault('_api_operation')['denormalization_context']['groups'] ?? null,
+            ];
+        }
+
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
         if (isset($options['collection_operation_name'])) {
             $normalizationContext = $resourceMetadata->getCollectionOperationAttribute($options['collection_operation_name'], 'normalization_context', null, true);
@@ -209,6 +221,7 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
      */
     private function getClassSerializerGroups(string $class): array
     {
+        //TODO: 3.0 hard problem
         $resourceMetadata = $this->resourceMetadataFactory->create($class);
         if ($outputClass = $resourceMetadata->getAttribute('output')['class'] ?? null) {
             $class = $outputClass;

@@ -13,22 +13,19 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Symfony\Bundle\ArgumentResolver;
 
-use ApiPlatform\Core\EventListener\ToggleableDeserializationTrait;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
 final class PayloadArgumentResolver implements ArgumentValueResolverInterface
 {
-    use ToggleableDeserializationTrait;
-
     private $serializationContextBuilder;
 
     public function __construct(
-        ResourceMetadataFactoryInterface $resourceMetadataFactory,
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         SerializerContextBuilderInterface $serializationContextBuilder
     ) {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -68,10 +65,24 @@ final class PayloadArgumentResolver implements ArgumentValueResolverInterface
     private function getExpectedInputClass(Request $request): ?string
     {
         $attributes = RequestAttributesExtractor::extractAttributes($request);
+        dd($attributes);
 
-        if (!$this->isRequestToDeserialize($request, $attributes)) {
-            return null;
-        }
+        // if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+        //     (!$operation || !$operation->canDeserialize() || !$attributes['receive'])
+        // ) {
+        //     return;
+        // }
+        //
+        // if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && (
+        //     !$attributes['receive']
+        //     || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
+        // )) {
+        //     return;
+        // }
+
+        // if (!$this->isRequestToDeserialize($request, $attributes)) {
+        //     return null;
+        // }
 
         $context = $this->serializationContextBuilder->createFromRequest($request, false, $attributes);
 

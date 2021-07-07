@@ -127,8 +127,6 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerElasticsearchConfiguration($container, $config, $loader);
         $this->registerDataTransformerConfiguration($container);
         $this->registerSecurityConfiguration($container, $loader);
-        $this->registerMakerConfiguration($container, $config, $loader);
-        $this->registerArgumentResolverConfiguration($container, $loader);
 
         $container->registerForAutoconfiguration(DataPersisterInterface::class)
             ->addTag('api_platform.data_persister');
@@ -147,6 +145,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $loader->load('api.xml');
         $loader->load('data_persister.xml');
         $loader->load('data_provider.xml');
+        $loader->load('state.xml');
         $loader->load('filter.xml');
 
         $container->getDefinition('api_platform.operation_method_resolver')
@@ -262,6 +261,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     private function registerMetadataConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
     {
         $loader->load('metadata/metadata.xml');
+        $loader->load('metadata/resource_collection.xml');
         $loader->load('metadata/xml.xml');
 
         [$xmlResources, $yamlResources] = $this->getResourcesToWatch($container, $config);
@@ -297,7 +297,6 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $dirname = $bundle['path'];
             foreach (['.yaml', '.yml', '.xml', ''] as $extension) {
                 $paths[] = "$dirname/Resources/config/api_resources$extension";
-                $paths[] = "$dirname/config/api_resources$extension";
             }
             if ($this->isConfigEnabled($container, $config['doctrine'])) {
                 $paths[] = "$dirname/Entity";
@@ -743,20 +742,6 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.openapi.contact.email', $config['openapi']['contact']['email']);
         $container->setParameter('api_platform.openapi.license.name', $config['openapi']['license']['name']);
         $container->setParameter('api_platform.openapi.license.url', $config['openapi']['license']['url']);
-    }
-
-    private function registerMakerConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
-    {
-        if (!$this->isConfigEnabled($container, $config['maker'])) {
-            return;
-        }
-
-        $loader->load('maker.xml');
-    }
-
-    private function registerArgumentResolverConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
-    {
-        $loader->load('argument_resolver.xml');
     }
 
     private function buildDeprecationArgs(string $version, string $message): array
