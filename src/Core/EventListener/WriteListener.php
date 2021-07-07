@@ -59,7 +59,7 @@ final class WriteListener
 
         $this->iriConverter = $iriConverter;
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;

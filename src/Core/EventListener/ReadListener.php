@@ -26,7 +26,9 @@ use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\CloneTrait;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -39,6 +41,7 @@ final class ReadListener
 {
     use CloneTrait;
     use OperationDataProviderTrait;
+    use OperationRequestInitiatorTrait;
     use ToggleableOperationAttributeTrait;
 
     public const OPERATION_ATTRIBUTE_KEY = 'read';
@@ -47,7 +50,7 @@ final class ReadListener
     /** @var ?ProviderInterface */
     private $provider = null;
 
-    public function __construct(CollectionDataProviderInterface $collectionDataProvider, ItemDataProviderInterface $itemDataProvider, SubresourceDataProviderInterface $subresourceDataProvider = null, SerializerContextBuilderInterface $serializerContextBuilder = null, IdentifierConverterInterface $identifierConverter = null, ResourceMetadataFactoryInterface $resourceMetadataFactory = null, ProviderInterface $provider = null)
+    public function __construct(CollectionDataProviderInterface $collectionDataProvider, ItemDataProviderInterface $itemDataProvider, SubresourceDataProviderInterface $subresourceDataProvider = null, SerializerContextBuilderInterface $serializerContextBuilder = null, IdentifierConverterInterface $identifierConverter = null, $resourceMetadataFactory = null, ProviderInterface $provider = null)
     {
         $this->collectionDataProvider = $collectionDataProvider;
         $this->itemDataProvider = $itemDataProvider;
@@ -56,8 +59,8 @@ final class ReadListener
         $this->identifierConverter = $identifierConverter;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
-        if ($resourceMetadataFactory) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
         $this->provider = $provider;
     }
@@ -70,10 +73,23 @@ final class ReadListener
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
+        $operation = $this->initializeOperation($request);
+
         if (
             !($attributes = RequestAttributesExtractor::extractAttributes($request))
-            || !$attributes['receive']
             || $request->isMethod('POST') && (isset($attributes['collection_operation_name']) || !$attributes['identifiers'])
+        ) {
+            return;
+        }
+
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$operation || !$operation->canRead())
+        ) {
+            return;
+            // TODO: 3.0 remove condition
+        }
+        if (
+            !$attributes['receive']
             || (!isset($attributes['operation_name']) && $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY))
         ) {
             return;
@@ -84,7 +100,7 @@ final class ReadListener
             $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
         }
 
-        $context = null === $filters ? [] : ['filters' => $filters];
+        $context = null === $filters ? [] : ['filters' => $filters, 'operation' => $operation, 'legacy_attributes' => $attributes + ['identifiers' => $operation->getIdentifiers(), 'has_composite_identifier' => $operation->getCompositeIdentifier()]];
         if ($this->identifierConverter) {
             $context[IdentifierConverterInterface::HAS_IDENTIFIER_CONVERTER] = true;
         }
@@ -96,15 +112,14 @@ final class ReadListener
         }
 
         // TODO: 3.0 this is the default
-        if ($this->provider && isset($attributes['operation_name'])) {
+        if ($this->provider && $operation) {
             try {
-                $identifiers = $this->extractIdentifiers($request->attributes->all(), $attributes);
-                $data = $this->provider->provide($attributes['resource_class'], $identifiers, $context);
+                $data = $this->provider->provide($attributes['resource_class'], $operation->getIdentifiers(), $operation->getName(), $context);
             } catch (InvalidIdentifierException $e) {
                 throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
             }
 
-            if ($attributes['identifiers'] && null === $data) {
+            if (!$operation->isCollection() && null === $data) {
                 throw new NotFoundHttpException('Not Found');
             }
 
@@ -115,8 +130,8 @@ final class ReadListener
         }
 
         if (isset($attributes['operation_name'])) {
-            @trigger_error('Using a #[Resource] without a state provider is deprecated since 2.7 and will not be possible anymore in 3.0.', \E_USER_DEPRECATED);
-            $attributes[sprintf('%s_operation_name', ($attributes['identifiers'] ?? []) ? 'item' : 'collection')] = $attributes['operation_name'];
+            trigger_deprecation('api-platform/core', '2.7', 'Using a #[Resource] without a state provider is deprecated since 2.7 and will not be possible anymore in 3.0.');
+            $attributes[sprintf('%s_operation_name', ($operation->getIdentifiers() ?? []) ? 'item' : 'collection')] = $operation->getName();
         }
 
         if (isset($attributes['collection_operation_name'])) {
@@ -129,7 +144,6 @@ final class ReadListener
 
         try {
             $identifiers = $this->extractIdentifiers($request->attributes->all(), $attributes);
-
             if (isset($attributes['item_operation_name'])) {
                 $data = $this->getItemData($identifiers, $attributes, $context);
             } elseif (isset($attributes['subresource_operation_name'])) {

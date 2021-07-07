@@ -19,6 +19,8 @@ use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Serializer\ResourceList;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,6 +37,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 final class SerializeListener
 {
+    use OperationRequestInitiatorTrait;
     use ToggleableOperationAttributeTrait;
 
     public const OPERATION_ATTRIBUTE_KEY = 'serialize';
@@ -49,7 +52,7 @@ final class SerializeListener
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
         if ($resourceMetadataFactory && $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation('api-platform/core', '2.7', sprintf('The use of %s is deprecated.', ResourceMetadataFactoryInterface::class));
         }
     }
 
@@ -60,6 +63,7 @@ final class SerializeListener
     {
         $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
+        $operation = $this->initializeOperation($request);
 
         if (
             $controllerResult instanceof Response
@@ -69,6 +73,12 @@ final class SerializeListener
             return;
         }
 
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$operation || !$operation->canSerialize())
+        ) {
+            return;
+            // TODO: 3.0 remove condition
+        }
         if (!$attributes) {
             $this->serializeRawData($event, $request, $controllerResult);
 

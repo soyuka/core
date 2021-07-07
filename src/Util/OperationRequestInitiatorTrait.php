@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Util;
 
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -28,10 +30,10 @@ trait OperationRequestInitiatorTrait
     /**
      * TODO: Kernel terminate remove the _api_operation attribute?
      */
-    private function initializeOperation(Request $request): Operation
+    private function initializeOperation(Request $request): ?Operation
     {
         // TODO: 3.0 $resourceMetadataCollectionFactory is mandatory
-        if (!$request->attributes->get('_api_resource_class') || !$resourceMetadataCollectionFactory) {
+        if (!$request->attributes->get('_api_resource_class') || !$this->resourceMetadataCollectionFactory) {
             return null;
         }
 
