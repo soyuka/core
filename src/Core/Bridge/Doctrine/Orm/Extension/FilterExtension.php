@@ -20,6 +20,8 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\ORM\QueryBuilder;
 use Psr\Container\ContainerInterface;
 
@@ -38,10 +40,13 @@ final class FilterExtension implements ContextAwareQueryCollectionExtensionInter
     /**
      * @param ContainerInterface|FilterCollection $filterLocator The new filter locator or the deprecated filter collection
      */
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, $filterLocator)
+    public function __construct($resourceMetadataFactory, $filterLocator)
     {
         $this->setFilterLocator($filterLocator);
 
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
@@ -55,7 +60,7 @@ final class FilterExtension implements ContextAwareQueryCollectionExtensionInter
         }
 
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $resourceFilters = $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true);
+        $resourceFilters = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true) : $resourceMetadata->getOperation($operationName)->getFilters();
 
         if (empty($resourceFilters)) {
             return;

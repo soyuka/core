@@ -50,7 +50,7 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
 
         $attributes = $resourceMetadata->getAttributes() ?? [];
 
-        foreach ($this->defaults['attributes'] ?? [] as $key => $value) {
+        foreach ($this->defaults['attributes'] as $key => $value) {
             if (!$value) {
                 continue;
             }
@@ -82,6 +82,10 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
         }
 
         foreach ($this->createOperations($resourceMetadata->getCollectionOperations(), OperationType::COLLECTION, $resource) as $operationName => $operation) {
+            if (!$operation->getUriTemplate() && !$operation->getRouteName() && $operation->getIdentifiers()) {
+                $operation = $operation->withIdentifiers([]);
+            }
+
             $operations[$operationName] = $operation->withShortName($resourceMetadata->getShortName());
         }
 

@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 
 /**
  * @internal
+ * TODO: 3.0 remove the trait
  */
 trait ToggleableOperationAttributeTrait
 {
@@ -28,15 +29,12 @@ trait ToggleableOperationAttributeTrait
 
     private function isOperationAttributeDisabled(array $attributes, string $attribute, bool $default = false, bool $resourceFallback = true): bool
     {
-        if (null === $this->resourceMetadataFactory || isset($attributes['operation'])) {
-            return !($attributes['operation'][$attribute] ?? $attributes[$attribute] ?? !$default);
+        if (null === $this->resourceMetadataFactory) {
+            return !($attributes[$attribute] ?? $default);
         }
 
-        // TODO: 3.0 should be removed
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
-
-            return !$resourceMetadata->{'get'.ucfirst($attribute)}();
+            return !$default;
         }
 
         $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);

@@ -97,10 +97,7 @@ final class CollectionNormalizer implements NormalizerInterface, NormalizerAware
         $iriOnly = $context[self::IRI_ONLY] ?? $this->defaultContext[self::IRI_ONLY];
         foreach ($object as $obj) {
             if ($iriOnly) {
-                dump($context['links'] ?? null);
-                exit('collection normalizer iris');
-                $iriContext = [];
-                $data['hydra:member'][] = $this->iriConverter instanceof ContextAwareIriConverterInterface ? $this->iriConverter->getIriFromItem($obj, $iriContext) : $this->iriConverter->getIriFromItem($obj);
+                $data['hydra:member'][] = $this->iriConverter->getIriFromItem($obj);
             } else {
                 $data['hydra:member'][] = $this->normalizer->normalize($obj, $format, $context);
             }

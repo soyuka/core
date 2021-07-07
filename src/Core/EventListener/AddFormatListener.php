@@ -84,22 +84,19 @@ final class AddFormatListener
         }
 
         $attributes = RequestAttributesExtractor::extractAttributes($request);
+        $formats = $this->formats;
 
         // BC check to be removed in 3.0
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            if ($attributes) {
-                // TODO: Subresource operation metadata aren't available by default, for now we have to fallback on default formats.
-                // TODO: A better approach would be to always populate the subresource operation array.
-                $formats = $this
-                    ->resourceMetadataFactory
-                    ->create($attributes['resource_class'])
-                    ->getOperationAttribute($attributes, 'output_formats', $this->formats, true);
-            } else {
-                $formats = $this->formats;
-            }
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && $attributes) {
+            // TODO: Subresource operation metadata aren't available by default, for now we have to fallback on default formats.
+            // TODO: A better approach would be to always populate the subresource operation array.
+            $formats = $this
+                ->resourceMetadataFactory
+                ->create($attributes['resource_class'])
+                ->getOperationAttribute($attributes, 'output_formats', $this->formats, true);
         } elseif ($this->formatsProvider instanceof FormatsProviderInterface) {
             $formats = $this->formatsProvider->getFormatsFromAttributes($attributes);
-        } else {
+        } elseif ($operation) {
             $formats = $operation->getOutputFormats() ?? $this->formats;
         }
 

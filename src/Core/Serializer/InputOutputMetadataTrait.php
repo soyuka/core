@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\Serializer;
 
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 
 trait InputOutputMetadataTrait
 {
@@ -25,21 +26,39 @@ trait InputOutputMetadataTrait
 
     protected function getInputClass(string $class, array $context = []): ?string
     {
-        return $this->getInputOutputMetadata($class, 'input', $context);
+        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            return $this->getInputOutputMetadata($class, 'input', $context);
+        }
+
+        $operation = $context['operation'] ?? null;
+        if (!$operation && $this->resourceMetadataFactory) {
+            $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+        }
+
+        return $operation ? $operation->getInput()['class'] ?? null : null;
     }
 
     protected function getOutputClass(string $class, array $context = []): ?string
     {
-        return $this->getInputOutputMetadata($class, 'output', $context);
+        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            return $this->getInputOutputMetadata($class, 'output', $context);
+        }
+
+        $operation = $context['operation'] ?? null;
+        if (!$operation && $this->resourceMetadataFactory) {
+            $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+        }
+
+        return $operation ? $operation->getOutput()['class'] ?? null : null;
     }
 
+    // TODO: remove in 3.0
     private function getInputOutputMetadata(string $class, string $inputOrOutput, array $context)
     {
-        if (null === $this->resourceMetadataFactory || null !== ($context[$inputOrOutput]['class'] ?? null)) {
+        if (null !== ($context[$inputOrOutput]['class'] ?? null)) {
             return $context[$inputOrOutput]['class'] ?? null;
         }
 
-        // TODO: remove in 3.0
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             try {
                 $metadata = $this->resourceMetadataFactory->create($class);

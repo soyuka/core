@@ -57,6 +57,7 @@ final class QueryParameterValidateListener
     {
         $request = $event->getRequest();
         $operation = $this->initializeOperation($request);
+
         if (
             !$request->isMethodSafe()
             || !($attributes = RequestAttributesExtractor::extractAttributes($request))
@@ -84,10 +85,7 @@ final class QueryParameterValidateListener
 
         $queryString = RequestParser::getQueryString($request);
         $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
-
-        $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
-        $resourceFilters = $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true);
-
+        $resourceFilters = $operation ? $operation->getFilters() : $this->resourceMetadataFactory->create($attributes['resource_class'])->getCollectionOperationAttribute($operationName, 'filters', [], true);
         $this->queryParameterValidator->validateFilters($attributes['resource_class'], $resourceFilters, $queryParameters);
     }
 }

@@ -43,27 +43,31 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
         }
 
         foreach ($resourceMetadataCollection as $i => $resource) {
-            if (!$resource->getUriTemplate()) {
-                foreach ($resource->getOperations() as $key => $operation) {
-                    if ($operation->getUriTemplate()) {
-                        continue;
-                    }
+            if ($resource->getUriTemplate()) {
+                $resourceMetadataCollection[$i] = $resource->withExtraProperties($resource->getExtraProperties() + ['user_defined_uri_template' => true]);
+            }
 
-                    $operations = iterator_to_array($resource->getOperations());
-
-                    if ($routeName = $operation->getRouteName()) {
-                        unset($operations[$key]);
-                        $operations[$routeName] = $operation;
-                        $resource = $resource->withOperations($operations);
-                        continue;
-                    }
-
-                    $operation = $operation->withUriTemplate($this->generateUriTemplate($operation));
-                    // Change the operation key
-                    unset($operations[$key]);
-                    $operations[sprintf('_api_%s_%s', $operation->getUriTemplate(), strtolower($operation->getMethod()))] = $operation;
+            foreach ($resource->getOperations() as $key => $operation) {
+                if ($operation->getUriTemplate()) {
+                    $operations[$key] = $operation->withExtraProperties($operation->getExtraProperties() + ['user_defined_uri_template' => true]);
                     $resource = $resource->withOperations($operations);
+                    continue;
                 }
+
+                $operations = iterator_to_array($resource->getOperations());
+
+                if ($routeName = $operation->getRouteName()) {
+                    unset($operations[$key]);
+                    $operations[$routeName] = $operation;
+                    $resource = $resource->withOperations($operations);
+                    continue;
+                }
+
+                $operation = $operation->withUriTemplate($this->generateUriTemplate($operation));
+                // Change the operation key
+                unset($operations[$key]);
+                $operations[sprintf('_api_%s_%s', $operation->getUriTemplate(), strtolower($operation->getMethod()))] = $operation;
+                $resource = $resource->withOperations($operations);
             }
 
             $resourceMetadataCollection[$i] = $resource;

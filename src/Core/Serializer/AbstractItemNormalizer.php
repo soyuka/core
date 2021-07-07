@@ -748,11 +748,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
             return $normalizedRelatedObject;
         }
 
-        if ($this->iriConverter instanceof ContextAwareIriConverterInterface) {
-            $iri = $this->iriConverter->getIriFromItem($relatedObject, UrlGeneratorInterface::ABS_PATH, $context);
-        } else {
-            $iri = $this->iriConverter->getIriFromItem($relatedObject);
-        }
+        $iri = $this->iriConverter->getIriFromItem($relatedObject);
 
         if (isset($context['resources'])) {
             $context['resources'][$iri] = $iri;

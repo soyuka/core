@@ -70,7 +70,7 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
                 $relatedOperation = $this->resourceMetadataFactory->create($relatedResourceClass)->getOperation();
                 $relatedIdentifiers = $relatedOperation->getIdentifiers();
                 if (1 === \count($relatedIdentifiers)) {
-                    $identifierValue = $this->resolveIdentifierValue($identifierValue, $relatedResourceClass, $relatedIdentifiers[0]);
+                    $identifierValue = $this->resolveIdentifierValue($identifierValue, $relatedResourceClass, current($relatedIdentifiers)[1]);
 
                     if (is_scalar($identifierValue) || $identifierValue instanceof \Stringable) {
                         $identifiers[$parameterName] = (string) $identifierValue;
@@ -104,7 +104,7 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
             }
 
             if ($type->isCollection() && $type->getCollectionValueType()->getClassName() === $class) {
-                throw new RuntimeException('This resource is identified by a collection, we can not determine which one is correct.');
+                return $this->propertyAccessor->getValue($item, sprintf('%s[0].%s', $propertyName, $property));
             }
         }
 

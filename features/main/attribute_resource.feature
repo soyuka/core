@@ -61,7 +61,8 @@ Feature: Resource attributes
   Scenario: Retrieve the aliased resource
     When I add "Content-Type" header equal to "application/ld+json"
     And I send a "GET" request to "/dummy/1/attribute_resources/2"
-    Then the response status code should be 200
+    Then the response status code should be 301
+    And the header "Location" should be equal to "/attribute_resources/2"
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be equal to:
@@ -85,7 +86,8 @@ Feature: Resource attributes
     """
     {"name": "Patched"}
     """
-    Then the response status code should be 200
+    Then the response status code should be 301
+    And the header "Location" should be equal to "/attribute_resources/2"
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
     And the JSON should be equal to:

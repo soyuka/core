@@ -30,7 +30,7 @@ Feature: Subresource support
     When I send a "GET" request to "/questions/999999/answer"
     Then the response status code should be 404
     And the response should be in JSON
- 
+
   @createSchema
   Scenario: Get recursive subresource one to many relation
     Given there is an answer "42" to the question "What's the answer to the Ultimate Question of Life, the Universe and Everything?"

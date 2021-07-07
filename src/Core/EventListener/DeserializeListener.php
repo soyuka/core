@@ -64,6 +64,8 @@ final class DeserializeListener
             $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         }
 
+        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface ? $resourceMetadataFactory : null;
+
         if (\is_array($resourceMetadataFactory)) {
             $this->formats = $resourceMetadataFactory;
         } elseif ($resourceMetadataFactory instanceof FormatsProviderInterface) {
@@ -92,7 +94,7 @@ final class DeserializeListener
         }
 
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
-            (!$operation || !$operation->canDeserialize())
+            (!$operation || !$operation->canDeserialize() || !$attributes['receive'])
         ) {
             return;
         }

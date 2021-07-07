@@ -38,7 +38,7 @@ trait DeprecationMetadataTrait
         } elseif ('validation_groups' === $key) {
             @trigger_error('The "validation_groups" is deprecated in 2.7 and will be renamed to "validation_context" having an array with a "groups" key in 3.0.', \E_USER_DEPRECATED);
             $key = 'validation_context';
-            $value = ['groups' => \is_array($value) ? $value : [$value]];
+            $value = ['groups' => $value];
         } elseif ('access_control' === $key) {
             $key = 'security';
             @trigger_error('The "access_control" option is deprecated in 2.7 and will be renamed to "security" in 3.0.', \E_USER_DEPRECATED);

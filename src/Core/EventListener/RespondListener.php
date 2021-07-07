@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\EventListener;
 
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
@@ -36,8 +37,9 @@ final class RespondListener
     ];
 
     private $resourceMetadataFactory;
+    private $iriConverter;
 
-    public function __construct($resourceMetadataFactory = null)
+    public function __construct($resourceMetadataFactory = null, IriConverterInterface $iriConverter = null)
     {
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
@@ -45,6 +47,7 @@ final class RespondListener
 
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+        $this->iriConverter = $iriConverter;
     }
 
     /**
@@ -74,32 +77,34 @@ final class RespondListener
             'X-Frame-Options' => 'deny',
         ];
 
-        $status = null;
-        if ($this->resourceMetadataFactory && $attributes) {
-            // TODO: remove this in 3.x
-            if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-                $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+        $status = $operation ? $operation->getStatus() : null;
 
-                if ($sunset = $resourceMetadata->getOperationAttribute($attributes, 'sunset', null, true)) {
-                    $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
-                }
+        // TODO: remove this in 3.x
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && $attributes) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
 
-                $headers = $this->addAcceptPatchHeader($headers, $attributes, $resourceMetadata);
-                $status = $resourceMetadata->getOperationAttribute($attributes, 'status');
-            } else {
-                if ($sunset = $operation->getSunset()) {
-                    $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
-                }
+            if ($sunset = $resourceMetadata->getOperationAttribute($attributes, 'sunset', null, true)) {
+                $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
+            }
 
-                $status = $operation->getStatus();
+            $headers = $this->addAcceptPatchHeader($headers, $attributes, $resourceMetadata);
+            $status = $resourceMetadata->getOperationAttribute($attributes, 'status');
+        } elseif ($operation) {
+            if ($sunset = $operation->getSunset()) {
+                $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
+            }
 
-                if ($status) {
-                    $status = (int) $status;
-                }
+            if ($acceptPatch = $operation->getAcceptPatch()) {
+                $headers['Accept-Patch'] = $acceptPatch;
+            }
 
-                if ($acceptPatch = $operation->getAcceptPatch()) {
-                    $headers['Accept-Patch'] = $acceptPatch;
-                }
+            if (
+                $this->iriConverter &&
+                ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
+                && !$operation->getStatus()
+            ) {
+                $status = 301;
+                $headers['Location'] = $this->iriConverter->getIriFromItem($request->attributes->get('data'));
             }
         }
 

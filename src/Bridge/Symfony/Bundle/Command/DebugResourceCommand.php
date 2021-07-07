@@ -68,13 +68,6 @@ class DebugResourceCommand extends Command
                 foreach ($operation->getIdentifiers() ?? [] as $parameter => [$class, $property]) {
                     $output->writeln(sprintf('%s: %s::%s ', $parameter, $class === $resourceClass ? $shortName : $class, $property));
                 }
-
-                $links = [];
-                foreach ($operation->getLinks() ?? [] as [$link]) {
-                    $links[] = $link;
-                }
-
-                $output->writeln('Links to: '.implode(', ', $links));
             }
         }
 

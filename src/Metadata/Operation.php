@@ -35,7 +35,6 @@ class Operation
      * @param array|string    $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array|string    $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array           $identifiers
-     * @param array           $links
      * @param string          $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
      * @param string          $routeName
      * @param array           $defaults
@@ -100,7 +99,6 @@ class Operation
         protected mixed $inputFormats = null,
         protected mixed $outputFormats = null,
         protected mixed $identifiers = [],
-        protected array $links = [],
         protected string $routePrefix = '',
         protected ?string $routeName = null,
         protected array $defaults = [],
@@ -109,7 +107,7 @@ class Operation
         protected ?bool $stateless = null,
         protected ?string $sunset = null,
         protected ?string $acceptPatch = null,
-        protected mixed $status = null,
+        protected ?int $status = null,
         protected string $host = '',
         protected array $schemes = [],
         protected string $condition = '',
@@ -304,19 +302,6 @@ class Operation
         return $self;
     }
 
-    public function getLinks(): array
-    {
-        return $this->links;
-    }
-
-    public function withLinks(array $links = []): self
-    {
-        $self = clone $this;
-        $self->links = $links;
-
-        return $self;
-    }
-
     public function getRoutePrefix(): string
     {
         return $this->routePrefix;
@@ -421,15 +406,15 @@ class Operation
         return $self;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?int
     {
         return $this->status;
     }
 
-    public function withStatus(string | int | null $status = null): self
+    public function withStatus(?int $status = null): self
     {
         $self = clone $this;
-        $self->status = \is_string($status) || null === $status ? $status : (string) $status;
+        $self->status = $status;
 
         return $self;
     }

@@ -100,7 +100,7 @@ final class DenyAccessListener
                 }
             }
         } elseif (isset($attributes['operation'])) {
-            $isGranted = $attributes['operation']['security'] ?? null;
+            $isGranted = $attributes['operation']->getSecurity() ?? null;
         }
 
         if (null === $isGranted) {

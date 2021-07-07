@@ -84,6 +84,7 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
         $cursorPaginationAttribute = null;
         $isPaginatedWithCursor = $paginated && ($context['pagination_via_cursor'] ?? false);
 
+        //TODO
         if ($this->resourceMetadataFactory) {
             $metadata = isset($context['resource_class']) && null !== $this->resourceMetadataFactory ? $this->resourceMetadataFactory->create($context['resource_class']) : null;
             $isPaginatedWithCursor = $paginated && null !== $metadata && null !== $cursorPaginationAttribute = $metadata->getCollectionOperationAttribute($context['collection_operation_name'] ?? $context['subresource_operation_name'], 'pagination_via_cursor', null, true);

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\JsonLd\Serializer;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
@@ -83,7 +84,18 @@ final class ItemNormalizer extends AbstractItemNormalizer
         $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class']);
         $metadata = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
 
-        $iri = $this->iriConverter->getIriFromItem($object);
+        if (isset($context['operation'])) {
+            if ($previousResourceClass !== $resourceClass) {
+                unset($context['operation'], $context['operation_name']);
+            }
+        }
+
+        if ($this->iriConverter instanceof IriConverterInterface) {
+            $iri = $this->iriConverter->getIriFromItem($object, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
+        } else {
+            $iri = $this->iriConverter->getIriFromItem($object);
+        }
+
         $context['iri'] = $iri;
         $metadata['@id'] = $iri;
         $context['api_normalize'] = true;
@@ -98,7 +110,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
             $metadata['@type'] = $resourceMetadata->getIri() ?: $resourceMetadata->getShortName();
         } elseif ($this->resourceMetadataFactory) {
-            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass)->getOperation();
+            $resourceMetadata = $context['operation'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation();
             $types = $resourceMetadata->getTypes() ?? [$resourceMetadata->getShortName()];
             $metadata['@type'] = 1 === \count($types) ? $types[0] : $types;
         }

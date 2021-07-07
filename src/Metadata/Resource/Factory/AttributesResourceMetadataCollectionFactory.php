@@ -95,7 +95,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
                                       ->withClass($resourceClass)
                                       ->withTypes([$shortName]);
 
-                foreach ($this->defaults as $key => $value) {
+                foreach ($this->defaults['attributes'] as $key => $value) {
                     [$key, $value] = $this->getKeyValue($key, $value);
                     if (!$resource->{'get'.ucfirst($key)}()) {
                         $resource = $resource->{'with'.ucfirst($key)}($value);
@@ -138,7 +138,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
 
     private function getOperationWithDefaults(ApiResource $resource, Operation $operation): array
     {
-        foreach ($this->defaults as $key => $value) {
+        foreach ($this->defaults['attributes'] as $key => $value) {
             [$key, $value] = $this->getKeyValue($key, $value);
             if (!$operation->{'get'.ucfirst($key)}()) {
                 $operation = $operation->{'with'.ucfirst($key)}($value);
