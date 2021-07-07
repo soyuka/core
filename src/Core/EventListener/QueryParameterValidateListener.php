@@ -18,6 +18,8 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 /**
@@ -28,6 +30,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 final class QueryParameterValidateListener
 {
     use ToggleableOperationAttributeTrait;
+    use OperationRequestInitiatorTrait;
 
     public const OPERATION_ATTRIBUTE_KEY = 'query_parameter_validate';
 
@@ -37,8 +40,12 @@ final class QueryParameterValidateListener
 
     private $enabled;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, QueryParameterValidator $queryParameterValidator, bool $enabled = true)
+    public function __construct($resourceMetadataFactory, QueryParameterValidator $queryParameterValidator, bool $enabled = true)
     {
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
+
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->queryParameterValidator = $queryParameterValidator;
         $this->enabled = $enabled;
@@ -47,6 +54,7 @@ final class QueryParameterValidateListener
     public function onKernelRequest(RequestEvent $event)
     {
         $request = $event->getRequest();
+        $operation = $this->initializeOperation($request);
         if (
             !$request->isMethodSafe()
             || !($attributes = RequestAttributesExtractor::extractAttributes($request))
@@ -56,7 +64,14 @@ final class QueryParameterValidateListener
             || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY, !$this->enabled)
         ) {
             return;
+        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$operation || !$operation->canWrite())
+        ) {
+            return;
+            // TODO: 3.0 remove condition
         }
+
+
         $queryString = RequestParser::getQueryString($request);
         $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
 
