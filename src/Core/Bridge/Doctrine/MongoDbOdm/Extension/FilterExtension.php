@@ -17,6 +17,7 @@ use ApiPlatform\Core\Api\FilterCollection;
 use ApiPlatform\Core\Api\FilterLocatorTrait;
 use ApiPlatform\Core\Bridge\Doctrine\MongoDbOdm\Filter\FilterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\ODM\MongoDB\Aggregation\Builder;
 use Psr\Container\ContainerInterface;
 
@@ -37,9 +38,13 @@ final class FilterExtension implements AggregationCollectionExtensionInterface
     /**
      * @param ContainerInterface|FilterCollection $filterLocator The new filter locator or the deprecated filter collection
      */
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, $filterLocator)
+    public function __construct($resourceMetadataFactory, $filterLocator)
     {
         $this->setFilterLocator($filterLocator);
+
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
