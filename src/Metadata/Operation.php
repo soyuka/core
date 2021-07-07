@@ -41,7 +41,6 @@ class Operation
      * @param array           $defaults
      * @param array           $requirements
      * @param array           $options
-     * @param int             $referenceType
      * @param bool            $stateless
      * @param string          $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
      * @param string          $acceptPatch
@@ -107,7 +106,6 @@ class Operation
         protected array $defaults = [],
         protected array $requirements = [],
         protected array $options = [],
-        protected int $referenceType = UrlGeneratorInterface::ABS_PATH,
         protected ?bool $stateless = null,
         protected ?string $sunset = null,
         protected ?string $acceptPatch = null,
@@ -117,7 +115,7 @@ class Operation
         protected string $condition = '',
         protected string $controller = 'api_platform.action.placeholder',
         protected ?string $class = null,
-        protected ?int $urlGenerationStrategy = null,
+        protected int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH,
         protected bool $collection = false,
         protected ?string $deprecationReason = null,
         protected array $cacheHeaders = [],
@@ -380,19 +378,6 @@ class Operation
     {
         $self = clone $this;
         $self->options = $options;
-
-        return $self;
-    }
-
-    public function getReferenceType(): int
-    {
-        return $this->referenceType;
-    }
-
-    public function withReferenceType(int $referenceType): self
-    {
-        $self = clone $this;
-        $self->referenceType = $referenceType;
 
         return $self;
     }
