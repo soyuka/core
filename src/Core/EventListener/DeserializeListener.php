@@ -20,6 +20,7 @@ use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
@@ -34,6 +35,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class DeserializeListener
 {
     use ToggleableOperationAttributeTrait;
+    use OperationRequestInitiatorTrait;
 
     public const OPERATION_ATTRIBUTE_KEY = 'deserialize';
 
@@ -55,10 +57,10 @@ final class DeserializeListener
 
         if ($resourceMetadataFactory) {
             if (!$resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-                @trigger_error(sprintf('Passing an array or an instance of "%s" as 3rd parameter of the constructor of "%s" is deprecated since API Platform 2.5, pass an instance of "%s" instead', FormatsProviderInterface::class, __CLASS__, ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+                trigger_deprecation(sprintf('Passing an array or an instance of "%s" as 3rd parameter of the constructor of "%s" is deprecated since API Platform 2.5, pass an instance of "%s" instead', FormatsProviderInterface::class, __CLASS__, ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
             }
 
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
         }
 
         if (\is_array($resourceMetadataFactory)) {
@@ -78,11 +80,22 @@ final class DeserializeListener
         $request = $event->getRequest();
         $method = $request->getMethod();
 
+        $operation = $this->initializeOperation($request);
+
         if (
             'DELETE' === $method
             || $request->isMethodSafe()
             || !($attributes = RequestAttributesExtractor::extractAttributes($request))
-            || !$attributes['receive']
+        ) {
+            return;
+        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$operation || !$operation->canWrite())
+        ) {
+            return;
+            // TODO: 3.0 remove condition
+        }
+        if (
+            !$attributes['receive']
             || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
         ) {
             return;
@@ -90,12 +103,12 @@ final class DeserializeListener
 
         $context = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
 
-        $formats = $attributes['operation']['input_formats'] ?? null;
+        $formats = $operation->getInputFormats() ?? null;
 
         if (!$formats) {
             // BC check to be removed in 3.0
             if ($this->resourceMetadataFactory) {
-                @trigger_error('When using a "route_name", be sure to define the "_api_operation" route defaults as we will not rely on metadata in API Platform 3.0.', \E_USER_DEPRECATED);
+                trigger_deprecation('When using a "route_name", be sure to define the "_api_operation" route defaults as we will not rely on metadata in API Platform 3.0.', \E_USER_DEPRECATED);
                 $formats = $this->resourceMetadataFactory
                     ->create($attributes['resource_class'])
                     ->getOperationAttribute($attributes, 'input_formats', [], true);
