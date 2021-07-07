@@ -133,7 +133,7 @@ final class PurgeHttpCacheListener
 
     private function addTagsFor($value): void
     {
-        if (!$value) {
+        if (!$value || is_scalar($value)) {
             return;
         }
 
@@ -155,6 +155,7 @@ final class PurgeHttpCacheListener
     private function addTagForItem($value): void
     {
         try {
+            //TODO: test if this is a resource class
             $iri = $this->iriConverter->getIriFromItem($value);
             $this->tags[$iri] = $iri;
         } catch (InvalidArgumentException $e) {

@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Annotation;
+namespace ApiPlatform\Metadata;
 
 use ApiPlatform\Core\Exception\InvalidArgumentException;
+use Symfony\Component\PropertyInfo\Type;
 
 /**
  * ApiProperty annotation.
@@ -80,6 +81,11 @@ final class ApiProperty
     public $iri;
 
     /**
+     * @var array
+     */
+    public $types;
+
+    /**
      * @var bool
      */
     public $identifier;
@@ -93,6 +99,16 @@ final class ApiProperty
      * @var string|int|float|bool|array|null
      */
     public $example;
+
+    /**
+     * @var array
+     */
+    public $schema;
+
+    /**
+     * @var Type[]
+     */
+    public $builtinTypes;
 
     /**
      * @param string                           $description
@@ -114,6 +130,8 @@ final class ApiProperty
      * @param string                           $security
      * @param array                            $swaggerContext
      * @param string                           $securityPostDenormalize
+     * @param array                            $schema
+     * @param string[]                         $builtinTypes
      *
      * @throws InvalidArgumentException
      */
@@ -128,6 +146,8 @@ final class ApiProperty
         ?bool $identifier = null,
         $default = null,
         $example = null,
+        $schema = null,
+        $builtinTypes = null,
 
         // attributes
         ?array $attributes = null,
@@ -139,7 +159,8 @@ final class ApiProperty
         ?bool $push = null,
         ?string $security = null,
         ?array $swaggerContext = null,
-        ?string $securityPostDenormalize = null
+        ?string $securityPostDenormalize = null,
+        ?array $types = null
     ) {
         if (!\is_array($description)) { // @phpstan-ignore-line Doctrine annotations support
             [$publicProperties, $configurableAttributes] = self::getConfigMetadata();

@@ -19,6 +19,8 @@ use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Serializer\ResourceList;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,6 +37,7 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 final class SerializeListener
 {
+    use OperationRequestInitiatorTrait;
     use ToggleableOperationAttributeTrait;
 
     public const OPERATION_ATTRIBUTE_KEY = 'serialize';
@@ -42,11 +45,17 @@ final class SerializeListener
     private $serializer;
     private $serializerContextBuilder;
 
-    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, ResourceMetadataFactoryInterface $resourceMetadataFactory = null)
+    public function __construct(SerializerInterface $serializer, SerializerContextBuilderInterface $serializerContextBuilder, $resourceMetadataFactory = null)
     {
         $this->serializer = $serializer;
         $this->serializerContextBuilder = $serializerContextBuilder;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('The use of %s is deprecated, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class));
+        }
+
+        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
 
     /**
@@ -56,12 +65,24 @@ final class SerializeListener
     {
         $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
+        $operation = $this->initializeOperation($request);
 
         if (
             $controllerResult instanceof Response
-            || !(($attributes = RequestAttributesExtractor::extractAttributes($request))['respond'] ?? $request->attributes->getBoolean('_api_respond', false))
-            || ($attributes && $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY))
+            || !($attributes = RequestAttributesExtractor::extractAttributes($request))
+            || !$request->attributes->getBoolean('_api_respond', true)
         ) {
+            return;
+        }
+
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$operation || !$operation->canSerialize())
+        ) {
+            return;
+        }
+
+        // TODO: 3.0 remove condition
+        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)) {
             return;
         }
 
@@ -72,7 +93,6 @@ final class SerializeListener
         }
 
         $context = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
-
         if (isset($context['output']) && \array_key_exists('class', $context['output']) && null === $context['output']['class']) {
             $event->setControllerResult(null);
 
@@ -91,7 +111,6 @@ final class SerializeListener
         $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources_to_push';
 
         $request->attributes->set('_api_normalization_context', $context);
-
         $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
 
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Metadata\Resource;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 
 /**
  * @internal
@@ -21,14 +22,21 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 trait ToggleableOperationAttributeTrait
 {
     /**
-     * @var ResourceMetadataFactoryInterface|null
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface|null
      */
     private $resourceMetadataFactory;
 
     private function isOperationAttributeDisabled(array $attributes, string $attribute, bool $default = false, bool $resourceFallback = true): bool
     {
-        if (null === $this->resourceMetadataFactory) {
-            return $default;
+        if (null === $this->resourceMetadataFactory || isset($attributes['operation'])) {
+            return !($attributes['operation'][$attribute] ?? $attributes[$attribute] ?? !$default);
+        }
+
+        // TODO: 3.0 should be removed
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
+
+            return !$resourceMetadata->{'get'.ucfirst($attribute)}();
         }
 
         $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);

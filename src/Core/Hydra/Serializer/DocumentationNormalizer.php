@@ -25,7 +25,9 @@ use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\SubresourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -39,8 +41,12 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class DocumentationNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
+    use ResourceToResourceMetadataTrait;
     public const FORMAT = 'jsonld';
 
+    /**
+     * @var ResourceMetadataFactoryInterface|ResourceMetadataCollectionFactoryInterface
+     */
     private $resourceMetadataFactory;
     private $propertyNameCollectionFactory;
     private $propertyMetadataFactory;
@@ -50,13 +56,18 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
     private $subresourceOperationFactory;
     private $nameConverter;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, ResourceClassResolverInterface $resourceClassResolver, OperationMethodResolverInterface $operationMethodResolver = null, UrlGeneratorInterface $urlGenerator, SubresourceOperationFactoryInterface $subresourceOperationFactory = null, NameConverterInterface $nameConverter = null)
+    public function __construct($resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, ResourceClassResolverInterface $resourceClassResolver, OperationMethodResolverInterface $operationMethodResolver = null, UrlGeneratorInterface $urlGenerator, SubresourceOperationFactoryInterface $subresourceOperationFactory = null, NameConverterInterface $nameConverter = null)
     {
         if ($operationMethodResolver) {
             @trigger_error(sprintf('Passing an instance of %s to %s() is deprecated since version 2.5 and will be removed in 3.0.', OperationMethodResolverInterface::class, __METHOD__), \E_USER_DEPRECATED);
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if ($resourceMetadataFactory && $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be replaced by %s in 3.0.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+        }
+
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
         $this->propertyMetadataFactory = $propertyMetadataFactory;
         $this->resourceClassResolver = $resourceClassResolver;
@@ -76,6 +87,11 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+
+            if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata[0]);
+            }
+
             $shortName = $resourceMetadata->getShortName();
             $prefixedShortName = $resourceMetadata->getIri() ?? "#$shortName";
 
@@ -236,6 +252,9 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         if (null !== $this->subresourceOperationFactory) {
             foreach ($this->subresourceOperationFactory->create($resourceClass) as $operationId => $operation) {
                 $subresourceMetadata = $this->resourceMetadataFactory->create($operation['resource_class']);
+                if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                    $subresourceMetadata = $this->transformResourceToResourceMetadata($subresourceMetadata[0]);
+                }
                 $propertyMetadata = $this->propertyMetadataFactory->create(end($operation['identifiers'])[0], $operation['property']);
                 $hydraOperations[] = $this->getHydraOperation($resourceClass, $subresourceMetadata, $operation['route_name'], $operation, "#{$subresourceMetadata->getShortName()}", OperationType::SUBRESOURCE, $propertyMetadata->getSubresource());
             }
@@ -371,6 +390,9 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
 
                 if ($this->resourceClassResolver->isResourceClass($className)) {
                     $resourceMetadata = $this->resourceMetadataFactory->create($className);
+                    if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                        $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata[0]);
+                    }
 
                     return $resourceMetadata->getIri() ?? "#{$resourceMetadata->getShortName()}";
                 }

@@ -16,6 +16,11 @@ namespace ApiPlatform\Core\EventListener;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * TODO: 3.0 remove this.
+ *
+ * @internal
+ */
 trait ToggleableDeserializationTrait
 {
     use ToggleableOperationAttributeTrait;

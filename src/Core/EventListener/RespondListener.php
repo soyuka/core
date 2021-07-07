@@ -16,6 +16,8 @@ namespace ApiPlatform\Core\EventListener;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 
@@ -26,6 +28,8 @@ use Symfony\Component\HttpKernel\Event\ViewEvent;
  */
 final class RespondListener
 {
+    use OperationRequestInitiatorTrait;
+
     public const METHOD_TO_CODE = [
         'POST' => Response::HTTP_CREATED,
         'DELETE' => Response::HTTP_NO_CONTENT,
@@ -33,8 +37,13 @@ final class RespondListener
 
     private $resourceMetadataFactory;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory = null)
+    public function __construct($resourceMetadataFactory = null)
     {
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+        }
+
+        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
@@ -45,14 +54,16 @@ final class RespondListener
     {
         $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
+        $operation = $this->initializeOperation($request);
 
         $attributes = RequestAttributesExtractor::extractAttributes($request);
-        if ($controllerResult instanceof Response && ($attributes['respond'] ?? false)) {
-            $event->setResponse($controllerResult);
-
+        if ($controllerResult instanceof Response || $request->attributes->getBoolean('_api_respond', false)) {
             return;
         }
-        if ($controllerResult instanceof Response || !($attributes['respond'] ?? $request->attributes->getBoolean('_api_respond'))) {
+
+        if ($controllerResult instanceof Response) {
+            $event->setResponse($controllerResult);
+
             return;
         }
 
@@ -65,14 +76,31 @@ final class RespondListener
 
         $status = null;
         if ($this->resourceMetadataFactory && $attributes) {
-            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+            // TODO: remove this in 3.x
+            if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+                $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
 
-            if ($sunset = $resourceMetadata->getOperationAttribute($attributes, 'sunset', null, true)) {
-                $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
+                if ($sunset = $resourceMetadata->getOperationAttribute($attributes, 'sunset', null, true)) {
+                    $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
+                }
+
+                $headers = $this->addAcceptPatchHeader($headers, $attributes, $resourceMetadata);
+                $status = $resourceMetadata->getOperationAttribute($attributes, 'status');
+            } else {
+                if ($sunset = $operation->getSunset()) {
+                    $headers['Sunset'] = (new \DateTimeImmutable($sunset))->format(\DateTime::RFC1123);
+                }
+
+                $status = $operation->getStatus();
+
+                if ($status) {
+                    $status = (int) $status;
+                }
+
+                if ($acceptPatch = $operation->getAcceptPatch()) {
+                    $headers['Accept-Patch'] = $acceptPatch;
+                }
             }
-
-            $headers = $this->addAcceptPatchHeader($headers, $attributes, $resourceMetadata);
-            $status = $resourceMetadata->getOperationAttribute($attributes, 'status');
         }
 
         $status = $status ?? self::METHOD_TO_CODE[$request->getMethod()] ?? Response::HTTP_OK;

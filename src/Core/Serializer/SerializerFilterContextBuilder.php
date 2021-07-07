@@ -31,10 +31,14 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
     private $filterLocator;
     private $resourceMetadataFactory;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, ContainerInterface $filterLocator, SerializerContextBuilderInterface $decorated)
+    public function __construct($resourceMetadataFactory, ContainerInterface $filterLocator, SerializerContextBuilderInterface $decorated)
     {
         $this->decorated = $decorated;
         $this->filterLocator = $filterLocator;
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be not be used anymore in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        }
+
         $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
@@ -48,9 +52,19 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
         }
 
         $context = $this->decorated->createFromRequest($request, $normalization, $attributes);
-        $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
 
-        $resourceFilters = $resourceMetadata->getOperationAttribute($attributes, 'filters', [], true);
+        // TODO: remove in 3.0
+        if (
+            !$this->resourceMetadataFactory
+            && isset($attributes['operation_name']) && isset($context['filters'])
+        ) {
+            $resourceFilters = $context['filters'];
+        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+            $resourceFilters = $resourceMetadata->getOperationAttribute($attributes, 'filters', [], true);
+        } else {
+            $resourceFilters = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name'])->getFilters();
+        }
 
         if (!$resourceFilters) {
             return $context;
