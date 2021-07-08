@@ -144,7 +144,7 @@ final class IriConverter implements IriConverterInterface
             trigger_deprecation('api-platform/core', '2.7', 'The IRI will change and match the first operation of the resource. Switch to an alternate resource when possible instead of using subresources.');
             $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($context['extra_properties']['legacy_subresource_operation_name']);
         } else {
-            $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName);
+            $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName, true);
         }
 
         try {

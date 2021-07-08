@@ -92,7 +92,7 @@ final class DeserializeListener
         }
 
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
-            (!$operation || !$operation->canDeserialize())
+            (!$operation || !$operation->canDeserialize() || !$attributes['receive'])
         ) {
             return;
         }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\JsonLd\Serializer;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
@@ -87,7 +88,12 @@ final class ItemNormalizer extends AbstractItemNormalizer
             unset($context['operation']);
         }
 
-        $iri = $this->iriConverter->getIriFromItem($object);
+        if ($this->iriConverter instanceof IriConverterInterface) {
+            $iri = $this->iriConverter->getIriFromItem($object, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
+        } else {
+            $iri = $this->iriConverter->getIriFromItem($object);
+        }
+
         $context['iri'] = $iri;
         $metadata['@id'] = $iri;
         $context['api_normalize'] = true;

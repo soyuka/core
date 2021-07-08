@@ -86,7 +86,12 @@ final class CollectionNormalizer implements NormalizerInterface, NormalizerAware
         $data = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
 
         if ($this->iriConverter instanceof IriConverterInterface) {
-            $data['@id'] = $this->iriConverter->getIriFromResourceClass($resourceClass, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
+            // TODO: 2.7 should we depreciate this behavior ? example : Entity\Foo.php
+            if (isset($context['operation']) && ($context['operation']->getExtraProperties()['user_defined_uri_template'] ?? false)) {
+                $data['@id'] = $this->iriConverter->getIriFromResourceClass($resourceClass);
+            } else {
+                $data['@id'] = $this->iriConverter->getIriFromResourceClass($resourceClass, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
+            }
         } else {
             //TODO: remove in 3.0
             $data['@id'] = isset($context['operation_type']) && OperationType::SUBRESOURCE === $context['operation_type'] ? $this->iriConverter->getSubresourceIriFromResourceClass($resourceClass, $context) : $this->iriConverter->getIriFromResourceClass($resourceClass);
