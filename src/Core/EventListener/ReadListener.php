@@ -24,7 +24,6 @@ use ApiPlatform\Core\Identifier\IdentifierConverterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\CircularReference;
 use ApiPlatform\Core\Util\CloneTrait;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
@@ -128,24 +127,23 @@ final class ReadListener
             $parameters = $request->attributes->all();
             $identifiers = [];
 
-            foreach ($operation->getIdentifiers() as $parameterName => $identifiedBy) {
-                if (!isset($parameters[$parameterName])) {
-                    if (!isset($parameters['id'])) {
+            try {
+                foreach ($operation->getIdentifiers() as $parameterName => $identifiedBy) {
+                    if (!isset($parameters[$parameterName])) {
                         throw new InvalidIdentifierException(sprintf('Parameter "%s" not found, check the identifiers configuration.', $parameterName));
                     }
 
-                    $parameterName = 'id';
+                    if ($shouldParseCompositeIdentifiers) {
+                        $identifiers = CompositeIdentifierParser::parse($parameters[$parameterName]);
+                        if (($identifiersNumber = \count($operation->getIdentifiers())) !== ($currentIdentifiersNumber = \count($identifiers))) {
+                            throw new InvalidIdentifierException(sprintf('Expected %d identifiers, got %d', $identifiersNumber, $currentIdentifiersNumber));
+                        }
+                        break;
+                    }
+
+                    $identifiers[$parameterName] = $parameters[$parameterName];
                 }
 
-                if ($shouldParseCompositeIdentifiers) {
-                    $identifiers = CompositeIdentifierParser::parse($parameters[$parameterName]);
-                    break;
-                }
-
-                $identifiers[$parameterName] = $parameters[$parameterName];
-            }
-
-            try {
                 $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class'], ['identifiers' => $operation->getIdentifiers()]);
                 $data = $this->provider->provide($attributes['resource_class'], $identifiers, $operation->getName(), $context);
             } catch (InvalidIdentifierException $e) {
