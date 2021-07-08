@@ -46,6 +46,8 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
             if (!$resource->getUriTemplate()) {
                 foreach ($resource->getOperations() as $key => $operation) {
                     if ($operation->getUriTemplate()) {
+                        $operations[$key] = $operation->withExtraProperties($operation->getExtraProperties() + ['user_defined_uri_template' => true]);
+                        $resource = $resource->withOperations($operations);
                         continue;
                     }
 
