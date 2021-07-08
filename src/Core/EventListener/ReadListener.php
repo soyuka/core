@@ -91,7 +91,7 @@ final class ReadListener
         }
 
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
-            (!$operation || !$operation->canRead())
+            (!$operation || !$operation->canRead() || !$attributes['receive'])
         ) {
             return;
         }
