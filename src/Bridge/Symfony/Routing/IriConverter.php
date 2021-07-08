@@ -144,11 +144,35 @@ final class IriConverter implements IriConverterInterface
             trigger_deprecation('api-platform/core', '2.7', 'The IRI will change and match the first operation of the resource. Switch to an alternate resource when possible instead of using subresources.');
             $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($context['extra_properties']['legacy_subresource_operation_name']);
         } else {
+
+        }
+        
+        $operation = $context['operation'] ?? null;
+        
+        if ($operation) {
+            // TODO: 2.7 should we deprecate this behavior ? example : Entity\Foo.php should take it's own operation? As it's a custom operation can we now?
+            if ($operation->getExtraProperties()['user_defined_uri_template'] ?? false) {
+                $operation = null;
+                $operationName = null;
+            }
+
+            if ($operation->getExtraProperties()['is_legacy_subresource'] ?? false) {
+                trigger_deprecation('api-platform/core', '2.7', 'The IRI will change and match the first operation of the resource. Switch to an alternate resource when possible instead of using subresources.');
+                $operationName = $operation->getExtraProperties()['legacy_subresource_operation_name'];
+                $operation = null;
+            }
+        }
+
+        if (!$operation) {
             $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName, true);
         }
 
+        if (!$operation) {
+            throw new InvalidArgumentException(sprintf('Unable to find an operation for %s.', $resourceClass), $e->getCode(), $e);
+        }
+
         try {
-            return $this->router->generate($operation->getName(), [], $referenceType ?? $operation->getUrlGenerationStrategy());
+            return $this->router->generate($operation->getName(), $context['identifiers_values'] ?? [], $referenceType ?? $operation->getUrlGenerationStrategy());
         } catch (RoutingExceptionInterface $e) {
             throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
         }

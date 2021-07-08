@@ -37,8 +37,8 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
-        if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be not be used anymore in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('The use of %s is deprecated, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class));
         }
     }
 
@@ -53,43 +53,41 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
 
         // TODO: 3.0 change the condition to remove the ResourceMetadataFactorym only used to skip null values
         if (
-            (!$this->resourceMetadataFactory || $this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface)
+            $this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface
             && isset($attributes['operation_name']) && isset($attributes['operation'])
         ) {
-            try {
-                $context = $attributes['operation'] + ($normalization ? $attributes['operation']['normalization_context'] : $attributes['operation']['denormalization_context']);
-                $context['operation_name'] = $attributes['operation_name'];
-                $context['resource_class'] = $attributes['resource_class'];
-                // TODO: 3.0 becomes true by default
-                $context['skip_null_values'] = $context['skip_null_values'] ?? $this->shouldSkipNullValues($attributes['resource_class'], $attributes['operation_name']);
-                // TODO: remove in 3.0, operation type will not exist anymore
-                $context['operation_type'] = $attributes['operation']['collection'] ? OperationType::ITEM : OperationType::COLLECTION;
-                $context['iri_only'] = $context['iri_only'] ?? false;
-                $context['request_uri'] = $request->getRequestUri();
-                $context['uri'] = $request->getUri();
+            $context = $normalization ? $attributes['operation']->getNormalizationContext() : $attributes['operation']->getDenormalizationContext();
+            $context['operation_name'] = $attributes['operation_name'];
+            $context['operation'] = $attributes['operation'];
+            $context['resource_class'] = $attributes['resource_class'];
+            // TODO: 3.0 becomes true by default
+            $context['skip_null_values'] = $context['skip_null_values'] ?? $this->shouldSkipNullValues($attributes['resource_class'], $attributes['operation_name']);
+            // TODO: remove in 3.0, operation type will not exist anymore
+            $context['operation_type'] = $attributes['operation']->isCollection() ? OperationType::ITEM : OperationType::COLLECTION;
+            $context['iri_only'] = $context['iri_only'] ?? false;
+            $context['request_uri'] = $request->getRequestUri();
+            $context['uri'] = $request->getUri();
 
-                $context['identifiers_values'] = [];
-                foreach (array_keys($context['identifiers']) as $parameterName) {
-                    $context['identifiers_values'][$parameterName] = $request->attributes->get($parameterName);
-                }
-
-                if (!$normalization) {
-                    if (!isset($context['api_allow_update'])) {
-                        $context['api_allow_update'] = \in_array($method = $request->getMethod(), ['PUT', 'PATCH'], true);
-
-                        if ($context['api_allow_update'] && 'PATCH' === $method) {
-                            $context['deep_object_to_populate'] = $context['deep_object_to_populate'] ?? true;
-                        }
-                    }
-
-                    if ('csv' === $request->getContentType()) {
-                        $context[CsvEncoder::AS_COLLECTION_KEY] = false;
-                    }
-                }
-
-                return $context;
-            } catch (ResourceClassNotFoundException $e) {
+            $context['identifiers_values'] = [];
+            foreach (array_keys($attributes['operation']->getIdentifiers()) as $parameterName) {
+                $context['identifiers_values'][$parameterName] = $request->attributes->get($parameterName);
             }
+
+            if (!$normalization) {
+                if (!isset($context['api_allow_update'])) {
+                    $context['api_allow_update'] = \in_array($method = $request->getMethod(), ['PUT', 'PATCH'], true);
+
+                    if ($context['api_allow_update'] && 'PATCH' === $method) {
+                        $context['deep_object_to_populate'] = $context['deep_object_to_populate'] ?? true;
+                    }
+                }
+
+                if ('csv' === $request->getContentType()) {
+                    $context[CsvEncoder::AS_COLLECTION_KEY] = false;
+                }
+            }
+
+            return $context;
         }
 
         $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);

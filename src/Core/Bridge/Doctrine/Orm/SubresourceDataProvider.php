@@ -76,8 +76,9 @@ final class SubresourceDataProvider implements SubresourceDataProviderInterface
             throw new RuntimeException('The repository class must have a "createQueryBuilder" method.');
         }
 
-        if (isset($context['identifiers']) && !isset($context['property'])) {
-            $context['property'] = $context['extra_properties']['legacy_subresource_property'] ?? null;
+        if (isset($context['identifiers'], $context['operation']) && !isset($context['property'])) {
+            $context['property'] = $context['operation']->getExtraProperties()['legacy_subresource_property'] ?? null;
+            $context['collection'] = $context['operation']->isCollection();
             unset($context['filters']);
         }
 

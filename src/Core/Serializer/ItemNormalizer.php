@@ -76,9 +76,9 @@ class ItemNormalizer extends AbstractItemNormalizer
             $context[self::OBJECT_TO_POPULATE] = $this->iriConverter->getItemFromIri((string) $data['id'], $context + ['fetch_data' => true]);
         } catch (InvalidArgumentException $e) {
             if ($this->iriConverter instanceof IriConverterInterface) {
-                $iri = $this->iriConverter->getIriFromResourceClass($context['resource_class'], $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, ['identifiers_values' => $context['identifiers_values']]);
-            // remove in 3.0
+                $iri = $this->iriConverter->getIriFromResourceClass($context['resource_class'], $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context);
             } else {
+                // remove in 3.0
                 $identifier = null;
                 $options = $this->getFactoryOptions($context);
 

@@ -83,9 +83,16 @@ final class ItemNormalizer extends AbstractItemNormalizer
         $context = $this->initContext($context['resource_class'] ?? $outputClass ?? $objectClass, $context);
         $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class']);
         $metadata = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
+        
+        if (isset($context['operation'])) {
+            if ($previousResourceClass !== $resourceClass) {
+                unset($context['operation']);
+            }
 
-        if ($previousResourceClass !== $resourceClass && isset($context['operation'])) {
-            unset($context['operation']);
+            if ($context['operation']->getExtraProperties()['is_legacy_subresource'] ?? false) {
+                unset($context['operation']);
+                $context['operation_name'] = null;
+            }
         }
 
         if ($this->iriConverter instanceof IriConverterInterface) {
