@@ -83,6 +83,10 @@ final class ItemNormalizer extends AbstractItemNormalizer
         $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class']);
         $metadata = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
 
+        if ($previousResourceClass !== $resourceClass && isset($context['operation'])) {
+            unset($context['operation']);
+        }
+
         $iri = $this->iriConverter->getIriFromItem($object);
         $context['iri'] = $iri;
         $metadata['@id'] = $iri;
