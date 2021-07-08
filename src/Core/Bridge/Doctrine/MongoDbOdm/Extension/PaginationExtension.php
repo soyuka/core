@@ -37,9 +37,14 @@ final class PaginationExtension implements AggregationResultCollectionExtensionI
     private $resourceMetadataFactory;
     private $pagination;
 
-    public function __construct(ManagerRegistry $managerRegistry, ResourceMetadataFactoryInterface $resourceMetadataFactory, Pagination $pagination)
+    public function __construct(ManagerRegistry $managerRegistry, $resourceMetadataFactory, Pagination $pagination)
     {
         $this->managerRegistry = $managerRegistry;
+
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
+
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->pagination = $pagination;
     }
