@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\Filter\QueryParameterValidator;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
@@ -57,6 +58,7 @@ final class QueryParameterValidateListener
     {
         $request = $event->getRequest();
         $operation = $this->initializeOperation($request);
+
         if (
             !$request->isMethodSafe()
             || !($attributes = RequestAttributesExtractor::extractAttributes($request))
@@ -86,7 +88,7 @@ final class QueryParameterValidateListener
         $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
 
         $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
-        $resourceFilters = $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true);
+        $resourceFilters = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true) : $operation->getFilters();
 
         $this->queryParameterValidator->validateFilters($attributes['resource_class'], $resourceFilters, $queryParameters);
     }
