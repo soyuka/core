@@ -117,6 +117,13 @@ final class IriConverter implements IriConverterInterface
     {
         $resourceClass = $this->getResourceClass($item, true);
 
+        if (isset($context['operation'])) {
+            if ($context['operation']->getExtraProperties()['is_legacy_subresource'] ?? false || $context['operation']->isCollection()) {
+                unset($context['operation']);
+                $operationName = null;;
+            }
+        }
+
         $operation = $context['operation'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName);
 
         try {

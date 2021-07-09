@@ -28,13 +28,16 @@ final class FiltersResourceMetadataCollectionFactory implements ResourceMetadata
 {
     use AnnotationFilterExtractorTrait;
 
-    private $reader;
     private $decorated;
+    private $reader;
 
-    public function __construct(?Reader $reader = null, ResourceMetadataCollectionFactoryInterface $decorated = null)
+    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated = null, ?Reader $reader = null)
     {
-        $this->reader = $reader;
         $this->decorated = $decorated;
+        if ($reader) {
+            trigger_deprecation('api-platform/core', '2.7', 'Use php attributes instead of doctrine annotations.');
+            $this->reader = $reader;
+        }
     }
 
     /**

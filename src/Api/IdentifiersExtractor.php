@@ -70,7 +70,7 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
                 $relatedOperation = $this->resourceMetadataFactory->create($relatedResourceClass)->getOperation();
                 $relatedIdentifiers = $relatedOperation->getIdentifiers();
                 if (1 === \count($relatedIdentifiers)) {
-                    $identifierValue = $this->resolveIdentifierValue($identifierValue, $relatedResourceClass, $relatedIdentifiers[0]);
+                    $identifierValue = $this->resolveIdentifierValue($identifierValue, $relatedResourceClass, current($relatedIdentifiers)[1]);
 
                     if (is_scalar($identifierValue) || $identifierValue instanceof \Stringable) {
                         $identifiers[$parameterName] = (string) $identifierValue;

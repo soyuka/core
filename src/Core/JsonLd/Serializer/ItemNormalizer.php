@@ -86,12 +86,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
         
         if (isset($context['operation'])) {
             if ($previousResourceClass !== $resourceClass) {
-                unset($context['operation']);
-            }
-
-            if ($context['operation']->getExtraProperties()['is_legacy_subresource'] ?? false) {
-                unset($context['operation']);
-                $context['operation_name'] = null;
+                unset($context['operation'], $context['operation_name']);
             }
         }
 
