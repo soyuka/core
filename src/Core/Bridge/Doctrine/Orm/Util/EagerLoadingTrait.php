@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Doctrine\Orm\Util;
 
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
@@ -25,6 +26,7 @@ trait EagerLoadingTrait
 {
     private $forceEager;
     private $fetchPartial;
+    /** @var ResourceMetadataCollectionFactoryInterface */
     private $resourceMetadataFactory;
 
     /**
@@ -51,9 +53,9 @@ trait EagerLoadingTrait
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
         if (isset($options['collection_operation_name'])) {
-            $attribute = $resourceMetadata->getCollectionOperationAttribute($options['collection_operation_name'], $attributeName, null, true);
+            $attribute = $resourceMetadata->getOperation($options['collection_operation_name'])->getExtraProperties();
         } elseif (isset($options['item_operation_name'])) {
-            $attribute = $resourceMetadata->getItemOperationAttribute($options['item_operation_name'], $attributeName, null, true);
+            $attribute = $resourceMetadata->getOperation($options['item_operation_name'])->getExtraProperties();
         } else {
             $attribute = $resourceMetadata->getAttribute($attributeName);
         }

@@ -303,9 +303,9 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
 
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
         if (isset($options['collection_operation_name'])) {
-            $context = $resourceMetadata->getCollectionOperationAttribute($options['collection_operation_name'], $contextType, null, true);
+            $context = $resourceMetadata->getOperation($options['collection_operation_name'])->getExtraProperties();
         } elseif (isset($options['item_operation_name'])) {
-            $context = $resourceMetadata->getItemOperationAttribute($options['item_operation_name'], $contextType, null, true);
+            $context = $resourceMetadata->getOperation($options['item_operation_name'])->getExtraProperties();
         } else {
             $context = $resourceMetadata->getAttribute($contextType);
         }
