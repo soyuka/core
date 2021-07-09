@@ -32,13 +32,13 @@ trait OperationRequestInitiatorTrait
      */
     private function initializeOperation(Request $request): ?Operation
     {
+        if ($request->attributes->get('_api_operation')) {
+            return $request->attributes->get('_api_operation');
+        }
+
         // TODO: 3.0 $resourceMetadataCollectionFactory is mandatory
         if (!$request->attributes->get('_api_resource_class') || !$this->resourceMetadataCollectionFactory) {
             return null;
-        }
-
-        if ($request->attributes->get('_api_operation')) {
-            return $request->attributes->get('_api_operation');
         }
 
         $operation = $this->resourceMetadataCollectionFactory->create($request->attributes->get('_api_resource_class'))->getOperation($request->attributes->get('_api_operation_name'));

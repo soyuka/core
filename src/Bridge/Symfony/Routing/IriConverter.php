@@ -27,6 +27,7 @@ use ApiPlatform\Core\Util\AttributesExtractor;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\Routing\Exception\ExceptionInterface as RoutingExceptionInterface;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -74,6 +75,7 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException(sprintf('No resource associated to "%s".', $iri));
         }
 
+        $parameters['_api_operation'] = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
         $attributes = AttributesExtractor::extractAttributes($parameters);
         $operation = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
         $shouldParseCompositeIdentifiers = $operation->getCompositeIdentifier() && \count($operation->getIdentifiers()) > 1;
