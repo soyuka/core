@@ -76,15 +76,25 @@
         </service>
 
         <!-- Property metadata used to compute identifiers -->
-        <service id="api_platform.metadata.property.identifier_metadata_factory" alias="api_platform.metadata.property.identifier_metadata_factory.property_info" />
+        <service id="api_platform.metadata.property.identifier_metadata_factory" alias="api_platform.metadata.property.identifier_metadata_factory.xml" />
 
         <service id="api_platform.metadata.property.identifier_metadata_factory.property_info" class="ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyMetadataFactory" decorates="api_platform.metadata.property.identifier_metadata_factory" public="false">
             <argument type="service" id="api_platform.property_info" />
+            <argument type="service" id="api_platform.metadata.property.identifier_metadata_factory.property_info.inner" />
         </service>
 
         <service id="api_platform.metadata.property.identifier_metadata_factory.annotation" class="ApiPlatform\Core\Metadata\Property\Factory\AnnotationPropertyMetadataFactory" decorates="api_platform.metadata.property.identifier_metadata_factory" public="false">
             <argument type="service" id="annotation_reader" />
             <argument type="service" id="api_platform.metadata.property.identifier_metadata_factory.annotation.inner" />
+        </service>
+
+        <service id="api_platform.metadata.property.identifier_metadata_factory.xml" class="ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory" public="false">
+            <argument type="service" id="api_platform.metadata.extractor.xml" />
+        </service>
+
+        <service id="api_platform.metadata.property.identifier_metadata_factory.yaml" class="ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory" decorates="api_platform.metadata.property.identifier_metadata_factory" decoration-priority="20" public="false">
+            <argument type="service" id="api_platform.metadata.extractor.yaml" />
+            <argument type="service" id="api_platform.metadata.property.identifier_metadata_factory.yaml.inner" />
         </service>
     </services>
 

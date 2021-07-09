@@ -89,7 +89,7 @@ final class ReadListener
         }
 
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
-            (!$operation || !$operation->canRead() || !$attributes['receive'])
+            (!$operation || !$operation->canRead() || !$attributes['receive'] || ($operation->isCollection() && !$request->isMethodSafe()))
         ) {
             return;
         }
@@ -149,7 +149,7 @@ final class ReadListener
                 throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
             }
 
-            if (!$operation->isCollection() && null === $data) {
+            if (null === $data) {
                 throw new NotFoundHttpException('Not Found');
             }
 

@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\Serializer;
 
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 
 trait InputOutputMetadataTrait
@@ -32,7 +33,11 @@ trait InputOutputMetadataTrait
 
         $operation = $context['operation'] ?? null;
         if (!$operation && $this->resourceMetadataFactory) {
-            $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+            try {
+                $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+            } catch (OperationNotFoundException $e) {
+                return null;
+            }
         }
 
         return $operation ? $operation->getInput()['class'] ?? null : null;
@@ -46,7 +51,11 @@ trait InputOutputMetadataTrait
 
         $operation = $context['operation'] ?? null;
         if (!$operation && $this->resourceMetadataFactory) {
-            $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+            try {
+                $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+            } catch (OperationNotFoundException $e) {
+                return null;
+            }
         }
 
         return $operation ? $operation->getOutput()['class'] ?? null : null;

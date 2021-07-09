@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Resource\Factory;
 
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Model\SerializableResource;
 use ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 

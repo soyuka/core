@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Model\SerializableResource;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
@@ -47,29 +48,27 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
                 $resourceMetadataCollection[$i] = $resource->withExtraProperties($resource->getExtraProperties() + ['user_defined_uri_template' => true]);
             }
 
+            $operations = iterator_to_array($resource->getOperations());
+
             foreach ($resource->getOperations() as $key => $operation) {
                 if ($operation->getUriTemplate()) {
                     $operations[$key] = $operation->withExtraProperties($operation->getExtraProperties() + ['user_defined_uri_template' => true]);
-                    $resource = $resource->withOperations($operations);
                     continue;
                 }
-
-                $operations = iterator_to_array($resource->getOperations());
 
                 if ($routeName = $operation->getRouteName()) {
                     unset($operations[$key]);
                     $operations[$routeName] = $operation;
-                    $resource = $resource->withOperations($operations);
                     continue;
                 }
 
                 $operation = $operation->withUriTemplate($this->generateUriTemplate($operation));
                 // Change the operation key
                 unset($operations[$key]);
-                $operations[sprintf('_api_%s_%s', $operation->getUriTemplate(), strtolower($operation->getMethod()))] = $operation;
-                $resource = $resource->withOperations($operations);
+                $operations[sprintf('_api_%s_%s%s', $operation->getUriTemplate(), strtolower($operation->getMethod()), $operation->isCollection() ? '_collection' : '')] = $operation;
             }
 
+            $resource = $resource->withOperations($operations);
             $resourceMetadataCollection[$i] = $resource;
         }
 

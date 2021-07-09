@@ -117,15 +117,17 @@ final class IriConverter implements IriConverterInterface
     {
         $resourceClass = $this->getResourceClass($item, true);
         $operationName = $context['operation_name'] ?? $operationName;
+
         // These are special cases were we want to find the related operation
         // `ResourceMetadataCollection::getOperation` retrieves the first safe operation if no $operationName is given
         if (isset($context['operation'])) {
             $operation = $context['operation'];
             if (
-                // ($operation->getExtraProperties()['user_defined_uri_template'] ?? false)
-                ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
+                ($operation->getExtraProperties()['is_legacy_subresource'] ?? false) ||
+                ($operation->getExtraProperties()['user_defined_uri_template'] ?? false) || 
+                ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false) ||
                 // When we want the Iri from an object, we don't want the collection uriTemplate, for this we use getIriFromResourceClass
-                || $operation->isCollection()
+                $operation->isCollection()
             ) {
                 unset($context['operation']);
                 $operationName = null;
@@ -138,7 +140,7 @@ final class IriConverter implements IriConverterInterface
             $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
             foreach ($resourceMetadataCollection as $resource) {
                 foreach ($resource->getOperations() as $name => $operation) {
-                    if ($operationName === $name) {
+                    if ($operationName === $name && !$operation->isCollection()) {
                         break 2;
                     }
                 }

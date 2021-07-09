@@ -95,6 +95,8 @@ final class CollectionNormalizer implements NormalizerInterface, NormalizerAware
         $data['@type'] = 'hydra:Collection';
         $data['hydra:member'] = [];
         $iriOnly = $context[self::IRI_ONLY] ?? $this->defaultContext[self::IRI_ONLY];
+        unset($context['operation'], $context['operation_name']);
+
         foreach ($object as $obj) {
             if ($iriOnly) {
                 $data['hydra:member'][] = $this->iriConverter->getIriFromItem($obj);

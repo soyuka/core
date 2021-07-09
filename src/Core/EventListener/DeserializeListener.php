@@ -129,7 +129,7 @@ final class DeserializeListener
         if (null !== $data) {
             $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $data;
         }
-
+        
         $request->attributes->set(
             'data',
             $this->serializer->deserialize($request->getContent(), $context['resource_class'], $format, $context)

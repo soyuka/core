@@ -15,6 +15,7 @@ namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Model\ResourceInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
 /**

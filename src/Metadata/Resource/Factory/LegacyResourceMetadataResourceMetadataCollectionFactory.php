@@ -16,6 +16,8 @@ namespace ApiPlatform\Metadata\Resource\Factory;
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Model\ResourceInterface;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Model\SerializableResource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;

@@ -110,8 +110,8 @@ final class ItemNormalizer extends AbstractItemNormalizer
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
             $metadata['@type'] = $resourceMetadata->getIri() ?: $resourceMetadata->getShortName();
         } elseif ($this->resourceMetadataFactory) {
-            $resourceMetadata = $context['operation'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation();
-            $types = $resourceMetadata->getTypes() ?? [$resourceMetadata->getShortName()];
+            $operation = $context['operation'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation();
+            $types = $operation->getTypes() ?? [$operation->getShortName()];
             $metadata['@type'] = 1 === \count($types) ? $types[0] : $types;
         }
 

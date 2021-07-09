@@ -84,7 +84,7 @@ Feature: Using custom parent identifier for subresources
     """
     {
       "@context": "/contexts/SlugParentDummy",
-      "@id": "/slug_child_dummies/child-dummy/parent_dummy",
+      "@id": "/slug_parent_dummies/parent-dummy",
       "@type": "SlugParentDummy",
       "id": 1,
       "slug": "parent-dummy",
