@@ -175,7 +175,7 @@ final class PublishMercureUpdatesListener
             return;
         }
 
-        $options = $this->resourceMetadataFactory->create($resourceClass)->getAttribute('mercure', false);
+        $options = $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getMercure();
 
         if (\is_string($options)) {
             if (null === $this->expressionLanguage) {
@@ -267,7 +267,12 @@ final class PublishMercureUpdatesListener
             $data = json_encode(['@id' => $object->id]);
         } else {
             $resourceClass = $this->getObjectClass($object);
-            $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getAttribute('normalization_context', []);
+            if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getNormalizationContext();
+            } else {
+                // TODO: remove in 3.0
+                $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getAttribute('normalization_context', []);
+            }
 
             $iri = $options['topics'] ?? $this->iriConverter->getIriFromItem($object, UrlGeneratorInterface::ABS_URL);
             $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);

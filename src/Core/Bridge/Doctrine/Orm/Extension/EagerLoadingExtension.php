@@ -106,7 +106,9 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
 
         $options = [];
         if (null !== $operationName) {
+            // TODO remove in 3.0
             $options[($collection ? 'collection' : 'item').'_operation_name'] = $operationName;
+            $options['operation_name'] = $operationName;
         }
 
         $forceEager = $this->shouldOperationForceEager($resourceClass, $options);
@@ -114,7 +116,18 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
 
         if (!isset($context['groups']) && !isset($context['attributes'])) {
             $contextType = isset($context['api_denormalize']) ? 'denormalization_context' : 'normalization_context';
-            $context += $this->getNormalizationContext($context['resource_class'] ?? $resourceClass, $contextType, $options);
+
+            if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                if ($contextType === 'denormalization_context') {
+                    $context += $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getDenormalizationContext();
+                } else {
+                    $context += $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getNormalizationContext();
+                }
+            } else {
+                // TODO: remove in 3.0
+                $context += $this->getNormalizationContext($context['resource_class'] ?? $resourceClass, $contextType, $options);
+            }
+
         }
 
         if (empty($context[AbstractNormalizer::GROUPS]) && !isset($context[AbstractNormalizer::ATTRIBUTES])) {
@@ -303,9 +316,9 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
 
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
         if (isset($options['collection_operation_name'])) {
-            $context = $resourceMetadata->getOperation($options['collection_operation_name'])->getExtraProperties();
+            $context = $resourceMetadata->getCollectionOperationAttribute($options['collection_operation_name'], $contextType, null, true);
         } elseif (isset($options['item_operation_name'])) {
-            $context = $resourceMetadata->getOperation($options['item_operation_name'])->getExtraProperties();
+            $context = $resourceMetadata->getItemOperationAttribute($options['item_operation_name'], $contextType, null, true);
         } else {
             $context = $resourceMetadata->getAttribute($contextType);
         }

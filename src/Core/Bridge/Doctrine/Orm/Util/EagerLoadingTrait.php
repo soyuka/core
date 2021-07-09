@@ -34,6 +34,10 @@ trait EagerLoadingTrait
      */
     private function shouldOperationForceEager(string $resourceClass, array $options): bool
     {
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            return $this->resourceMetadataFactory->create($resourceClass)->getOperation($options['operation_name'] ?? null)->getForceEager() ?? $this->forceEager;
+        }
+
         return $this->getBooleanOperationAttribute($resourceClass, $options, 'force_eager', $this->forceEager);
     }
 
@@ -42,20 +46,25 @@ trait EagerLoadingTrait
      */
     private function shouldOperationFetchPartial(string $resourceClass, array $options): bool
     {
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            return $this->resourceMetadataFactory->create($resourceClass)->getOperation($options['operation_name'] ?? null)->getFetchPartial() ?? $this->fetchPartial;
+        }
+
         return $this->getBooleanOperationAttribute($resourceClass, $options, 'fetch_partial', $this->fetchPartial);
     }
 
     /**
      * Get the boolean attribute of an operation or the resource metadata.
+     * TODO: remove in 3.0
      */
     private function getBooleanOperationAttribute(string $resourceClass, array $options, string $attributeName, bool $default): bool
     {
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
         if (isset($options['collection_operation_name'])) {
-            $attribute = $resourceMetadata->getOperation($options['collection_operation_name'])->getExtraProperties();
+            $attribute = $resourceMetadata->getCollectionOperationAttribute($options['collection_operation_name'], $attributeName, null, true);
         } elseif (isset($options['item_operation_name'])) {
-            $attribute = $resourceMetadata->getOperation($options['item_operation_name'])->getExtraProperties();
+            $attribute = $resourceMetadata->getItemOperationAttribute($options['item_operation_name'], $attributeName, null, true);
         } else {
             $attribute = $resourceMetadata->getAttribute($attributeName);
         }
