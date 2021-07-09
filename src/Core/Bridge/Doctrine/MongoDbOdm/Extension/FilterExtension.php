@@ -54,8 +54,7 @@ final class FilterExtension implements AggregationCollectionExtensionInterface
      */
     public function applyToCollection(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
     {
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName);
-        $resourceFilters = $resourceMetadata->getFilters();
+        $resourceFilters = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getFilters();
 
         if (empty($resourceFilters)) {
             return;

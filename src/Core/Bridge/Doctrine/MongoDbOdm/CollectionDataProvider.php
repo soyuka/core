@@ -81,8 +81,7 @@ final class CollectionDataProvider implements CollectionDataProviderInterface, R
             }
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $attribute = $resourceMetadata->getCollectionOperationAttribute($operationName, 'doctrine_mongodb', [], true);
+        $attribute = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getExtraProperties();
         $executeOptions = $attribute['execute_options'] ?? [];
 
         return $aggregationBuilder->hydrate($resourceClass)->execute($executeOptions);

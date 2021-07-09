@@ -122,8 +122,7 @@ final class PaginationExtension implements AggregationResultCollectionExtensionI
             throw new RuntimeException(sprintf('The manager for "%s" must be an instance of "%s".', $resourceClass, DocumentManager::class));
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $attribute = $resourceMetadata->getCollectionOperationAttribute($operationName, 'doctrine_mongodb', [], true);
+        $attribute = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getExtraProperties();
         $executeOptions = $attribute['execute_options'] ?? [];
 
         return new Paginator($aggregationBuilder->execute($executeOptions), $manager->getUnitOfWork(), $resourceClass, $aggregationBuilder->getPipeline());

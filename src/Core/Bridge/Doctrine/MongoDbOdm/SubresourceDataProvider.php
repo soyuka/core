@@ -89,8 +89,7 @@ final class SubresourceDataProvider implements SubresourceDataProviderInterface
             throw new ResourceClassNotSupportedException('The given resource class is not a subresource.');
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $attribute = $resourceMetadata->getSubresourceOperationAttribute($operationName, 'doctrine_mongodb', [], true);
+        $attribute = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getExtraProperties();
         $executeOptions = $attribute['execute_options'] ?? [];
 
         $aggregationBuilder = $this->buildAggregation($identifiers, $context, $executeOptions, $repository->createAggregationBuilder(), \count($context['identifiers']));
