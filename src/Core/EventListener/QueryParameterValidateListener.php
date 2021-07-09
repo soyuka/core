@@ -87,8 +87,7 @@ final class QueryParameterValidateListener
         $queryString = RequestParser::getQueryString($request);
         $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
-        $resourceFilters = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true) : $operation->getFilters();
+        $resourceFilters = $operation ? $operation->getFilters() : $this->resourceMetadataFactory->create($attributes['resource_class'])->getCollectionOperationAttribute($operationName, 'filters', [], true);
 
         $this->queryParameterValidator->validateFilters($attributes['resource_class'], $resourceFilters, $queryParameters);
     }

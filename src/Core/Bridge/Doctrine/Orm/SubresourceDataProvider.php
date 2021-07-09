@@ -79,7 +79,6 @@ final class SubresourceDataProvider implements SubresourceDataProviderInterface
         if (isset($context['identifiers'], $context['operation']) && !isset($context['property'])) {
             $context['property'] = $context['operation']->getExtraProperties()['legacy_subresource_property'] ?? null;
             $context['collection'] = $context['operation']->isCollection();
-            unset($context['filters']);
         }
 
         if (!isset($context['identifiers'], $context['property'])) {
