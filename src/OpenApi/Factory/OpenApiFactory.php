@@ -24,6 +24,7 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
+use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
@@ -84,7 +85,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $this->router = $router;
 
         if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use of %s instead of %s.', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
             $this->decorated = new LegacyOpenApiFactory($resourceNameCollectionFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, $jsonSchemaFactory, $jsonSchemaTypeFactory, $operationPathResolver, $filterLocator, $identifiersExtractor, $formats, $openApiOptions, $paginationOptions);
         }
     }
@@ -290,8 +291,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $operation->getOpenapiContext()['deprecated'] ?? (bool) $operation->getDeprecationReason(),
                 $operation->getOpenapiContext()['security'] ?? null,
                 $operation->getOpenapiContext()['servers'] ?? null,
-                // TODO: In some cases, $operation->getOpenApiContext() is [0 => null]
-                array_filter($operation->getOpenapiContext() && !\array_key_exists(0, $operation->getOpenapiContext()) ? $operation->getOpenapiContext() : [], static function ($item) {
+                array_filter($operation->getOpenapiContext(), static function ($item) {
                     return preg_match('/^x-.*$/i', $item);
                 }, \ARRAY_FILTER_USE_KEY),
             ));
@@ -313,8 +313,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
     private function getMimeTypes(Operation $operation): array
     {
-        $requestFormats = $operation->getInputFormats();
-        $responseFormats = $operation->getOutputFormats();
+        $requestFormats = $operation->getInputFormats() ?: [];
+        $responseFormats = $operation->getOutputFormats() ?: [];
 
         $requestMimeTypes = $this->flattenMimeTypes($requestFormats ?? []);
         $responseMimeTypes = $this->flattenMimeTypes($responseFormats ?? []);

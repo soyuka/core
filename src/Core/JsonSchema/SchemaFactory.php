@@ -359,8 +359,10 @@ final class SchemaFactory implements SchemaFactoryInterface
 
     /**
      * @param Operation|ResourceMetadata|null $resourceMetadata
+     *
+     * @return string|string[]
      */
-    private function getValidationGroups($resourceMetadata, ?string $operationType, ?string $operationName): array
+    private function getValidationGroups($resourceMetadata, ?string $operationType, ?string $operationName) 
     {
         if ($resourceMetadata instanceof ResourceMetadata) {
             $attribute = 'validation_groups';
