@@ -96,8 +96,8 @@ final class AddFormatListener
                 ->getOperationAttribute($attributes, 'output_formats', $this->formats, true);
         } elseif ($this->formatsProvider instanceof FormatsProviderInterface) {
             $formats = $this->formatsProvider->getFormatsFromAttributes($attributes);
-        } elseif ($operation) {
-            $formats = $operation->getOutputFormats() ?? $this->formats;
+        } elseif ($operation && $operation->getOutputFormats()) {
+            $formats = $operation->getOutputFormats();
         }
 
         $this->addRequestFormats($request, $formats);

@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Metadata\Property\Factory;
 
-use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Exception\PropertyNotFoundException;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Util\Reflection;
+use ApiPlatform\Metadata\ApiProperty;
 use Doctrine\Common\Annotations\Reader;
 
 /**

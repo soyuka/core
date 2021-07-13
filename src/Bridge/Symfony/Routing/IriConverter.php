@@ -173,6 +173,14 @@ final class IriConverter implements IriConverterInterface
      */
     public function getIriFromResourceClass(string $resourceClass, string $operationName = null, int $referenceType = UrlGeneratorInterface::ABS_PATH, array $context = []): string
     {
+        // TODO: 3.0 remove the condition
+        if ($context['extra_properties']['is_legacy_subresource'] ?? false) {
+            trigger_deprecation('api-platform/core', '2.7', 'The IRI will change and match the first operation of the resource. Switch to an alternate resource when possible instead of using subresources.');
+            $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($context['extra_properties']['legacy_subresource_operation_name']);
+        } else {
+
+        }
+
         $operation = $context['operation'] ?? null;
 
         if ($operation) {

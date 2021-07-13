@@ -30,8 +30,8 @@ use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Psr\Container\ContainerInterface;
@@ -138,7 +138,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         );
     }
 
-    private function collectPaths(Resource $resource, string $resourceClass, array $context, Model\Paths $paths, \ArrayObject $schemas): void
+    private function collectPaths(ApiResource $resource, string $resourceClass, array $context, Model\Paths $paths, \ArrayObject $schemas): void
     {
         $links = [];
         $resourceShortName = $resource->getShortName();
@@ -290,7 +290,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $operation->getOpenapiContext()['deprecated'] ?? (bool) $operation->getDeprecationReason(),
                 $operation->getOpenapiContext()['security'] ?? null,
                 $operation->getOpenapiContext()['servers'] ?? null,
-                array_filter($operation->getOpenapiContext() ?? [], static function ($item) {
+                // TODO: In some cases, $operation->getOpenApiContext() is [0 => null]
+                array_filter($operation->getOpenapiContext() && !\array_key_exists(0, $operation->getOpenapiContext()) ? $operation->getOpenapiContext() : [], static function ($item) {
                     return preg_match('/^x-.*$/i', $item);
                 }, \ARRAY_FILTER_USE_KEY),
             ));
@@ -315,8 +316,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $requestFormats = $operation->getInputFormats();
         $responseFormats = $operation->getOutputFormats();
 
-        $requestMimeTypes = $this->flattenMimeTypes($requestFormats);
-        $responseMimeTypes = $this->flattenMimeTypes($responseFormats);
+        $requestMimeTypes = $this->flattenMimeTypes($requestFormats ?? []);
+        $responseMimeTypes = $this->flattenMimeTypes($responseFormats ?? []);
 
         return [$requestMimeTypes, $responseMimeTypes];
     }
@@ -442,7 +443,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         return $parameters;
     }
 
-    private function getPaginationParameters(Resource $resource, string $operationName): array
+    private function getPaginationParameters(ApiResource $resource, string $operationName): array
     {
         if (!$this->paginationOptions->isPaginationEnabled()) {
             return [];
