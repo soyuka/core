@@ -82,10 +82,6 @@ final class PublishMercureUpdatesListener
         $this->resourceClassResolver = $resourceClassResolver;
         $this->iriConverter = $iriConverter;
 
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
-        }
-
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->serializer = $serializer;
         $this->formats = $formats;
@@ -175,7 +171,7 @@ final class PublishMercureUpdatesListener
             return;
         }
 
-        $options = $this->resourceMetadataFactory->create($resourceClass)->getOperation()->getMercure();
+        $options = $this->resourceMetadataFactory->create($resourceClass)->getAttribute('mercure', false);;
 
         if (\is_string($options)) {
             if (null === $this->expressionLanguage) {
