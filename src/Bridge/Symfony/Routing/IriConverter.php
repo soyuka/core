@@ -155,9 +155,9 @@ final class IriConverter implements IriConverterInterface
         } else {
 
         }
-        
+
         $operation = $context['operation'] ?? null;
-        
+
         if ($operation) {
             // TODO: 2.7 should we deprecate this behavior ? example : Entity\Foo.php should take it's own operation? As it's a custom operation can we now?
             if ($operation->getExtraProperties()['user_defined_uri_template'] ?? false) {

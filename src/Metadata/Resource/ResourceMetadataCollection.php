@@ -30,6 +30,9 @@ final class ResourceMetadataCollection extends \ArrayObject
             return $this->operationCache[$operationName];
         }
 
+        // TODO: in some cases, no operation is returned because of $forceCollection in the first "if"
+        $possibleOperations = [];
+
         $it = $this->getIterator();
 
         while ($it->valid()) {
@@ -44,9 +47,17 @@ final class ResourceMetadataCollection extends \ArrayObject
                 if ($name === $operationName) {
                     return $operation;
                 }
+
+                if (null === $operationName && \in_array($operation->getMethod(), [Operation::METHOD_GET, Operation::METHOD_OPTIONS, Operation::METHOD_HEAD], true)) {
+                    $possibleOperations[] = $operation;
+                }
             }
 
             $it->next();
+        }
+
+        if (\count($possibleOperations) > 0) {
+            return $possibleOperations[0];
         }
 
         // throw new OperationNotFoundException();
