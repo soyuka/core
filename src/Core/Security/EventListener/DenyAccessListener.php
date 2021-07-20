@@ -18,6 +18,8 @@ use ApiPlatform\Core\Security\ExpressionLanguage;
 use ApiPlatform\Core\Security\ResourceAccessChecker;
 use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolverInterface;
@@ -33,13 +35,18 @@ use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
  */
 final class DenyAccessListener
 {
+    use OperationRequestInitiatorTrait;
+
+    /**
+     * @var ResourceMetadataFactoryInterface|ResourceMetadataCollectionFactoryInterface
+     */
     private $resourceMetadataFactory;
     /**
      * @var ResourceAccessCheckerInterface
      */
     private $resourceAccessChecker;
 
-    public function __construct(?ResourceMetadataFactoryInterface $resourceMetadataFactory = null, /*ResourceAccessCheckerInterface*/ $resourceAccessCheckerOrExpressionLanguage = null, AuthenticationTrustResolverInterface $authenticationTrustResolver = null, RoleHierarchyInterface $roleHierarchy = null, TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null)
+    public function __construct($resourceMetadataFactory, /*ResourceAccessCheckerInterface*/ $resourceAccessCheckerOrExpressionLanguage = null, AuthenticationTrustResolverInterface $authenticationTrustResolver = null, RoleHierarchyInterface $roleHierarchy = null, TokenStorageInterface $tokenStorage = null, AuthorizationCheckerInterface $authorizationChecker = null)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
@@ -52,8 +59,8 @@ final class DenyAccessListener
         $this->resourceAccessChecker = new ResourceAccessChecker($resourceAccessCheckerOrExpressionLanguage, $authenticationTrustResolver, $roleHierarchy, $tokenStorage, $authorizationChecker);
         @trigger_error(sprintf('Passing an instance of "%s" or null as second argument of "%s" is deprecated since API Platform 2.2 and will not be possible anymore in API Platform 3. Pass an instance of "%s" and no extra argument instead.', ExpressionLanguage::class, self::class, ResourceAccessCheckerInterface::class), \E_USER_DEPRECATED);
 
-        if ($resourceMetadataFactory) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
     }
 
@@ -87,8 +94,9 @@ final class DenyAccessListener
 
         $resourceMetadata = null;
         $isGranted = null;
+        $message = $attributes[$attribute.'_message'] ?? 'Access Denied.';
 
-        if ($this->resourceMetadataFactory) {
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
 
             $isGranted = $resourceMetadata->getOperationAttribute($attributes, $attribute, null, true);
@@ -99,8 +107,16 @@ final class DenyAccessListener
                     @trigger_error('Using "access_control" attribute is deprecated since API Platform 2.4 and will not be possible anymore in API Platform 3. Use "security" attribute instead.', \E_USER_DEPRECATED);
                 }
             }
-        } elseif (isset($attributes['operation'])) {
-            $isGranted = $attributes['operation']->getSecurity() ?? null;
+
+            $message = $resourceMetadata->getOperationAttribute($attributes, $attribute.'_message', 'Access Denied.', true);
+        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            $operation = $this->initializeOperation($request);
+            if (!$operation) {
+                return;
+            }
+
+            $isGranted = $attribute === 'security' ? $operation->getSecurity() : $operation->getSecurityPostDenormalize();
+            $message = $attribute === 'security' ? $operation->getSecurityMessage() : $operation->getSecurityPostDenormalize();
         }
 
         if (null === $isGranted) {
@@ -109,14 +125,11 @@ final class DenyAccessListener
 
         $extraVariables += $request->attributes->all();
         $extraVariables['object'] = $request->attributes->get('data');
+        $extraVariables['previous_object'] = $request->attributes->get('previous_data');
         $extraVariables['request'] = $request;
 
         if (!$this->resourceAccessChecker->isGranted($attributes['resource_class'], $isGranted, $extraVariables)) {
-            if ($resourceMetadata) {
-                throw new AccessDeniedException($resourceMetadata->getOperationAttribute($attributes, $attribute.'_message', 'Access Denied.', true));
-            }
-
-            throw new AccessDeniedException($attributes[$attribute.'_message'] ?? 'Access Denied.');
+            throw new AccessDeniedException($message ?? 'Access Denied.');
         }
     }
 }

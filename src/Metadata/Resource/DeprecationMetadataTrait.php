@@ -44,7 +44,7 @@ trait DeprecationMetadataTrait
             trigger_deprecation('api-platform/core', '2.7', 'The "access_control" option is deprecated and will be renamed to "security".');
         } elseif ('path' === $key) {
             $key = 'uri_template';
-            trigger_deprecation('api-platform/core', '2.7', 'The "path" option is deprecated and will be renamed to "uri_tempalte".');
+            trigger_deprecation('api-platform/core', '2.7', 'The "path" option is deprecated and will be renamed to "uri_template".');
         // Transform default value to an empty array if null
         } elseif (\in_array($key, ['denormalization_context', 'normalization_context', 'hydra_context', 'openapi_context', 'order', 'pagination_via_cursor', 'exception_to_status'], true)) {
             if (null === $value) {
