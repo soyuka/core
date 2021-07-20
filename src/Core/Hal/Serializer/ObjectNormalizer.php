@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Hal\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use Symfony\Component\Serializer\Exception\LogicException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -34,6 +35,10 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
     {
         $this->decorated = $decorated;
         $this->iriConverter = $iriConverter;
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
     }
 
     /**
@@ -74,7 +79,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
         $metadata = [
             '_links' => [
                 'self' => [
-                    'href' => $this->iriConverter->getIriFromItem($originalResource),
+                    'href' => $this->iriConverter instanceof LegacyIriConverterInterface ? $this->iriConverter->getIriFromItem($originalResource) : $this->iriConverter->getIriFromItem($originalResource, $context['operation_name'] ?? null),
                 ],
             ],
         ];

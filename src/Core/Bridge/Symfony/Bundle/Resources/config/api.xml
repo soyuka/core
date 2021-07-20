@@ -32,7 +32,7 @@
         <service id="api_platform.route_loader" class="ApiPlatform\Core\Bridge\Symfony\Routing\ApiLoader" public="false">
             <argument type="service" id="kernel" />
             <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.operation_path_resolver.custom" />
             <argument type="service" id="service_container" />
             <argument>%api_platform.formats%</argument>
@@ -55,8 +55,8 @@
             <argument>%api_platform.url_generation_strategy%</argument>
         </service>
 
-        <!-- TODO: 3.0 change the class --> 
-        <service id="api_platform.iri_converter" class="ApiPlatform\Core\Bridge\Symfony\Routing\IriConverter" public="false">
+        <!-- TODO: 3.0 remove this service --> 
+        <service id="api_platform.legacy_iri_converter" class="ApiPlatform\Core\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
             <argument type="service" id="api_platform.item_data_provider" />
@@ -69,17 +69,18 @@
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
         </service>
-        <service id="ApiPlatform\Core\Api\IriConverterInterface" alias="api_platform.iri_converter" />
+        <service id="ApiPlatform\Core\Api\IriConverterInterface" alias="api_platform.legacy_iri_converter" />
+        <service id="ApiPlatform\Api\IriConverterInterface" alias="api_platform.iri_converter" />
 
-        <service id="api_platform.new_iri_converter" class="ApiPlatform\Bridge\Symfony\Routing\IriConverter" public="false">
+        <service id="api_platform.iri_converter" class="ApiPlatform\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.state_provider" />
             <argument type="service" id="api_platform.router" />
             <argument type="service" id="api_platform.new_identifiers_extractor" />
             <argument type="service" id="api_platform.identifier.converter" />
             <argument type="service" id="api_platform.resource_class_resolver" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
         </service>
-        <service id="ApiPlatform\Api\IriConverterInterface" alias="api_platform.new_iri_converter" />
+        <service id="ApiPlatform\Api\IriConverterInterface" alias="api_platform.iri_converter" />
 
         <service id="api_platform.formats_provider" class="ApiPlatform\Core\Api\FormatsProvider">
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
@@ -92,12 +93,12 @@
         <!-- Serializer -->
 
         <service id="api_platform.serializer.context_builder" class="ApiPlatform\Core\Serializer\SerializerContextBuilder" public="false">
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
         </service>
         <service id="ApiPlatform\Core\Serializer\SerializerContextBuilderInterface" alias="api_platform.serializer.context_builder" />
 
         <service id="api_platform.serializer.context_builder.filter" class="ApiPlatform\Core\Serializer\SerializerFilterContextBuilder" decorates="api_platform.serializer.context_builder" public="false">
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.filter_locator" />
             <argument type="service" id="api_platform.serializer.context_builder.filter.inner" />
         </service>
@@ -116,7 +117,7 @@
         <service id="api_platform.serializer.normalizer.item" class="ApiPlatform\Core\Serializer\ItemNormalizer" public="false">
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
-            <argument type="service" id="api_platform.new_iri_converter" />
+            <argument type="service" id="api_platform.iri_converter" />
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.property_accessor" />
             <argument type="service" id="api_platform.name_converter" on-invalid="ignore" />
@@ -126,7 +127,7 @@
             <argument>%api_platform.allow_plain_identifiers%</argument>
             <argument>null</argument>
             <argument type="tagged" tag="api_platform.data_transformer" on-invalid="ignore" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" on-invalid="ignore" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" on-invalid="ignore" />
             <argument type="service" id="api_platform.security.resource_access_checker" on-invalid="ignore" />
 
             <!-- Run before serializer.normalizer.json_serializable -->
@@ -164,7 +165,7 @@
 
         <service id="api_platform.listener.request.add_format" class="ApiPlatform\Core\EventListener\AddFormatListener">
             <argument type="service" id="api_platform.negotiator" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument>%api_platform.formats%</argument>
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="28" />
@@ -177,7 +178,7 @@
             <argument type="service" id="api_platform.subresource_data_provider" />
             <argument type="service" id="api_platform.serializer.context_builder" />
             <argument type="service" id="api_platform.identifier.converter" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.state_provider" />
 
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="4" />
@@ -185,8 +186,8 @@
 
         <service id="api_platform.listener.view.write" class="ApiPlatform\Core\EventListener\WriteListener">
             <argument type="service" id="api_platform.state_processor" />
-            <argument type="service" id="api_platform.new_iri_converter" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.iri_converter" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.resource_class_resolver" />
 
             <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="32" />
@@ -195,7 +196,7 @@
         <service id="api_platform.listener.request.deserialize" class="ApiPlatform\Core\EventListener\DeserializeListener">
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
 
 
@@ -205,15 +206,15 @@
         <service id="api_platform.listener.view.serialize" class="ApiPlatform\Core\EventListener\SerializeListener">
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.resource_class_resolver" />
 
             <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="16" />
         </service>
 
         <service id="api_platform.listener.view.respond" class="ApiPlatform\Core\EventListener\RespondListener">
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
-            <argument type="service" id="api_platform.new_iri_converter" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
+            <argument type="service" id="api_platform.iri_converter" />
             <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="8" />
         </service>
 
@@ -266,7 +267,7 @@
             <argument type="service" id="api_platform.serializer" />
             <argument>%api_platform.error_formats%</argument>
             <argument>%api_platform.exception_to_status%</argument>
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
         </service>
 
         <!-- Identifiers -->
@@ -288,7 +289,7 @@
         <service id="ApiPlatform\Core\Api\IdentifiersExtractorInterface" alias="api_platform.identifiers_extractor.cached" />
 
         <service id="api_platform.new_identifiers_extractor" class="ApiPlatform\Api\IdentifiersExtractor" public="false">
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
@@ -353,7 +354,7 @@
         </service>
 
         <service id="api_platform.debug.command" class="ApiPlatform\Bridge\Symfony\Bundle\Command\DebugResourceCommand">
-            <argument type="service" id="api_platform.metadata.resource_metadata_collection_factory" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <tag name="console.command" />
         </service>
     </services>

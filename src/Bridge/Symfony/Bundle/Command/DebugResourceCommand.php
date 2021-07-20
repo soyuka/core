@@ -22,12 +22,12 @@ class DebugResourceCommand extends Command
 {
     protected static $defaultName = 'debug:api';
 
-    private $resourceCollectionMetadataFactory;
+    private $resourceMetadataCollectionFactory;
 
-    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceCollectionMetadataFactory)
+    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory)
     {
         parent::__construct();
-        $this->resourceCollectionMetadataFactory = $resourceCollectionMetadataFactory;
+        $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
     }
 
     /**
@@ -47,7 +47,7 @@ class DebugResourceCommand extends Command
     {
         $resourceClass = $input->getArgument('class');
 
-        $resourceCollection = $this->resourceCollectionMetadataFactory->create($resourceClass);
+        $resourceCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
 
         if (0 === \count($resourceCollection)) {
             $output->writeln(sprintf('<error>No resources found for class %s</error>', $resourceClass));

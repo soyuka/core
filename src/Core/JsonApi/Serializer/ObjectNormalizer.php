@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\JsonApi\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\ClassInfoTrait;
@@ -41,6 +42,10 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
         $this->iriConverter = $iriConverter;
         $this->resourceClassResolver = $resourceClassResolver;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
     }
 
     /**
@@ -79,7 +84,7 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             $resourceData = [
-                'id' => $this->iriConverter->getIriFromItem($originalResource),
+                'id' => $this->iriConverter instanceof LegacyIriConverterInterface ? $this->iriConverter->getIriFromItem($originalResource) : $this->iriConverter->getIriFromItem($originalResource, $context['operation_name'] ?? null),
                 'type' => $resourceMetadata->getShortName(),
             ];
         } else {

@@ -21,6 +21,7 @@ use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -45,7 +46,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
 
         $this->iriConverter = $iriConverter;
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -64,6 +65,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
         ];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
+            /** @var ResourceMetadata|ResourceMetadataCollection */
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             if ($resourceMetadata instanceof ResourceMetadata) {
@@ -79,12 +81,12 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
             }
 
             foreach ($resourceMetadata as $resource) {
-                foreach ($resource->operations as $operationName => $operation) {
-                    if (!$operation->collection) {
+                foreach ($resource->getOperations() as $operationName => $operation) {
+                    if (!$operation->isCollection()) {
                         continue;
                     }
                     try {
-                        $entrypoint[lcfirst($resource->shortName)] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
                     } catch (InvalidArgumentException $ex) {
                         // Ignore resources without GET operations
                     }

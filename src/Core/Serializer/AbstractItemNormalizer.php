@@ -104,7 +104,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
 
         $this->dataTransformers = $dataTransformers;
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, null === $resourceMetadataFactory ? 'null' : ResourceMetadataFactoryInterface::class));
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, null === $resourceMetadataFactory ? 'null' : ResourceMetadataFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;

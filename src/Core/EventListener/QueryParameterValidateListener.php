@@ -43,7 +43,7 @@ final class QueryParameterValidateListener
     public function __construct($resourceMetadataFactory, QueryParameterValidator $queryParameterValidator, bool $enabled = true)
     {
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceCollectionMetadataFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         } else {
             $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         }

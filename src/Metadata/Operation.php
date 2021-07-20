@@ -113,7 +113,7 @@ class Operation
         protected string $condition = '',
         protected string $controller = 'api_platform.action.placeholder',
         protected ?string $class = null,
-        protected int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH,
+        protected ?int $urlGenerationStrategy = null,
         protected bool $collection = false,
         protected ?string $deprecationReason = null,
         protected array $cacheHeaders = [],

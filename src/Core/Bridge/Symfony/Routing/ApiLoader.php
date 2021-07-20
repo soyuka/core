@@ -61,7 +61,6 @@ final class ApiLoader extends Loader
     private $entrypointEnabled;
     private $docsEnabled;
     private $identifiersExtractor;
-    private $resourceCollectionMetadataFactory;
 
     public function __construct(KernelInterface $kernel, ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, $resourceMetadataFactory, OperationPathResolverInterface $operationPathResolver, ContainerInterface $container, array $formats, array $resourceClassDirectories = [], SubresourceOperationFactoryInterface $subresourceOperationFactory = null, bool $graphqlEnabled = false, bool $entrypointEnabled = true, bool $docsEnabled = true, bool $graphiQlEnabled = false, bool $graphQlPlaygroundEnabled = false, IdentifiersExtractorInterface $identifiersExtractor = null)
     {

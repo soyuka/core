@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Hal\Serializer;
 
 use ApiPlatform\Core\Api\Entrypoint;
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -34,11 +36,19 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
     private $iriConverter;
     private $urlGenerator;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, IriConverterInterface $iriConverter, UrlGeneratorInterface $urlGenerator)
+    public function __construct($resourceMetadataFactory, IriConverterInterface $iriConverter, UrlGeneratorInterface $urlGenerator)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->iriConverter = $iriConverter;
         $this->urlGenerator = $urlGenerator;
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
+
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
     }
 
     /**
@@ -49,15 +59,33 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
         $entrypoint = ['_links' => ['self' => ['href' => $this->urlGenerator->generate('api_entrypoint')]]];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
+            /** @var ResourceMetadata|ResourceMetadataCollection */
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
-            if (empty($resourceMetadata->getCollectionOperations())) {
-                continue;
+            if ($resourceMetadata instanceof ResourceMetadata) {
+                if (!$resourceMetadata->getCollectionOperations()) {
+                    continue;
+                }
+
+                try {
+                    $entrypoint['links'][lcfirst($resourceMetadata->getShortName())] = $this->iriConverter->getIriFromResourceClass($resourceClass);
+                } catch (InvalidArgumentException $ex) {
+                    // Ignore resources without GET operations
+                }
             }
-            try {
-                $entrypoint['_links'][lcfirst($resourceMetadata->getShortName())]['href'] = $this->iriConverter->getIriFromResourceClass($resourceClass);
-            } catch (InvalidArgumentException $ex) {
-                // Ignore resources without GET operations
+
+            foreach ($resourceMetadata as $resource) {
+                foreach ($resource->getOperations() as $operationName => $operation) {
+                    if (!$operation->isCollection()) {
+                        continue;
+                    }
+
+                    try {
+                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                    } catch (InvalidArgumentException $ex) {
+                        // Ignore resources without GET operations
+                    }
+                }
             }
         }
 

@@ -43,8 +43,6 @@ final class DeserializeListener
     private $serializerContextBuilder;
     private $formats;
     private $formatsProvider;
-    private $resourceCollectionMetadataFactory;
-    private $legacyResourceMetadataCollectionMetadataFactory;
 
     /**
      * @param ResourceMetadataFactoryInterface|FormatsProviderInterface|array $resourceMetadataFactory

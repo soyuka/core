@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Doctrine\EventListener;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Bridge\Symfony\Messenger\DispatchTrait;
@@ -98,7 +98,7 @@ final class PublishMercureUpdatesListener
             new ExpressionFunction('iri', static function (string $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL): string {
                 return sprintf('iri(%s, %d)', $apiResource, $referenceType);
             }, static function (array $arguments, $apiResource, int $referenceType = UrlGeneratorInterface::ABS_URL) use ($iriConverter): string {
-                return $iriConverter->getIriFromItem($apiResource, $referenceType);
+                return $iriConverter->getIriFromItem($apiResource, null, $referenceType);
             })
         );
     }
@@ -239,7 +239,7 @@ final class PublishMercureUpdatesListener
         if ('deletedObjects' === $property) {
             $this->deletedObjects[(object) [
                 'id' => $this->iriConverter->getIriFromItem($object),
-                'iri' => $this->iriConverter->getIriFromItem($object, UrlGeneratorInterface::ABS_URL),
+                'iri' => $this->iriConverter->getIriFromItem($object, null, UrlGeneratorInterface::ABS_URL),
             ]] = $options;
 
             return;
@@ -269,7 +269,7 @@ final class PublishMercureUpdatesListener
                 $context = $options['normalization_context'] ?? $this->resourceMetadataFactory->create($resourceClass)->getAttribute('normalization_context', []);
             }
 
-            $iri = $options['topics'] ?? $this->iriConverter->getIriFromItem($object, UrlGeneratorInterface::ABS_URL);
+            $iri = $options['topics'] ?? $this->iriConverter->getIriFromItem($object, null, UrlGeneratorInterface::ABS_URL);
             $data = $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);
         }
 
