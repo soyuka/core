@@ -67,7 +67,7 @@
             <argument type="service" id="api_platform.openapi.legacy.factory" />
         </service>
 
-        <service id="api_platform.openapi.legacy.factory" class="ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory" public="false">
+        <service id="api_platform.openapi.legacy.factory" class="ApiPlatform\Core\OpenApi\Factory\OpenApiFactory" public="false">
             <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />

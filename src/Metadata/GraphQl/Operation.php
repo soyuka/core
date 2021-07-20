@@ -45,8 +45,6 @@ class Operation
      * @param string            $deprecationReason
      * @param string[]          $filters
      * @param array             $validationContext
-     * @param mixed             $input
-     * @param mixed             $output
      * @param bool|string|array $mercure
      * @param bool|string       $messenger
      * @param bool              $elasticsearch

@@ -118,7 +118,7 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
             $contextType = isset($context['api_denormalize']) ? 'denormalization_context' : 'normalization_context';
 
             if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-                if ($contextType === 'denormalization_context') {
+                if ('denormalization_context' === $contextType) {
                     $context += $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getDenormalizationContext();
                 } else {
                     $context += $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getNormalizationContext();
@@ -127,7 +127,6 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
                 // TODO: remove in 3.0
                 $context += $this->getNormalizationContext($context['resource_class'] ?? $resourceClass, $contextType, $options);
             }
-
         }
 
         if (empty($context[AbstractNormalizer::GROUPS]) && !isset($context[AbstractNormalizer::ATTRIBUTES])) {

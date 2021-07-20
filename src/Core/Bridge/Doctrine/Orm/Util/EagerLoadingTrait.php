@@ -55,7 +55,7 @@ trait EagerLoadingTrait
 
     /**
      * Get the boolean attribute of an operation or the resource metadata.
-     * TODO: remove in 3.0
+     * TODO: remove in 3.0.
      */
     private function getBooleanOperationAttribute(string $resourceClass, array $options, string $attributeName, bool $default): bool
     {

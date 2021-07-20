@@ -117,8 +117,8 @@ final class DenyAccessListener
                 return;
             }
 
-            $isGranted = $attribute === 'security' ? $operation->getSecurity() : $operation->getSecurityPostDenormalize();
-            $message = $attribute === 'security' ? $operation->getSecurityMessage() : $operation->getSecurityPostDenormalize();
+            $isGranted = 'security' === $attribute ? $operation->getSecurity() : $operation->getSecurityPostDenormalize();
+            $message = 'security' === $attribute ? $operation->getSecurityMessage() : $operation->getSecurityPostDenormalize();
         }
 
         if (null === $isGranted) {

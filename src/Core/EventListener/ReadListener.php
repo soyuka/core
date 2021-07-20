@@ -155,6 +155,7 @@ final class ReadListener
 
             $request->attributes->set('data', $data);
             $request->attributes->set('previous_data', $this->clone($data));
+
             return;
         }
 
@@ -165,6 +166,7 @@ final class ReadListener
 
         if (isset($attributes['collection_operation_name'])) {
             $request->attributes->set('data', $this->getCollectionData($attributes, $context));
+
             return;
         }
 

@@ -20,7 +20,6 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Core\DataProvider\Pagination;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\ORM\QueryBuilder;
@@ -65,7 +64,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
 
     /**
      * @param ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface|RequestStack $resourceMetadataFactory
-     * @param Pagination|ResourceMetadataFactoryInterface   $pagination
+     * @param Pagination|ResourceMetadataFactoryInterface                                              $pagination
      */
     public function __construct(ManagerRegistry $managerRegistry, $resourceMetadataFactory, /* Pagination */ $pagination)
     {
@@ -356,7 +355,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
     {
         if (null !== $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-            
+
             if (isset($context['collection_operation_name']) && null !== $useOutputWalkers = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_use_output_walkers', null, true)) {
                 return $useOutputWalkers;
             }

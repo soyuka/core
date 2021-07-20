@@ -43,8 +43,9 @@ final class ExceptionAction
     private $resourceMetadataFactory;
 
     /**
-     * @param array $errorFormats      A list of enabled error formats
-     * @param array $exceptionToStatus A list of exceptions mapped to their HTTP status code
+     * @param array      $errorFormats            A list of enabled error formats
+     * @param array      $exceptionToStatus       A list of exceptions mapped to their HTTP status code
+     * @param mixed|null $resourceMetadataFactory
      */
     public function __construct(SerializerInterface $serializer, array $errorFormats, array $exceptionToStatus = [], $resourceMetadataFactory = null)
     {
