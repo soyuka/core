@@ -938,12 +938,12 @@ class Operation
         return $self;
     }
 
-    public function getExceptionToStatus(): ?array
+    public function getExceptionToStatus(): array
     {
         return $this->exceptionToStatus;
     }
 
-    public function withExceptionToStatus(?array $exceptionToStatus = []): self
+    public function withExceptionToStatus(array $exceptionToStatus = []): self
     {
         $self = clone $this;
         $self->exceptionToStatus = $exceptionToStatus;

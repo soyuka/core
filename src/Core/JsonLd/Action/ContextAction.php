@@ -16,6 +16,8 @@ namespace ApiPlatform\Core\JsonLd\Action;
 use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -32,9 +34,12 @@ final class ContextAction
 
     private $contextBuilder;
     private $resourceNameCollectionFactory;
+    /**
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface|null
+     */
     private $resourceMetadataFactory;
 
-    public function __construct(ContextBuilderInterface $contextBuilder, ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceMetadataFactoryInterface $resourceMetadataFactory)
+    public function __construct(ContextBuilderInterface $contextBuilder, ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, $resourceMetadataFactory)
     {
         $this->contextBuilder = $contextBuilder;
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
@@ -57,7 +62,12 @@ final class ContextAction
         }
 
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
+            /** @var ResourceMetadata|ResourceMetadataCollection */
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+
+            if ($resourceMetadata instanceof ResourceMetadataCollection) {
+                $resourceMetadata = $resourceMetadata->getOperation();
+            }
 
             if ($shortName === $resourceMetadata->getShortName()) {
                 return ['@context' => $this->contextBuilder->getResourceContext($resourceClass)];

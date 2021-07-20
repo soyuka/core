@@ -61,6 +61,8 @@ final class DenyAccessListener
 
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        } else {
+            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         }
     }
 
