@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Hal\Serializer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Serializer\AbstractCollectionNormalizer;
 use ApiPlatform\Core\Util\IriHelper;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -51,7 +50,6 @@ final class CollectionNormalizer extends AbstractCollectionNormalizer
         } else {
             $urlGenerationStrategy = $metadata->getAttribute('url_generation_strategy');
         }
-
 
         $data = [
             '_links' => [

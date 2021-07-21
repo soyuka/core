@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata;
 
-use ApiPlatform\Api\UrlGeneratorInterface;
-
 class Operation
 {
     public const METHOD_GET = 'GET';

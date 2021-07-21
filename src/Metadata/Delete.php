@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata;
 
-use ApiPlatform\Api\UrlGeneratorInterface;
-
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class Delete extends Operation
 {
@@ -45,7 +43,7 @@ class Delete extends Operation
         string $condition = '',
         string $controller = 'api_platform.action.placeholder',
         ?string $class = null,
-        int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH,
+        ?int $urlGenerationStrategy = null,
         bool $collection = false,
         ?string $deprecationReason = null,
         array $cacheHeaders = [],

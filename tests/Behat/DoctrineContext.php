@@ -1884,7 +1884,6 @@ final class DoctrineContext implements Context
         $this->manager->flush();
     }
 
-
     private function isOrm(): bool
     {
         return null !== $this->schemaTool;

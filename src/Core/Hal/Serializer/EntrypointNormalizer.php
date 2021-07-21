@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Hal\Serializer;
 
-use ApiPlatform\Core\Api\Entrypoint;
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\Entrypoint;
 use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
@@ -68,7 +68,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
                 }
 
                 try {
-                    $entrypoint['links'][lcfirst($resourceMetadata->getShortName())] = $this->iriConverter->getIriFromResourceClass($resourceClass);
+                    $entrypoint['_links'][lcfirst($resourceMetadata->getShortName())]['href'] = $this->iriConverter->getIriFromResourceClass($resourceClass);
                 } catch (InvalidArgumentException $ex) {
                     // Ignore resources without GET operations
                 }
@@ -81,7 +81,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
                     }
 
                     try {
-                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                        $entrypoint['_links'][lcfirst($operation->getShortName())]['href'] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
                     } catch (InvalidArgumentException $ex) {
                         // Ignore resources without GET operations
                     }

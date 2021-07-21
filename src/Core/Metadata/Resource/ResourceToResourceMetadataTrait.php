@@ -30,23 +30,23 @@ trait ResourceToResourceMetadataTrait
         $collectionOperations = [];
         $itemOperations = [];
         foreach ($resource->getOperations() as $name => $operation) {
-            $operation = $this->toArray($operation);
+            $arrayOperation = $this->toArray($operation);
 
-            if (!isset($operation['openapi_context'])) {
-                $operation['openapi_context'] = [];
+            if (!isset($arrayOperation['openapi_context'])) {
+                $arrayOperation['openapi_context'] = [];
             }
 
-            $operation['openapi_context']['operationId'] = $name;
+            $arrayOperation['openapi_context']['operationId'] = $name;
 
-            if (!($operation['identifiers'] ?? [])) {
-                $collectionOperations[$name] = $operation;
+            if ($operation->isCollection()) {
+                $collectionOperations[$name] = $arrayOperation;
                 continue;
             }
 
-            $itemOperations[$name] = $operation;
+            $itemOperations[$name] = $arrayOperation;
         }
-        $attributes = $this->toArray($resource);
 
+        $attributes = $this->toArray($resource);
         $graphql = $resource->getGraphQl() ? $this->toArray($resource->getGraphQl()) : null;
 
         return new ResourceMetadata($resource->getShortName(), $resource->getDescription(), $resource->getTypes()[0] ?? null, $itemOperations, $collectionOperations, $attributes, null, $graphql);
@@ -64,7 +64,7 @@ trait ResourceToResourceMetadataTrait
                 continue;
             }
 
-            if (!$value = $object->{$methodName}()) {
+            if (null === $value = $object->{$methodName}()) {
                 continue;
             }
 

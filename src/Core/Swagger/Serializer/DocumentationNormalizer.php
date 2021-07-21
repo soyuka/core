@@ -201,12 +201,25 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $paths = new \ArrayObject();
         $links = new \ArrayObject();
 
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            foreach ($object->getResourceNameCollection() as $resourceClass) {
+                $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
+                foreach ($resourceMetadataCollection as $i => $resourceMetadata) {
+                    $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata);
+                    // Items needs to be parsed first to be able to reference the lines from the collection operation
+                    $this->addPaths($v3, $paths, $definitions, $resourceClass, $resourceMetadata->getShortName(), $resourceMetadata, OperationType::ITEM, $links);
+                    $this->addPaths($v3, $paths, $definitions, $resourceClass, $resourceMetadata->getShortName(), $resourceMetadata, OperationType::COLLECTION, $links);
+                }
+            }
+
+            $definitions->ksort();
+            $paths->ksort();
+
+            return $this->computeDoc($v3, $object, $definitions, $paths, $context);
+        }
+
         foreach ($object->getResourceNameCollection() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-
-            if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-                $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata[0]);
-            }
 
             if ($this->identifiersExtractor) {
                 $identifiers = [];
@@ -248,7 +261,12 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         }
 
         foreach ($operations as $operationName => $operation) {
-            $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
+            if (isset($operation['uri_template'])) {
+                $path = str_replace('.{_format}', '', $operation['uri_template']);
+            } else {
+                $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
+            }
+
             if ($this->operationMethodResolver) {
                 $method = OperationType::ITEM === $operationType ? $this->operationMethodResolver->getItemOperationMethod($resourceClass, $operationName) : $this->operationMethodResolver->getCollectionOperationMethod($resourceClass, $operationName);
             } else {
@@ -365,7 +383,28 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
             [$successResponse] = $this->addSchemas($v3, $successResponse, $definitions, $resourceClass, $operationType, $operationName, $mimeTypes);
 
             $pathOperation['responses'] ?? $pathOperation['responses'] = [$successStatus => $successResponse];
-            $pathOperation['parameters'] ?? $pathOperation['parameters'] = $this->getFiltersParameters($v3, $resourceClass, $operationName, $resourceMetadata);
+
+            if ($resourceMetadata->getAttributes()['extra_properties']['is_legacy_subresource'] ?? false) {
+                // Avoid duplicates parameters when there is a filter on a subresource identifier
+                $parametersMemory = [];
+                $pathOperation['parameters'] = [];
+                foreach ($resourceMetadata->getAttributes()['identifiers'] as $parameterName => [$class, $identifier]) {
+                    $parameter = ['name' => $parameterName, 'in' => 'path', 'required' => true];
+                    $v3 ? $parameter['schema'] = ['type' => 'string'] : $parameter['type'] = 'string';
+                    $pathOperation['parameters'][] = $parameter;
+                    $parametersMemory[] = $parameterName;
+                }
+
+                if ($parameters = $this->getFiltersParameters($v3, $resourceClass, $operationName, $resourceMetadata)) {
+                    foreach ($parameters as $parameter) {
+                        if (!\in_array($parameter['name'], $parametersMemory, true)) {
+                            $pathOperation['parameters'][] = $parameter;
+                        }
+                    }
+                }
+            } else {
+                $pathOperation['parameters'] ?? $pathOperation['parameters'] = $this->getFiltersParameters($v3, $resourceClass, $operationName, $resourceMetadata);
+            }
 
             $this->addPaginationParameters($v3, $resourceMetadata, OperationType::COLLECTION, $operationName, $pathOperation);
 

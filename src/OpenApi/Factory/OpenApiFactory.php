@@ -108,10 +108,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $schemas = new \ArrayObject();
 
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
-            $resources = $this->resourceMetadataFactory->create($resourceClass);
+            $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
 
-            foreach ($resources as $resource) {
-                $this->collectPaths($resource, $resourceClass, $context, $paths, $schemas);
+            foreach ($resourceMetadataCollection as $resourceMetadata) {
+                $this->collectPaths($resourceMetadata, $resourceMetadataCollection, $paths, $schemas);
             }
         }
 
@@ -139,7 +139,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         );
     }
 
-    private function collectPaths(ApiResource $resource, string $resourceClass, array $context, Model\Paths $paths, \ArrayObject $schemas): void
+    private function collectPaths(ApiResource $resource, ResourceMetadataCollection $resourceMetadataCollection, Model\Paths $paths, \ArrayObject $schemas): void
     {
         $links = [];
         $resourceShortName = $resource->getShortName();
@@ -148,8 +148,6 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             return;
         }
 
-        $rootResourceClass = $resourceClass;
-
         foreach ($resource->getOperations() as $operationName => $operation) {
             // No path to return
             if (null === $operation->getUriTemplate() && null === $operation->getRouteName()) {
@@ -157,7 +155,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
 
             $identifiers = $operation->getIdentifiers();
-            $resourceClass = $operation->getClass() ?? $rootResourceClass;
+            $resourceClass = $operation->getClass() ?? $resource->getClass();
 
             $path = $this->getPath($operation->getUriTemplate() ?? $this->router->getRouteCollection()->get($operation->getRouteName())->getPath());
             $method = $operation->getMethod();
@@ -208,16 +206,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
 
             if ($operation->isCollection()) {
-                $resources = $this->resourceMetadataFactory->create($resourceClass);
-
-                foreach (array_merge($this->getPaginationParameters($resource, $operationName), $this->getFiltersParameters($resources, $operationName, $resourceClass)) as $parameter) {
+                foreach (array_merge($this->getPaginationParameters($operation), $this->getFiltersParameters($operation)) as $parameter) {
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
                     }
 
                     $parameters[] = $parameter;
                 }
-                $links[$operationId] = $this->getLinks($resources, $operationName, $path);
+                $links[$operationId] = $this->getLinks($resourceMetadataCollection, $operationName, $path);
             }
 
             // Create responses
@@ -348,7 +344,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $path = substr($path, 0, -10);
         }
 
-        return str_starts_with($path, '/') ? $path : '/'.$path;
+        return 0 === strpos($path, '/') ? $path : '/'.$path;
     }
 
     private function getPathDescription(string $resourceShortName, string $method): string
@@ -379,11 +375,11 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#linkObject.
      */
-    private function getLinks(ResourceMetadataCollection $resources, string $operationName, string $path): Model\Link
+    private function getLinks(ResourceMetadataCollection $resourceMetadataCollection, string $operationName, string $path): Model\Link
     {
         $parameters = [];
 
-        foreach ($resources as $resource) {
+        foreach ($resourceMetadataCollection as $resource) {
             foreach ($resource->getOperations() as $operationName => $operation) {
                 if ('GET' !== $operation->getMethod() || $operation->isCollection()) {
                     continue;
@@ -395,7 +391,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         }
 
         return new Model\Link(
-            $operationName, // operationName
+            $operationName,
             new \ArrayObject($parameters),
             null,
             1 === \count($parameters) ? sprintf('The `%1$s` value returned in the response can be used as the `%1$s` parameter in `GET %2$s`.', key($parameters), $path) : sprintf('The values returned in the response can be used in `GET %s`.', $path)
@@ -405,17 +401,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     /**
      * Gets parameters corresponding to enabled filters.
      */
-    private function getFiltersParameters(ResourceMetadataCollection $resource, string $operationName, string $resourceClass): array
+    private function getFiltersParameters(Operation $operation): array
     {
         $parameters = [];
 
-        $resourceFilters = $resource->getOperation($operationName)->getFilters();
+        $resourceFilters = $operation->getFilters();
         foreach ($resourceFilters ?? [] as $filterId) {
             if (!$filter = $this->getFilter($filterId)) {
                 continue;
             }
 
-            foreach ($filter->getDescription($resourceClass) as $name => $data) {
+            foreach ($filter->getDescription($operation->getClass()) as $name => $data) {
                 $schema = $data['schema'] ?? (\in_array($data['type'], Type::$builtinTypes, true) ? $this->jsonSchemaTypeFactory->getType(new Type($data['type'], false, null, $data['is_collection'] ?? false)) : ['type' => 'string']);
 
                 $parameters[] = new Model\Parameter(
@@ -443,7 +439,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         return $parameters;
     }
 
-    private function getPaginationParameters(ApiResource $resource, string $operationName): array
+    private function getPaginationParameters(Operation $operation): array
     {
         if (!$this->paginationOptions->isPaginationEnabled()) {
             return [];
@@ -451,17 +447,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         $parameters = [];
 
-        if ($resource->getPaginationEnabled()) {
+        if ($operation->getPaginationEnabled() ?? $this->paginationOptions->isPaginationEnabled()) {
             $parameters[] = new Model\Parameter($this->paginationOptions->getPaginationPageParameterName(), 'query', 'The collection page number', false, false, true, ['type' => 'integer', 'default' => 1]);
 
-            if ($resource->getPaginationClientItemsPerPage()) {
+            if ($operation->getPaginationClientItemsPerPage() ?? $this->paginationOptions->getClientItemsPerPage()) {
                 $schema = [
                     'type' => 'integer',
-                    'default' => $resource->getPaginationItemsPerPage(),
+                    'default' => $operation->getPaginationItemsPerPage() ?? $this->paginationOptions->getItemsPerPage(),
                     'minimum' => 0,
                 ];
 
-                if (null !== $maxItemsPerPage = $resource->getPaginationMaximumItemsPerPage()) {
+                if (null !== $maxItemsPerPage = $operation->getPaginationMaximumItemsPerPage()) {
                     $schema['maximum'] = $maxItemsPerPage;
                 }
 
@@ -469,7 +465,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             }
         }
 
-        if ($resource->getPaginationClientEnabled()) {
+        if ($operation->getPaginationClientEnabled() ?? $this->paginationOptions->isPaginationClientEnabled()) {
             $parameters[] = new Model\Parameter($this->paginationOptions->getPaginationClientEnabledParameterName(), 'query', 'Enable or disable pagination', false, false, true, ['type' => 'boolean']);
         }
 
