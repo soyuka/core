@@ -50,6 +50,6 @@ final class ResourceMetadataCollection extends \ArrayObject
             $it->next();
         }
 
-        throw new OperationNotFoundException();
+        throw new OperationNotFoundException(sprintf('Operation "%s" not found for resource "%s".', $operationName, $metadata->getShortName()));
     }
 }

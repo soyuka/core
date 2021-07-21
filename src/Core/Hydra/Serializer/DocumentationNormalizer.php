@@ -64,8 +64,8 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
-        if ($resourceMetadataFactory && $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be replaced by %s in 3.0.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
@@ -86,17 +86,24 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $entrypointProperties = [];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
-            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+            $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
 
-            if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-                $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata[0]);
+            if ($resourceMetadataCollection instanceof ResourceMetadata) {
+                $shortName = $resourceMetadata->getShortName();
+                $prefixedShortName = $resourceMetadata->getIri() ?? "#$shortName";
+
+                $this->populateEntrypointProperties($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $entrypointProperties);
+                $classes[] = $this->getClass($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $context);
+                continue;
             }
 
-            $shortName = $resourceMetadata->getShortName();
-            $prefixedShortName = $resourceMetadata->getIri() ?? "#$shortName";
-
-            $this->populateEntrypointProperties($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $entrypointProperties);
-            $classes[] = $this->getClass($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $context);
+            foreach ($resourceMetadataCollection as $resourceMetadata) {
+                $shortName = $resourceMetadata->getShortName();
+                $prefixedShortName = "#" . ($resourceMetadata->getTypes()[0] ?? $shortName);
+                $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata);
+                $this->populateEntrypointProperties($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $entrypointProperties);
+                $classes[] = $this->getClass($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $context);
+            }
         }
 
         return $this->computeDoc($object, $this->getClasses($entrypointProperties, $classes));

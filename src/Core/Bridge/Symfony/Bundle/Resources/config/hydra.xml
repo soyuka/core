@@ -65,7 +65,7 @@
             <argument type="service" id="api_platform.hydra.normalizer.partial_collection_view.inner" />
             <argument>%api_platform.collection.pagination.page_parameter_name%</argument>
             <argument>%api_platform.collection.pagination.enabled_parameter_name%</argument>
-            <argument>null</argument>
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory"></argument>
             <argument type="service" id="api_platform.property_accessor" />
         </service>
 

@@ -20,6 +20,7 @@ use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
@@ -85,9 +86,11 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
                     if (!$operation->isCollection()) {
                         continue;
                     }
+
                     try {
-                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
-                    } catch (InvalidArgumentException $ex) {
+                        // TODO: use the `operationName` to get better results
+                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                    } catch (OperationNotFoundException $ex) {
                         // Ignore resources without GET operations
                     }
                 }
