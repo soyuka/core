@@ -25,7 +25,6 @@ class ApiResource
     private Operations $operations;
 
     /**
-     * @param iterable     $operations
      * @param string       $uriTemplate
      * @param string       $shortName
      * @param string       $description
@@ -145,9 +144,6 @@ class ApiResource
         $this->operations = new Operations($operations);
     }
 
-    /**
-     * @return Operations
-     */
     public function getOperations(): Operations
     {
         return $this->operations;

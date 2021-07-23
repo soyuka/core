@@ -130,65 +130,41 @@ final class ApiProperty
         return $this->schema;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDeprecationReason(): ?string
     {
         return $this->deprecationReason;
     }
 
-    /**
-     * @return bool|null
-     */
     public function getFetchable(): ?bool
     {
         return $this->fetchable;
     }
 
-    /**
-     * @return bool|null
-     */
     public function getFetchEager(): ?bool
     {
         return $this->fetchEager;
     }
 
-    /**
-     * @return array|null
-     */
     public function getJsonldContext(): ?array
     {
         return $this->jsonldContext;
     }
 
-    /**
-     * @return array|null
-     */
     public function getOpenapiContext(): ?array
     {
         return $this->openapiContext;
     }
 
-    /**
-     * @return bool|null
-     */
     public function getPush(): ?bool
     {
         return $this->push;
     }
 
-    /**
-     * @return string|null
-     */
     public function getSecurity(): ?string
     {
         return $this->security;
     }
 
-    /**
-     * @return string|null
-     */
     public function getSecurityPostDenormalize(): ?string
     {
         return $this->securityPostDenormalize;
