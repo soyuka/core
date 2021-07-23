@@ -21,7 +21,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 trait InputOutputMetadataTrait
 {
     /**
-     * @param ResourceMetadataFactoryInterface|ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory
+     * @var null|ResourceMetadataFactoryInterface|ResourceMetadataCollectionFactoryInterface
      */
     protected $resourceMetadataFactory;
 

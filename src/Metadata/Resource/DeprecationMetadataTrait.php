@@ -22,10 +22,7 @@ trait DeprecationMetadataTrait
 {
     private $camelCaseToSnakeCaseNameConverter;
 
-    /**
-     * @param string $key
-     */
-    public function getKeyValue($key, $value)
+    public function getKeyValue(string $key, mixed $value)
     {
         if (!$this->camelCaseToSnakeCaseNameConverter) {
             $this->camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
@@ -55,9 +52,9 @@ trait DeprecationMetadataTrait
             } elseif (!\is_array($value)) {
                 $value = [$value];
             }
-        } elseif (\in_array($key, ['route_prefix'], true)) {
+        } elseif ('route_prefix' === $key) {
             $value = \is_string($value) ? $value : '';
-        } elseif (\in_array($key, ['swagger_context'], true)) {
+        } elseif ('swagger_context' === $key) {
             trigger_deprecation('api-platform/core', '2.7', 'The "swagger_context" option is deprecated and will be removed, use openapi_context.');
 
             return [null, null, true];
