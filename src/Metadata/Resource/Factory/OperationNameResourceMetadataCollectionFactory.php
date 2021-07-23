@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Resource\Factory;
 
-use ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
 /**
