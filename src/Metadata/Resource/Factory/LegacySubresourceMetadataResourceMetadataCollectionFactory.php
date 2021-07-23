@@ -53,8 +53,7 @@ final class LegacySubresourceMetadataResourceMetadataCollectionFactory implement
             return $resourceMetadataCollection;
         }
 
-        $defaults = $resourceMetadataCollection[0];
-
+        $defaults = $resourceMetadataCollection[0] ?? new ApiResource();
         foreach ($this->localCache[$resourceClass] as $resource) {
             $operations = iterator_to_array($resource->getOperations());
             $operation = current($operations);

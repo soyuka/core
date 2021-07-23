@@ -66,7 +66,7 @@ final class DataTransformer implements DataTransformerInterface
 
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             try {
-                $resourceMetadataCollection = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
+                $resourceMetadataCollection = $this->resourceMetadataFactory->create($context['resource_class'] ?? $to);
                 $operation = $resourceMetadataCollection->getOperation($context['operation_name'] ?? null);
 
                 return 'input' === $operation->getMessenger();

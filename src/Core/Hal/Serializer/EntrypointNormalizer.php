@@ -34,6 +34,9 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
 {
     public const FORMAT = 'jsonhal';
 
+    /**
+     * @var ResourceMetadataFactoryInterface|ResourceMetadataCollectionFactoryInterface
+     */
     private $resourceMetadataFactory;
     private $iriConverter;
     private $urlGenerator;
