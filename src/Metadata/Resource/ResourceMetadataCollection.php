@@ -34,8 +34,8 @@ final class ResourceMetadataCollection extends \ArrayObject
 
     public function getOperation(?string $operationName = null, bool $forceCollection = false): Operation
     {
-        if ($operationName && isset($this->operationCache[$operationName])) {
-            return $this->operationCache[$operationName];
+        if (isset($this->operationCache[$operationName ?? ''])) {
+            return $this->operationCache[$operationName ?? ''];
         }
 
         $it = $this->getIterator();
@@ -47,11 +47,11 @@ final class ResourceMetadataCollection extends \ArrayObject
 
             foreach ($metadata->getOperations() as $name => $operation) {
                 if (null === $operationName && \in_array($operation->getMethod(), [Operation::METHOD_GET, Operation::METHOD_OPTIONS, Operation::METHOD_HEAD], true) && ($forceCollection ? $operation->isCollection() : !$operation->isCollection())) {
-                    return $operation;
+                    return $this->operationCache[''] = $operation;
                 }
 
                 if ($name === $operationName) {
-                    return $operation;
+                    return $this->operationCache[$operationName] = $operation;
                 }
             }
 

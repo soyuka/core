@@ -31,10 +31,14 @@ trait InputOutputMetadataTrait
             return $this->getInputOutputMetadata($class, 'input', $context);
         }
 
+        if (null !== ($context['input']['class'] ?? null)) {
+            return $context['input']['class'];
+        }
+
         $operation = $context['operation'] ?? null;
         if (!$operation && $this->resourceMetadataFactory) {
             try {
-                $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+                $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {
                 return null;
             }
@@ -49,10 +53,14 @@ trait InputOutputMetadataTrait
             return $this->getInputOutputMetadata($class, 'output', $context);
         }
 
+        if (null !== ($context['output']['class'] ?? null)) {
+            return $context['output']['class'];
+        }
+
         $operation = $context['operation'] ?? null;
         if (!$operation && $this->resourceMetadataFactory) {
             try {
-                $operation = $this->resourceMetadataFactory->create($class)->getOperation();
+                $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {
                 return null;
             }

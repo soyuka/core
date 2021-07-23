@@ -36,7 +36,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
     private $iriConverter;
     private $urlGenerator;
 
-    public function __construct($resourceMetadataFactory, IriConverterInterface $iriConverter, UrlGeneratorInterface $urlGenerator)
+    public function __construct($resourceMetadataFactory, $iriConverter, UrlGeneratorInterface $urlGenerator)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->iriConverter = $iriConverter;
@@ -76,12 +76,12 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
 
             foreach ($resourceMetadata as $resource) {
                 foreach ($resource->getOperations() as $operationName => $operation) {
-                    if (!$operation->isCollection()) {
+                    if (!$operation->isCollection() || $operation->getIdentifiers()) {
                         continue;
                     }
 
                     try {
-                        $entrypoint[lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                        $entrypoint['links'][lcfirst($resource->getShortName())] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName, UrlGeneratorInterface::ABS_URL) : $this->iriConverter->getIriFromResourceClass($resourceClass, UrlGeneratorInterface::ABS_URL);
                     } catch (InvalidArgumentException $ex) {
                         // Ignore resources without GET operations
                     }

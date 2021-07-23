@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\JsonApi\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Exception\ItemNotFoundException;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
 use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
 use ApiPlatform\Core\Serializer\CacheKeyTrait;
@@ -51,7 +50,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
     private $componentsCache = [];
 
-    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor, ?NameConverterInterface $nameConverter, ResourceMetadataFactoryInterface $resourceMetadataFactory, array $defaultContext = [], iterable $dataTransformers = [], ResourceAccessCheckerInterface $resourceAccessChecker = null)
+    public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, $iriConverter, ResourceClassResolverInterface $resourceClassResolver, ?PropertyAccessorInterface $propertyAccessor, ?NameConverterInterface $nameConverter, $resourceMetadataFactory, array $defaultContext = [], iterable $dataTransformers = [], ResourceAccessCheckerInterface $resourceAccessChecker = null)
     {
         parent::__construct($propertyNameCollectionFactory, $propertyMetadataFactory, $iriConverter, $resourceClassResolver, $propertyAccessor, $nameConverter, null, null, false, $defaultContext, $dataTransformers, $resourceMetadataFactory, $resourceAccessChecker);
     }
@@ -79,7 +78,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
         $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null);
         $context = $this->initContext($resourceClass, $context);
-        $iri = $this->iriConverter instanceof LegacyIriConverterInterface ? $this->iriConverter->getIriFromItem($object) : $this->iriConverter->getIriFromItem($object, $context['operation_name'] ?? null);
+        $iri = $this->iriConverter->getIriFromItem($object);
         $context['iri'] = $iri;
         $context['api_normalize'] = true;
 
@@ -87,8 +86,6 @@ final class ItemNormalizer extends AbstractItemNormalizer
         if (!\is_array($data)) {
             return $data;
         }
-
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
         // Get and populate relations
         $allRelationshipsData = $this->getComponents($object, $format, $context)['relationships'];
@@ -102,7 +99,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
         $resourceData = [
             'id' => $context['iri'],
-            'type' => $resourceMetadata->getShortName(),
+            'type' => $this->getResourceShortName($resourceClass),
         ];
 
         if ($data) {
@@ -232,7 +229,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
         return [
             'data' => [
-                'type' => $this->resourceMetadataFactory->create($resourceClass)->getShortName(),
+                'type' => $this->getResourceShortName($resourceClass),
                 'id' => $iri,
             ],
         ];
@@ -295,7 +292,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
             $relation = [
                 'name' => $attribute,
-                'type' => $this->resourceMetadataFactory->create($className)->getShortName(),
+                'type' => $this->getResourceShortName($className),
                 'cardinality' => $isOne ? 'one' : 'many',
             ];
 
@@ -447,5 +444,18 @@ final class ItemNormalizer extends AbstractItemNormalizer
         return array_map(static function (string $nested) {
             return substr($nested, strpos($nested, '.') + 1);
         }, $filtered);
+    }
+
+    // TODO: 3.0 remove
+    private function getResourceShortName(string $resourceClass): string
+    {
+        /** @var ResourceMetadata|ResourceMetadataCollection */
+        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+
+        if ($resourceMetadata instanceof ResourceMetadata) {
+            return $resourceMetadata->getShortName();
+        }
+
+        return $resourceMetadata->getOperation()->getShortName();
     }
 }

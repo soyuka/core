@@ -78,10 +78,10 @@ final class ItemNormalizer extends AbstractItemNormalizer
             return parent::normalize($object, $format, $context);
         }
 
-        // TODO: we should not remove the resource_class in the normalizeRawCollection as we would find out it's not the same anyway as the requested one
+        // TODO: we should not remove the resource_class in the normalizeRawCollection as we would find out anyway that it's not the same as the requested one
         $previousResourceClass = $context['resource_class'] ?? null;
-        $context = $this->initContext($context['resource_class'] ?? $outputClass ?? $objectClass, $context);
-        $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class']);
+        $resourceClass = $this->resourceClassResolver->getResourceClass($object, $context['resource_class'] ?? null);
+        $context = $this->initContext($resourceClass, $context);
         $metadata = $this->addJsonLdContext($this->contextBuilder, $resourceClass, $context);
 
         if (isset($context['operation'])) {
