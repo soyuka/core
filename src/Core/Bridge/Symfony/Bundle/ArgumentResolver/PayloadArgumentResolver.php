@@ -72,6 +72,7 @@ final class PayloadArgumentResolver implements ArgumentValueResolverInterface
         }
 
         $context = $this->serializationContextBuilder->createFromRequest($request, false, RequestAttributesExtractor::extractAttributes($request));
+
         return $context['input'] ?? $context['resource_class'];
     }
 }

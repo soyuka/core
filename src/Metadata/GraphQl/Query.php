@@ -20,10 +20,9 @@ final class Query extends Operation
      * {@inheritdoc}
      */
     public function __construct(
-        protected ?string $query = null,
-        protected ?string $mutation = null,
+        protected ?string $resolver = null,
         protected bool $collection = false,
-        protected array $args = [],
+        protected ?array $args = null,
         protected ?string $shortName = null,
         protected ?string $class = null,
         protected mixed $identifiers = [],

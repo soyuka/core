@@ -58,7 +58,7 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
         foreach ($operation->getIdentifiers() as $parameterName => [$class, $property]) {
             $identifierValue = $this->resolveIdentifierValue($item, $class, $property);
 
-            if (!$identifierValue) {
+            if (null === $identifierValue) {
                 throw new RuntimeException('No identifier value found, did you forgot to persist the entity?');
             }
 
@@ -107,7 +107,7 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
                 return $this->propertyAccessor->getValue($item, "$propertyName.$property");
             }
 
-            if ($type->isCollection() && $type->getCollectionValueType()->getClassName() === $class) {
+            if ($type->isCollection() && ($collectionValueType = $type->getCollectionValueType()) && $collectionValueType->getClassName() === $class) {
                 return $this->propertyAccessor->getValue($item, sprintf('%s[0].%s', $propertyName, $property));
             }
         }

@@ -42,6 +42,9 @@ trait DeprecationMetadataTrait
         } elseif ('access_control' === $key) {
             $key = 'security';
             trigger_deprecation('api-platform/core', '2.7', 'The "access_control" option is deprecated and will be renamed to "security".');
+        } elseif ('access_control_message' === $key) {
+            $key = 'security_message';
+            trigger_deprecation('api-platform/core', '2.7', 'The "access_control_message" option is deprecated and will be renamed to "security_message".');
         } elseif ('path' === $key) {
             $key = 'uri_template';
             trigger_deprecation('api-platform/core', '2.7', 'The "path" option is deprecated and will be renamed to "uri_template".');
@@ -55,11 +58,18 @@ trait DeprecationMetadataTrait
         } elseif ('route_prefix' === $key) {
             $value = \is_string($value) ? $value : '';
         } elseif ('swagger_context' === $key) {
-            trigger_deprecation('api-platform/core', '2.7', 'The "swagger_context" option is deprecated and will be removed, use openapi_context.');
+            trigger_deprecation('api-platform/core', '2.7', 'The "swagger_context" option is deprecated and will be removed, use "openapi_context".');
 
             return [null, null, true];
         } elseif ('query_parameter_validation_enabled' === $key) {
             $value = !$value ? false : $value;
+        // GraphQl related keys
+        } elseif (\in_array($key, ['collection_query', 'item_query', 'mutation'], true)) {
+            trigger_deprecation('api-platform/core', '2.7', 'To specify a GraphQl resolver use "resolver" instead of "mutation", "item_query" or "collection_query".');
+
+            return [null, null, true];
+        } elseif ('args' === $key) {
+            return [null, null, true];
         }
 
         return [$this->camelCaseToSnakeCaseNameConverter->denormalize($key), $value, false];

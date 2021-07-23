@@ -75,9 +75,8 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException(sprintf('No resource associated to "%s".', $iri));
         }
 
-        $parameters['_api_operation'] = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
+        $operation = $parameters['_api_operation'] = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
         $attributes = AttributesExtractor::extractAttributes($parameters);
-        $operation = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
         $shouldParseCompositeIdentifiers = $operation->getCompositeIdentifier() && \count($operation->getIdentifiers()) > 1;
         $identifiers = [];
         foreach ($operation->getIdentifiers() as $parameterName => $identifiedBy) {
@@ -157,7 +156,7 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException(sprintf('Unable to generate an IRI for the item of type "%s"', $resourceClass), $e->getCode(), $e);
         }
 
-        if (\count($identifiers) > 1 && $operation->getCompositeIdentifier()) {
+        if ($operation->getCompositeIdentifier() && \count($identifiers) > 1) {
             $identifiers = [key($operation->getIdentifiers()) => CompositeIdentifierParser::stringify($identifiers)];
         }
 
@@ -194,15 +193,20 @@ final class IriConverter implements IriConverterInterface
         }
 
         if (!$operation) {
-            $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName, true);
+            $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName, $context['force_collection'] ?? true);
         }
 
         if (!$operation) {
             throw new InvalidArgumentException(sprintf('Unable to find an operation for %s.', $resourceClass));
         }
 
+        $identifiers = $context['identifiers_values'] ?? [];
+        if ($operation->getCompositeIdentifier() && \count($identifiers) > 1) {
+            $identifiers = [key($operation->getIdentifiers()) => CompositeIdentifierParser::stringify($identifiers)];
+        }
+
         try {
-            return $this->router->generate($operation->getName(), $context['identifiers_values'] ?? [], $operation->getUrlGenerationStrategy() ?? $referenceType);
+            return $this->router->generate($operation->getName(), $identifiers, $operation->getUrlGenerationStrategy() ?? $referenceType);
         } catch (RoutingExceptionInterface $e) {
             throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
         }

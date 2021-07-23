@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
@@ -135,7 +136,10 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         return $resources;
     }
 
-    private function getOperationWithDefaults(ApiResource $resource, Operation $operation): array
+    /**
+     * @param Operation|GraphQlOperation $operation
+     */
+    private function getOperationWithDefaults(ApiResource $resource, $operation): array
     {
         foreach ($this->defaults['attributes'] as $key => $value) {
             [$key, $value] = $this->getKeyValue($key, $value);

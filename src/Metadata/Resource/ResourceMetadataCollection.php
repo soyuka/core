@@ -15,6 +15,7 @@ namespace ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\Operation;
 
 /**
@@ -40,14 +41,15 @@ final class ResourceMetadataCollection extends \ArrayObject
 
         $it = $this->getIterator();
         $metadata = null;
+        $operationName = $operationName ?? '';
 
         while ($it->valid()) {
             /** @var ApiResource */
             $metadata = $it->current();
 
             foreach ($metadata->getOperations() as $name => $operation) {
-                if (null === $operationName && \in_array($operation->getMethod(), [Operation::METHOD_GET, Operation::METHOD_OPTIONS, Operation::METHOD_HEAD], true) && ($forceCollection ? $operation->isCollection() : !$operation->isCollection())) {
-                    return $this->operationCache[''] = $operation;
+                if ('' === $operationName && \in_array($operation->getMethod(), [Operation::METHOD_GET, Operation::METHOD_OPTIONS, Operation::METHOD_HEAD], true) && ($forceCollection ? $operation->isCollection() : !$operation->isCollection())) {
+                    return $this->operationCache[$operationName] = $operation;
                 }
 
                 if ($name === $operationName) {
@@ -58,6 +60,39 @@ final class ResourceMetadataCollection extends \ArrayObject
             $it->next();
         }
 
+        $this->handleNotFound($operationName, $metadata);
+    }
+
+    public function getGraphQlOperation(string $operationName): GraphQlOperation
+    {
+        if (isset($this->operationCache['graphql_'.$operationName])) {
+            return $this->operationCache['graphql_'.$operationName];
+        }
+
+        $it = $this->getIterator();
+        $metadata = null;
+
+        while ($it->valid()) {
+            /** @var ApiResource */
+            $metadata = $it->current();
+
+            foreach ($metadata->getGraphQlOperations() ?? [] as $name => $operation) {
+                if ($name === $operationName) {
+                    return $this->operationCache['graphql_'.$operationName] = $operation;
+                }
+            }
+
+            $it->next();
+        }
+
+        $this->handleNotFound($operationName, $metadata);
+    }
+
+    /**
+     * @throws OperationNotFoundException
+     */
+    private function handleNotFound(string $operationName, ?ApiResource $metadata): void
+    {
         // Hide the FQDN in the exception message if possible
         $shortName = $metadata ? $metadata->getShortName() : $this->resourceClass;
         if (!$metadata) {

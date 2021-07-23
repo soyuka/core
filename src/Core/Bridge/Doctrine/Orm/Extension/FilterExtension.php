@@ -21,7 +21,9 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\ORM\QueryBuilder;
 use Psr\Container\ContainerInterface;
 
@@ -60,8 +62,22 @@ final class FilterExtension implements ContextAwareQueryCollectionExtensionInter
             throw new InvalidArgumentException('The "$resourceClass" parameter must not be null');
         }
 
+        /** @var ResourceMetadata|ResourceMetadataCollection */
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
-        $resourceFilters = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true) : $resourceMetadata->getOperation($operationName)->getFilters();
+
+        if ($resourceMetadata instanceof ResourceMetadata) {
+            $resourceFilters = $resourceMetadata->getCollectionOperationAttribute($operationName, 'filters', [], true);
+        } else {
+            try {
+                $operation = isset($context['graphql_operation_name']) ? $resourceMetadata->getGraphQlOperation($operationName) : $resourceMetadata->getOperation($operationName);
+                $resourceFilters = $operation->getFilters();
+            } catch (OperationNotFoundException $e) {
+                // In some cases the operation may not exist
+                if (isset($context['graphql_operation_name'])) {
+                    $resourceFilters = $resourceMetadata->getOperation(null, true)->getFilters();
+                }
+            }
+        }
 
         if (empty($resourceFilters)) {
             return;

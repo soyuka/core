@@ -21,6 +21,7 @@ use ApiPlatform\Core\DataProvider\Pagination;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\ORM\QueryBuilder;
@@ -240,16 +241,19 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $maxItemsPerPage = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_maximum_items_per_page', $maxItemsPerPage ?? $this->maximumItemPerPage, true);
             }
         } elseif ($resourceMetadata instanceof ResourceMetadataCollection) {
-            $operation = $resourceMetadata->getOperation();
-            $itemsPerPage = $operation->getPaginationItemsPerPage();
+            try {
+                $operation = isset($context['graphql_operation_name']) ? $resourceMetadata->getGraphQlOperation($operationName) : $resourceMetadata->getOperation($operationName);
+                $itemsPerPage = $operation->getPaginationItemsPerPage();
+                if ($operation->getPaginationClientItemsPerPage()) {
+                    $maxItemsPerPage = $operation->getPaginationMaximumItemsPerPage() ?? $this->maximumItemPerPage;
+                }
+            } catch (OperationNotFoundException $e) {
+                // In some cases the operation may not exist
+            }
 
             if ($request->attributes->getBoolean('_graphql', false)) {
                 $collectionArgs = $request->attributes->get('_graphql_collections_args', []);
                 $itemsPerPage = $collectionArgs[$resourceClass]['first'] ?? $itemsPerPage;
-            }
-
-            if ($operation->getPaginationClientItemsPerPage()) {
-                $maxItemsPerPage = $operation->getPaginationMaximumItemsPerPage() ?? $this->maximumItemPerPage;
             }
         }
 
@@ -369,8 +373,13 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
             if ($resourceMetadata instanceof ResourceMetadata) {
                 $fetchJoinCollection = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_fetch_join_collection', null, true);
             } elseif ($resourceMetadata instanceof ResourceMetadataCollection) {
-                $operation = $resourceMetadata->getOperation($operationName);
-                $fetchJoinCollection = $operation->getPaginationFetchJoinCollection();
+                try {
+                    $operation = isset($context['graphql_operation_name']) ? $resourceMetadata->getGraphQlOperation($operationName) : $resourceMetadata->getOperation($operationName);
+                    $fetchJoinCollection = $operation->getPaginationFetchJoinCollection();
+                } catch (OperationNotFoundException $e) {
+                    // In some cases the operation may not exist
+                    $fetchJoinCollection = null;
+                }
             }
 
             if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && isset($fetchJoinCollection)) {
@@ -418,8 +427,12 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
             if ($resourceMetadata instanceof ResourceMetadata) {
                 $useOutputWalkers = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_use_output_walkers', null, true);
             } elseif ($resourceMetadata instanceof ResourceMetadataCollection) {
-                $operation = $resourceMetadata->getOperation($operationName);
-                $useOutputWalkers = $operation->getPaginationUseOutputWalkers();
+                try {
+                    $operation = isset($context['graphql_operation_name']) ? $resourceMetadata->getGraphQlOperation($operationName) : $resourceMetadata->getOperation($operationName);
+                    $useOutputWalkers = $operation->getPaginationUseOutputWalkers();
+                } catch (OperationNotFoundException $e) {
+                    // In some cases the operation may not exist
+                }
             }
 
             if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && isset($useOutputWalkers)) {

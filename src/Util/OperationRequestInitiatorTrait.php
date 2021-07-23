@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 trait OperationRequestInitiatorTrait
 {
     /**
-     * @var null|ResourceMetadataCollectionFactoryInterface
+     * @var ResourceMetadataCollectionFactoryInterface|null
      */
     private $resourceMetadataCollectionFactory;
 

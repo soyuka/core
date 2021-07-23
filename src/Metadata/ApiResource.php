@@ -78,7 +78,6 @@ class ApiResource
      * @param string       $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
      * @param bool         $compositeIdentifier
      * @param array        $exceptionToStatus
-     * @param GraphQl|null $graphQl
      */
     public function __construct(
         private ?string $uriTemplate = null,
@@ -138,7 +137,7 @@ class ApiResource
         private ?bool $compositeIdentifier = null,
         private array $exceptionToStatus = [],
         private ?bool $queryParameterValidationEnabled = null,
-        private ?GraphQl $graphQl = null,
+        private ?array $graphQlOperations = null,
         private array $extraProperties = []
     ) {
         $this->operations = new Operations($operations);
@@ -906,15 +905,15 @@ class ApiResource
         return $self;
     }
 
-    public function getGraphQl(): ?GraphQl
+    public function getGraphQlOperations(): ?array
     {
-        return $this->graphQl;
+        return $this->graphQlOperations;
     }
 
-    public function withGraphQl(?GraphQl $graphQl = null): self
+    public function withGraphQlOperations(?array $graphQlOperations = null): self
     {
         $self = clone $this;
-        $self->graphQl = $graphQl;
+        $self->graphQlOperations = $graphQlOperations;
 
         return $self;
     }

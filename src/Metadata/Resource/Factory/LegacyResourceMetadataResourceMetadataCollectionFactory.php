@@ -17,6 +17,9 @@ use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\Subscription;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -65,7 +68,6 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
             ->withDescription($resourceMetadata->getDescription())
             ->withClass($resourceClass)
             ->withTypes([$resourceMetadata->getIri() ?? $resourceMetadata->getShortName()]);
-        // ->withGraphql($resourceMetadata->getGraphql()); // TODO: fix this with graphql
 
         foreach ($attributes as $key => $value) {
             [$key, $value, $hasNoEquivalence] = $this->getKeyValue($key, $value);
@@ -89,7 +91,48 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
             $operations[$operationName] = $operation->withShortName($resourceMetadata->getShortName());
         }
 
-        $resourceMetadataCollection[] = $resource->withOperations($operations);
+        if (!$resourceMetadata->getGraphql()) {
+            // GraphQl can be null or an empty array, an empty array doesn't disable graphql type creation
+            $resourceMetadataCollection[] = $resource->withGraphQlOperations($resourceMetadata->getGraphql())->withOperations($operations);
+
+            return $resourceMetadataCollection;
+        }
+
+        $graphQlOperations = [];
+        foreach ($resourceMetadata->getGraphql() as $operationName => $operation) {
+            if (false !== strpos($operationName, 'query') || isset($operation['item_query']) || isset($operation['collection_query'])) {
+                $graphQlOperation = new Query(collection: isset($operation['collection_query']) || false !== strpos($operationName, 'collection'), name: $operationName);
+            } else {
+                $graphQlOperation = new Mutation(name: $operationName, description: ucfirst("{$operationName}s a {$resourceMetadata->getShortName()}."));
+            }
+
+            $graphQlOperation = $graphQlOperation
+                ->withArgs($operation['args'] ?? null)
+                ->withResolver($operation['item_query'] ?? $operation['collection_query'] ?? $operation['mutation'] ?? null);
+
+            foreach ($operation as $key => $value) {
+                [$key, $value, $hasNoEquivalence] = $this->getKeyValue($key, $value);
+                if ($hasNoEquivalence) {
+                    continue;
+                }
+
+                $graphQlOperation = $graphQlOperation->{'with'.ucfirst($key)}($value);
+            }
+
+            if (null === $graphQlOperation->getCompositeIdentifier()) {
+                $graphQlOperation = $graphQlOperation->withCompositeIdentifier(true);
+            }
+
+            $graphQlOperation = $graphQlOperation->withResource($resource);
+
+            if ('update' === $operationName && $graphQlOperation instanceof Mutation && $graphQlOperation->getMercure()) {
+                $graphQlOperations['update_subscription'] = (new Subscription(name: 'update_subscription', description: "Subscribes to the $operationName event of a {$graphQlOperation->getShortName()}."))->withOperation($graphQlOperation);
+            }
+
+            $graphQlOperations[$operationName] = $graphQlOperation;
+        }
+
+        $resourceMetadataCollection[] = $resource->withOperations($operations)->withGraphQlOperations($graphQlOperations);
 
         return $resourceMetadataCollection;
     }
@@ -108,23 +151,7 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
                 $newOperation = $newOperation->{'with'.ucfirst($key)}($value);
             }
 
-            foreach (get_class_methods($resource) as $methodName) {
-                if (0 !== strpos($methodName, 'get')) {
-                    continue;
-                }
-
-                if (!method_exists($newOperation, $methodName)) {
-                    continue;
-                }
-
-                $operationValue = $newOperation->{$methodName}();
-
-                if (null !== $operationValue && [] !== $operationValue) {
-                    continue;
-                }
-
-                $newOperation = $newOperation->{'with'.substr($methodName, 3)}($resource->{$methodName}());
-            }
+            $newOperation = $newOperation->withResource($resource);
 
             // Default behavior in API Platform < 2.7
             if (null === $newOperation->getCompositeIdentifier()) {

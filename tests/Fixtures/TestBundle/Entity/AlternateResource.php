@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiProperty;
-use ApiPlatform\Metadata\Resource;
+use ApiPlatform\Metadata\Get;
 
-#[Resource]
-#[Resource('/alternate/{id}', identifiers: ['id' => [AlternateResource::class, 'id']])]
+#[Get]
+#[Get('/alternate/{id}', identifiers: ['id' => [AlternateResource::class, 'id']])]
 final class AlternateResource
 {
     #[ApiProperty(identifier: true)]

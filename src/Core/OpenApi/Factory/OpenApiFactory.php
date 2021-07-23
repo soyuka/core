@@ -90,7 +90,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $links = [];
         $schemas = new \ArrayObject();
 
-        foreach ($this->resourceNameCollectionFactory instanceof LegacyResourceNameCollectionFactoryInterface ? $this->resourceNameCollectionFactory->create(true) : $this->resourceNameCollectionFactory->create() as $resourceClass) {
+        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             // Items needs to be parsed first to be able to reference the lines from the collection operation

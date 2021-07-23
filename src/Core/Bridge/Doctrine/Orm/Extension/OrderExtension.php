@@ -17,6 +17,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryBuilderHelper;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\ORM\QueryBuilder;
 
@@ -61,7 +62,13 @@ final class OrderExtension implements ContextAwareQueryCollectionExtensionInterf
         $identifiers = $classMetaData->getIdentifier();
         if (null !== $this->resourceMetadataFactory) {
             if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-                $defaultOrder = $this->resourceMetadataFactory->create($resourceClass)->getOperation($operationName)->getOrder();
+                $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
+                try {
+                    $defaultOrder = isset($context['graphql_operation_name']) ? $resourceMetadataCollection->getGraphQlOperation($operationName)->getOrder() : $resourceMetadataCollection->getOperation($operationName)->getOrder();
+                } catch (OperationNotFoundException $e) {
+                    // In some cases the operation may not exist
+                    $defaultOrder = [];
+                }
             } else {
                 // TODO: remove in 3.0
                 $defaultOrder = $this->resourceMetadataFactory->create($resourceClass)->getCollectionOperationAttribute($operationName, 'order', [], true);

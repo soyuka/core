@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Doctrine\Orm\Util;
 
+use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +21,8 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 /**
  * @author Antoine Bluchet <soyuka@gmail.com>
+ *
+ * TODO: remove in 3.0.
  *
  * @internal
  */
@@ -29,7 +32,7 @@ trait EagerLoadingTrait
     private $fetchPartial;
 
     /**
-     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface 
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface
      */
     private $resourceMetadataFactory;
 
@@ -39,7 +42,7 @@ trait EagerLoadingTrait
     private function shouldOperationForceEager(string $resourceClass, array $options): bool
     {
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            return $this->resourceMetadataFactory->create($resourceClass)->getOperation($options['operation_name'] ?? null)->getForceEager() ?? $this->forceEager;
+            throw new RuntimeException('Method should not be called.');
         }
 
         return $this->getBooleanOperationAttribute($resourceClass, $options, 'force_eager', $this->forceEager);
@@ -51,7 +54,7 @@ trait EagerLoadingTrait
     private function shouldOperationFetchPartial(string $resourceClass, array $options): bool
     {
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            return $this->resourceMetadataFactory->create($resourceClass)->getOperation($options['operation_name'] ?? null)->getFetchPartial() ?? $this->fetchPartial;
+            throw new RuntimeException('Method should not be called.');
         }
 
         return $this->getBooleanOperationAttribute($resourceClass, $options, 'fetch_partial', $this->fetchPartial);
@@ -59,7 +62,6 @@ trait EagerLoadingTrait
 
     /**
      * Get the boolean attribute of an operation or the resource metadata.
-     * TODO: remove in 3.0.
      */
     private function getBooleanOperationAttribute(string $resourceClass, array $options, string $attributeName, bool $default): bool
     {

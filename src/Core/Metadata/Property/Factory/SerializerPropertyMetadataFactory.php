@@ -58,11 +58,16 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
             $resourceClass = $childResourceClass;
         }
 
-        try {
-            [$normalizationGroups, $denormalizationGroups] = $this->getEffectiveSerializerGroups($options, $resourceClass);
-        } catch (ResourceClassNotFoundException $e) {
-            // TODO: for input/output classes, the serializer groups must be read from the actual resource class
-            return $propertyMetadata;
+        if (\array_key_exists('normalization_groups', $options) && \array_key_exists('denormalization_groups', $options)) {
+            $normalizationGroups = $options['normalization_groups'] ?? null;
+            $denormalizationGroups = $options['denormalization_groups'] ?? null;
+        } else {
+            try {
+                [$normalizationGroups, $denormalizationGroups] = $this->getEffectiveSerializerGroups($options, $resourceClass);
+            } catch (ResourceClassNotFoundException $e) {
+                // TODO: for input/output classes, the serializer groups must be read from the actual resource class
+                return $propertyMetadata;
+            }
         }
 
         $propertyMetadata = $this->transformReadWrite($propertyMetadata, $resourceClass, $property, $normalizationGroups, $denormalizationGroups);
@@ -171,6 +176,7 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
             return [$groups, $groups];
         }
 
+        // TODO: do an operation factory
         if (isset($options['operation_name'])) {
             $operation = $this->router->getRouteCollection()->get($options['operation_name']);
 

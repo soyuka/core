@@ -13,13 +13,16 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\GraphQl;
 
+use ApiPlatform\Metadata\WithResourceTrait;
+
 class Operation
 {
+    use WithResourceTrait;
+
     /**
-     * @param string            $query
-     * @param string            $mutation
+     * @param string            $resolver
      * @param bool              $collection
-     * @param array             $args
+     * @param array|null        $args
      * @param string            $shortName
      * @param string            $class
      * @param array             $identifiers
@@ -58,10 +61,9 @@ class Operation
      * @param bool              $forceEager
      */
     public function __construct(
-        protected ?string $query = null,
-        protected ?string $mutation = null,
+        protected ?string $resolver = null,
         protected bool $collection = false,
-        protected array $args = [],
+        protected ?array $args = null,
         protected ?string $shortName = null,
         protected ?string $class = null,
         protected mixed $identifiers = [],
@@ -106,28 +108,20 @@ class Operation
     ) {
     }
 
-    public function getQuery(): ?string
+    public function withOperation(self $operation): self
     {
-        return $this->query;
+        return $this->copyFrom($operation);
     }
 
-    public function withQuery(?string $query = null): self
+    public function getResolver(): ?string
+    {
+        return $this->resolver;
+    }
+
+    public function withResolver(?string $resolver = null): self
     {
         $self = clone $this;
-        $self->query = $query;
-
-        return $self;
-    }
-
-    public function getMutation(): ?string
-    {
-        return $this->mutation;
-    }
-
-    public function withMutation(?string $mutation = null): self
-    {
-        $self = clone $this;
-        $self->mutation = $mutation;
+        $self->resolver = $resolver;
 
         return $self;
     }
@@ -145,12 +139,12 @@ class Operation
         return $self;
     }
 
-    public function getArgs(): array
+    public function getArgs(): ?array
     {
         return $this->args;
     }
 
-    public function withArgs(array $args = []): self
+    public function withArgs(?array $args = null): self
     {
         $self = clone $this;
         $self->args = $args;

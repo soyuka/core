@@ -130,7 +130,6 @@ class SearchFilter extends AbstractContextAwareFilter implements SearchFilterInt
             return;
         }
 
-        dump($values);
         $values = array_map([$this, 'getIdFromValue'], $values);
         $associationFieldIdentifier = 'id';
         $doctrineTypeField = $this->getDoctrineFieldType($property, $resourceClass);

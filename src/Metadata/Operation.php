@@ -15,6 +15,8 @@ namespace ApiPlatform\Metadata;
 
 class Operation
 {
+    use WithResourceTrait;
+
     public const METHOD_GET = 'GET';
     public const METHOD_POST = 'POST';
     public const METHOD_PUT = 'PUT';
@@ -24,68 +26,68 @@ class Operation
     public const METHOD_OPTIONS = 'OPTIONS';
 
     /**
-     * @param string       $method
-     * @param string       $uriTemplate
-     * @param string       $shortName
-     * @param string       $description
-     * @param array        $types
-     * @param array|string $formats                        https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array|string $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array|string $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array        $identifiers
-     * @param string       $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
-     * @param string       $routeName
-     * @param array        $defaults
-     * @param array        $requirements
-     * @param array        $options
-     * @param bool         $stateless
-     * @param string       $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
-     * @param string       $acceptPatch
-     * @param int|null     $status
-     * @param string       $host
-     * @param array        $schemes
-     * @param string       $condition
-     * @param string       $controller
-     * @param string       $class
-     * @param int          $urlGenerationStrategy
-     * @param bool         $collection
-     * @param string       $deprecationReason              https://api-platform.com/docs/core/deprecations/#deprecating-resource-classes-operations-and-properties
-     * @param array        $cacheHeaders                   https://api-platform.com/docs/core/performance/#setting-custom-http-cache-headers
-     * @param array        $normalizationContext           https://api-platform.com/docs/core/serialization/#using-serialization-groups
-     * @param array        $denormalizationContext         https://api-platform.com/docs/core/serialization/#using-serialization-groups
-     * @param string[]     $hydraContext                   https://api-platform.com/docs/core/extending-jsonld-context/#hydra
-     * @param array        $openapiContext                 https://api-platform.com/docs/core/openapi/#using-the-openapi-and-swagger-contexts
-     * @param array        $swaggerContext                 https://api-platform.com/docs/core/openapi/#using-the-openapi-and-swagger-contexts
-     * @param string[]     $filters                        https://api-platform.com/docs/core/filters/#doctrine-orm-and-mongodb-odm-filters
-     * @param bool         $elasticsearch                  https://api-platform.com/docs/core/elasticsearch/
-     * @param bool|array   $mercure                        https://api-platform.com/docs/core/mercure
-     * @param bool         $messenger                      https://api-platform.com/docs/core/messenger/#dispatching-a-resource-through-the-message-bus
-     * @param mixed        $input                          https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
-     * @param mixed        $output                         https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
-     * @param array        $order                          https://api-platform.com/docs/core/default-order/#overriding-default-order
-     * @param bool         $fetchPartial                   https://api-platform.com/docs/core/performance/#fetch-partial
-     * @param bool         $forceEager                     https://api-platform.com/docs/core/performance/#force-eager
-     * @param bool         $paginationClientEnabled        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-1
-     * @param bool         $paginationClientItemsPerPage   https://api-platform.com/docs/core/pagination/#for-a-specific-resource-3
-     * @param bool         $paginationClientPartial        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-6
-     * @param array        $paginationViaCursor            https://api-platform.com/docs/core/pagination/#cursor-based-pagination
-     * @param bool         $paginationEnabled              https://api-platform.com/docs/core/pagination/#for-a-specific-resource
-     * @param bool         $paginationFetchJoinCollection  https://api-platform.com/docs/core/pagination/#controlling-the-behavior-of-the-doctrine-orm-paginator
-     * @param int          $paginationItemsPerPage         https://api-platform.com/docs/core/pagination/#changing-the-number-of-items-per-page
-     * @param int          $paginationMaximumItemsPerPage  https://api-platform.com/docs/core/pagination/#changing-maximum-items-per-page
-     * @param bool         $paginationPartial              https://api-platform.com/docs/core/performance/#partial-pagination
-     * @param string       $paginationType                 https://api-platform.com/docs/core/graphql/#using-the-page-based-pagination
-     * @param string       $security                       https://api-platform.com/docs/core/security
-     * @param string       $securityMessage                https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
-     * @param string       $securityPostDenormalize        https://api-platform.com/docs/core/security/#executing-access-control-rules-after-denormalization
-     * @param string       $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
-     * @param bool         $compositeIdentifier
-     * @param GraphQl|null $graphQl
-     * @param bool         $read                           https://api-platform.com/docs/core/events/#the-event-system
-     * @param bool         $deserialize                    https://api-platform.com/docs/core/events/#the-event-system
-     * @param bool         $validate                       https://api-platform.com/docs/core/events/#the-event-system
-     * @param bool         $write                          https://api-platform.com/docs/core/events/#the-event-system
-     * @param bool         $serialize                      https://api-platform.com/docs/core/events/#the-event-system
+     * @param string          $method
+     * @param string          $uriTemplate
+     * @param string          $shortName
+     * @param string          $description
+     * @param array           $types
+     * @param array|string    $formats                        https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
+     * @param array|string    $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
+     * @param array|string    $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
+     * @param array           $identifiers
+     * @param string          $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
+     * @param string          $routeName
+     * @param array           $defaults
+     * @param array           $requirements
+     * @param array           $options
+     * @param bool            $stateless
+     * @param string          $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
+     * @param string          $acceptPatch
+     * @param string|int|null $status
+     * @param string          $host
+     * @param array           $schemes
+     * @param string          $condition
+     * @param string          $controller
+     * @param string          $class
+     * @param int             $urlGenerationStrategy
+     * @param bool            $collection
+     * @param string          $deprecationReason              https://api-platform.com/docs/core/deprecations/#deprecating-resource-classes-operations-and-properties
+     * @param array           $cacheHeaders                   https://api-platform.com/docs/core/performance/#setting-custom-http-cache-headers
+     * @param array           $normalizationContext           https://api-platform.com/docs/core/serialization/#using-serialization-groups
+     * @param array           $denormalizationContext         https://api-platform.com/docs/core/serialization/#using-serialization-groups
+     * @param string[]        $hydraContext                   https://api-platform.com/docs/core/extending-jsonld-context/#hydra
+     * @param array           $openapiContext                 https://api-platform.com/docs/core/openapi/#using-the-openapi-and-swagger-contexts
+     * @param array           $swaggerContext                 https://api-platform.com/docs/core/openapi/#using-the-openapi-and-swagger-contexts
+     * @param string[]        $filters                        https://api-platform.com/docs/core/filters/#doctrine-orm-and-mongodb-odm-filters
+     * @param bool            $elasticsearch                  https://api-platform.com/docs/core/elasticsearch/
+     * @param bool|array      $mercure                        https://api-platform.com/docs/core/mercure
+     * @param bool            $messenger                      https://api-platform.com/docs/core/messenger/#dispatching-a-resource-through-the-message-bus
+     * @param mixed           $input                          https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
+     * @param mixed           $output                         https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
+     * @param array           $order                          https://api-platform.com/docs/core/default-order/#overriding-default-order
+     * @param bool            $fetchPartial                   https://api-platform.com/docs/core/performance/#fetch-partial
+     * @param bool            $forceEager                     https://api-platform.com/docs/core/performance/#force-eager
+     * @param bool            $paginationClientEnabled        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-1
+     * @param bool            $paginationClientItemsPerPage   https://api-platform.com/docs/core/pagination/#for-a-specific-resource-3
+     * @param bool            $paginationClientPartial        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-6
+     * @param array           $paginationViaCursor            https://api-platform.com/docs/core/pagination/#cursor-based-pagination
+     * @param bool            $paginationEnabled              https://api-platform.com/docs/core/pagination/#for-a-specific-resource
+     * @param bool            $paginationFetchJoinCollection  https://api-platform.com/docs/core/pagination/#controlling-the-behavior-of-the-doctrine-orm-paginator
+     * @param bool            $paginationUseOutputWalkers
+     * @param int             $paginationItemsPerPage         https://api-platform.com/docs/core/pagination/#changing-the-number-of-items-per-page
+     * @param int             $paginationMaximumItemsPerPage  https://api-platform.com/docs/core/pagination/#changing-maximum-items-per-page
+     * @param bool            $paginationPartial              https://api-platform.com/docs/core/performance/#partial-pagination
+     * @param string          $paginationType                 https://api-platform.com/docs/core/graphql/#using-the-page-based-pagination
+     * @param string          $security                       https://api-platform.com/docs/core/security
+     * @param string          $securityMessage                https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
+     * @param string          $securityPostDenormalize        https://api-platform.com/docs/core/security/#executing-access-control-rules-after-denormalization
+     * @param string          $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
+     * @param bool            $compositeIdentifier
+     * @param bool            $read                           https://api-platform.com/docs/core/events/#the-event-system
+     * @param bool            $deserialize                    https://api-platform.com/docs/core/events/#the-event-system
+     * @param bool            $validate                       https://api-platform.com/docs/core/events/#the-event-system
+     * @param bool            $write                          https://api-platform.com/docs/core/events/#the-event-system
+     * @param bool            $serialize                      https://api-platform.com/docs/core/events/#the-event-system
      */
     public function __construct(
         protected string $method = self::METHOD_GET,
@@ -148,7 +150,6 @@ class Operation
         protected ?bool $compositeIdentifier = null,
         protected array $exceptionToStatus = [],
         protected ?bool $queryParameterValidationEnabled = null,
-        protected ?GraphQl $graphQl = null,
         protected bool $read = true,
         protected bool $deserialize = true,
         protected bool $validate = true,
@@ -160,6 +161,11 @@ class Operation
         protected string $name = '',
         protected array $extraProperties = []
     ) {
+    }
+
+    public function withOperation(self $operation): self
+    {
+        return $this->copyFrom($operation);
     }
 
     public function getName(): string
@@ -972,19 +978,6 @@ class Operation
     {
         $self = clone $this;
         $self->queryParameterValidationEnabled = $queryParameterValidationEnabled;
-
-        return $self;
-    }
-
-    public function getGraphQl(): ?GraphQl
-    {
-        return $this->graphQl;
-    }
-
-    public function withGraphQl(?GraphQl $graphQl = null): self
-    {
-        $self = clone $this;
-        $self->graphQl = $graphQl;
 
         return $self;
     }
