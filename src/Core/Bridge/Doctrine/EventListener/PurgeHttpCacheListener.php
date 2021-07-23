@@ -18,6 +18,7 @@ use ApiPlatform\Core\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\HttpCache\PurgerInterface;
+use ApiPlatform\Exception\OperationNotFoundException;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -118,6 +119,7 @@ final class PurgeHttpCacheListener
                 $this->addTagForItem($entity);
             }
         } catch (InvalidArgumentException $e) {
+        } catch (OperationNotFoundException $e) {
         }
     }
 

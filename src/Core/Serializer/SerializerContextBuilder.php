@@ -53,22 +53,26 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         // TODO: 3.0 change the condition to remove the ResourceMetadataFactorym only used to skip null values
         if (
             $this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface
-            && isset($attributes['operation_name']) && isset($attributes['operation'])
+            && isset($attributes['operation_name'])
         ) {
-            $context = $normalization ? $attributes['operation']->getNormalizationContext() : $attributes['operation']->getDenormalizationContext();
+            $operation = $attributes['operation'] ?? $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
+            $context = $normalization ? $operation->getNormalizationContext() : $operation->getDenormalizationContext();
             $context['operation_name'] = $attributes['operation_name'];
-            $context['operation'] = $attributes['operation'];
+            $context['operation'] = $operation;
             $context['resource_class'] = $attributes['resource_class'];
             // TODO: 3.0 becomes true by default
             $context['skip_null_values'] = $context['skip_null_values'] ?? $this->shouldSkipNullValues($attributes['resource_class'], $attributes['operation_name']);
             // TODO: remove in 3.0, operation type will not exist anymore
-            $context['operation_type'] = $attributes['operation']->isCollection() ? OperationType::ITEM : OperationType::COLLECTION;
+            $context['operation_type'] = $operation->isCollection() ? OperationType::ITEM : OperationType::COLLECTION;
             $context['iri_only'] = $context['iri_only'] ?? false;
             $context['request_uri'] = $request->getRequestUri();
             $context['uri'] = $request->getUri();
-
+            $context['input'] = $operation->getInput();
+            $context['output'] = $operation->getOutput();
+            $context['types'] = $operation->getTypes();
             $context['identifiers_values'] = [];
-            foreach (array_keys($attributes['operation']->getIdentifiers()) as $parameterName) {
+
+            foreach (array_keys($operation->getIdentifiers()) as $parameterName) {
                 $context['identifiers_values'][$parameterName] = $request->attributes->get($parameterName);
             }
 
@@ -102,24 +106,12 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             $operationType = OperationType::SUBRESOURCE;
         }
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            $operation = $resourceMetadata->getOperation($attributes['operation_name']);
-            $context = $normalization ? $operation->getNormalizationContext() : $operation->getDenormalizationContext();
-            $context['operation_name'] = $attributes['operation_name'];
-            $context['operation'] = $operation;
-            // TODO: use $context['operation'] instead?
-            $context['iri_only'] = $operation->getNormalizationContext()['iri_only'] ?? false;
-            $context['input'] = $operation->getInput();
-            $context['output'] = $operation->getOutput();
-            $context['types'] = $operation->getTypes();
-        } else {
-            $context = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], $key, [], true);
-            $context['operation_type'] = $operationType;
-            $context[$operationKey] = $attributes[$operationKey];
-            $context['iri_only'] = $resourceMetadata->getAttribute('normalization_context')['iri_only'] ?? false;
-            $context['input'] = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], 'input', null, true);
-            $context['output'] = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], 'output', null, true);
-        }
+        $context = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], $key, [], true);
+        $context['operation_type'] = $operationType;
+        $context[$operationKey] = $attributes[$operationKey];
+        $context['iri_only'] = $resourceMetadata->getAttribute('normalization_context')['iri_only'] ?? false;
+        $context['input'] = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], 'input', null, true);
+        $context['output'] = $resourceMetadata->getTypedOperationAttribute($operationType, $attributes[$operationKey], 'output', null, true);
 
         if (!$normalization) {
             if (!isset($context['api_allow_update'])) {

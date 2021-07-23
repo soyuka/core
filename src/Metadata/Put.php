@@ -68,6 +68,7 @@ class Put extends Operation
         array $paginationViaCursor = [],
         ?bool $paginationEnabled = null,
         ?bool $paginationFetchJoinCollection = null,
+        ?bool $paginationUseOutputWalkers = null,
         ?int $paginationItemsPerPage = null,
         ?int $paginationMaximumItemsPerPage = null,
         ?bool $paginationPartial = null,

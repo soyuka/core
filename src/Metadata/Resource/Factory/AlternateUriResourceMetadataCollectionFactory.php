@@ -33,7 +33,7 @@ final class AlternateUriResourceMetadataCollectionFactory implements ResourceMet
      */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        $resourceMetadataCollection = new ResourceMetadataCollection();
+        $resourceMetadataCollection = new ResourceMetadataCollection($resourceClass);
         if ($this->decorated) {
             $resourceMetadataCollection = $this->decorated->create($resourceClass);
         }
@@ -52,6 +52,6 @@ final class AlternateUriResourceMetadataCollectionFactory implements ResourceMet
             $resourceMetadataCollection[$i] = $resource->withOperations($operations);
         }
 
-        return new ResourceMetadataCollection($resourceMetadataCollection);
+        return $resourceMetadataCollection;
     }
 }

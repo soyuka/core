@@ -37,7 +37,7 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
      */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        $resourceMetadataCollection = new ResourceMetadataCollection();
+        $resourceMetadataCollection = new ResourceMetadataCollection($resourceClass);
         if ($this->decorated) {
             $resourceMetadataCollection = $this->decorated->create($resourceClass);
         }
@@ -71,7 +71,7 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
             $resourceMetadataCollection[$i] = $resource;
         }
 
-        return new ResourceMetadataCollection($resourceMetadataCollection);
+        return $resourceMetadataCollection;
     }
 
     private function generateUriTemplate(Operation $operation): string

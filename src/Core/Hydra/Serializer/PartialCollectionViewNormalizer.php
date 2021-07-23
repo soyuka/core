@@ -92,7 +92,7 @@ final class PartialCollectionViewNormalizer implements NormalizerInterface, Norm
         if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && isset($context['resource_class']) && $paginated) {
             $metadata = $this->resourceMetadataFactory->create($context['resource_class']);
             $isPaginatedWithCursor = null !== $cursorPaginationAttribute = $metadata->getCollectionOperationAttribute($context['collection_operation_name'] ?? $context['subresource_operation_name'], 'pagination_via_cursor', null, true);
-        } else if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && isset($context['resource_class']) && $paginated) {
+        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && isset($context['resource_class']) && $paginated) {
             $operation = $this->resourceMetadataFactory->create($context['resource_class'])->getOperation($context['operation_name'] ?? null);
             $isPaginatedWithCursor = [] !== $cursorPaginationAttribute = $operation->getPaginationViaCursor();
         }

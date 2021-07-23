@@ -136,6 +136,7 @@ class Operation
         protected array $paginationViaCursor = [],
         protected ?bool $paginationEnabled = null,
         protected ?bool $paginationFetchJoinCollection = null,
+        protected ?bool $paginationUseOutputWalkers = null,
         protected ?int $paginationItemsPerPage = null,
         protected ?int $paginationMaximumItemsPerPage = null,
         protected ?bool $paginationPartial = null,
@@ -815,6 +816,19 @@ class Operation
     {
         $self = clone $this;
         $self->paginationFetchJoinCollection = $paginationFetchJoinCollection;
+
+        return $self;
+    }
+
+    public function getPaginationUseOutputWalkers(): ?bool
+    {
+        return $this->paginationUseOutputWalkers;
+    }
+
+    public function withPaginationUseOutputWalkers(?bool $paginationUseOutputWalkers = null): self
+    {
+        $self = clone $this;
+        $self->paginationUseOutputWalkers = $paginationUseOutputWalkers;
 
         return $self;
     }

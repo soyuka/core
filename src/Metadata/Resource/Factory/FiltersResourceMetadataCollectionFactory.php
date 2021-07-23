@@ -45,7 +45,7 @@ final class FiltersResourceMetadataCollectionFactory implements ResourceMetadata
      */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        $resourceMetadataCollection = new ResourceMetadataCollection();
+        $resourceMetadataCollection = new ResourceMetadataCollection($resourceClass);
 
         if ($this->decorated) {
             $resourceMetadataCollection = $this->decorated->create($resourceClass);
@@ -59,15 +59,11 @@ final class FiltersResourceMetadataCollectionFactory implements ResourceMetadata
 
         $filters = array_keys($this->readFilterAnnotations($reflectionClass, $this->reader));
 
-        if (!$filters) {
-            return $resourceMetadataCollection;
-        }
-
         foreach ($resourceMetadataCollection as $i => $resource) {
             $operations = iterator_to_array($resource->getOperations());
 
             foreach ($resource->getOperations() as $operationName => $operation) {
-                $operations[$operationName] = $operation->withFilters($filters);
+                $operations[$operationName] = $operation->withFilters(array_unique(array_merge($resource->getFilters(), $operation->getFilters(), $filters)));
             }
 
             $resourceMetadataCollection[$i] = $resource->withOperations($operations);

@@ -23,7 +23,14 @@ use ApiPlatform\Metadata\Operation;
  */
 final class ResourceMetadataCollection extends \ArrayObject
 {
-    private $operationCache = [];
+    private array $operationCache = [];
+    private string $resourceClass;
+
+    public function __construct(string $resourceClass)
+    {
+        $this->resourceClass = $resourceClass;
+        parent::__construct();
+    }
 
     public function getOperation(?string $operationName = null, bool $forceCollection = false): Operation
     {
@@ -32,6 +39,7 @@ final class ResourceMetadataCollection extends \ArrayObject
         }
 
         $it = $this->getIterator();
+        $metadata = null;
 
         while ($it->valid()) {
             /** @var resource */
@@ -50,6 +58,14 @@ final class ResourceMetadataCollection extends \ArrayObject
             $it->next();
         }
 
-        throw new OperationNotFoundException(sprintf('Operation "%s" not found for resource "%s".', $operationName, $metadata->getShortName()));
+        // Hide the FQDN in the exception message if possible
+        $shortName = $metadata ? $metadata->getShortName() : $this->resourceClass;
+        if (!$metadata) {
+            if (false !== $pos = strrpos($shortName, '\\')) {
+                $shortName = substr($shortName, $pos + 1);
+            }
+        }
+
+        throw new OperationNotFoundException(sprintf('Operation "%s" not found for resource "%s".', $operationName, $shortName));
     }
 }

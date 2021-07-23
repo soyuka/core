@@ -125,6 +125,7 @@ class ApiResource
         private ?array $paginationViaCursor = [],
         private ?bool $paginationEnabled = null,
         private ?bool $paginationFetchJoinCollection = null,
+        private ?bool $paginationUseOutputWalkers = null,
         private ?int $paginationItemsPerPage = null,
         private ?int $paginationMaximumItemsPerPage = null,
         private ?bool $paginationPartial = null,
@@ -747,6 +748,19 @@ class ApiResource
     {
         $self = clone $this;
         $self->paginationFetchJoinCollection = $paginationFetchJoinCollection;
+
+        return $self;
+    }
+
+    public function getPaginationUseOutputWalkers(): ?bool
+    {
+        return $this->paginationUseOutputWalkers;
+    }
+
+    public function withPaginationUseOutputWalkers(?bool $paginationUseOutputWalkers = null): self
+    {
+        $self = clone $this;
+        $self->paginationUseOutputWalkers = $paginationUseOutputWalkers;
 
         return $self;
     }

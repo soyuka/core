@@ -37,7 +37,7 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
 
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        $resourceMetadataCollection = new ResourceMetadataCollection();
+        $resourceMetadataCollection = new ResourceMetadataCollection($resourceClass);
         if ($this->decorated) {
             $resourceMetadataCollection = $this->decorated->create($resourceClass);
         }

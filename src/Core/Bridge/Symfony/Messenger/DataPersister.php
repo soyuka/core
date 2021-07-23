@@ -15,9 +15,10 @@ namespace ApiPlatform\Core\Bridge\Symfony\Messenger;
 
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Exception\OperationNotFoundException;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
@@ -34,12 +35,19 @@ final class DataPersister implements ContextAwareDataPersisterInterface
     use ClassInfoTrait;
     use DispatchTrait;
 
+    /**
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface
+     */
     private $resourceMetadataFactory;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, MessageBusInterface $messageBus)
+    public function __construct($resourceMetadataFactory, MessageBusInterface $messageBus)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->messageBus = $messageBus;
+
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        }
     }
 
     /**
@@ -47,12 +55,18 @@ final class DataPersister implements ContextAwareDataPersisterInterface
      */
     public function supports($data, array $context = []): bool
     {
-        try {
-            $resourceMetadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
-        } catch (ResourceClassNotFoundException $e) {
-            return false;
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            try {
+                $resourceMetadataCollection = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
+                $operation = $resourceMetadataCollection->getOperation($context['operation_name'] ?? null);
+
+                return false !== ($operation->getMessenger() ?? false);
+            } catch (OperationNotFoundException $e) {
+                return false;
+            }
         }
 
+        $resourceMetadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
         if (null !== $operationName = $context['collection_operation_name'] ?? $context['item_operation_name'] ?? null) {
             return false !== $resourceMetadata->getTypedOperationAttribute(
                 $context['collection_operation_name'] ?? false ? OperationType::COLLECTION : OperationType::ITEM,

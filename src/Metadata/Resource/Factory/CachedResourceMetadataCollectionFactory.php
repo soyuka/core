@@ -55,7 +55,7 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
             return $this->localCache[$cacheKey] = $this->decorated->create($resourceClass);
         }
 
-        $resourceCollection = new ResourceMetadataCollection();
+        $resourceCollection = new ResourceMetadataCollection($resourceClass);
         if ($hasHit = $cacheCollection->isHit()) {
             $resourceCount = $cacheCollection->get();
             for ($i = 0; $i <= $resourceCount; ++$i) {
