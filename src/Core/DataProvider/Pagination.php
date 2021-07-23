@@ -124,6 +124,7 @@ final class Pagination
         $limit = $this->options['items_per_page'];
         $clientLimit = $this->options['client_items_per_page'];
 
+        $resourceMetadata = null;
         if (null !== $resourceClass) {
             /**
              * @var ResourceMetadata|ResourceMetadataCollection

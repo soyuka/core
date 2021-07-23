@@ -86,9 +86,9 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $entrypointProperties = [];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
-            $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
+            $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
-            if ($resourceMetadataCollection instanceof ResourceMetadata) {
+            if ($resourceMetadata instanceof ResourceMetadata) {
                 $shortName = $resourceMetadata->getShortName();
                 $prefixedShortName = $resourceMetadata->getIri() ?? "#$shortName";
 
@@ -97,12 +97,12 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
                 continue;
             }
 
-            foreach ($resourceMetadataCollection as $resourceMetadata) {
-                $shortName = $resourceMetadata->getShortName();
-                $prefixedShortName = '#'.($resourceMetadata->getTypes()[0] ?? $shortName);
-                $resourceMetadata = $this->transformResourceToResourceMetadata($resourceMetadata);
-                $this->populateEntrypointProperties($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $entrypointProperties);
-                $classes[] = $this->getClass($resourceClass, $resourceMetadata, $shortName, $prefixedShortName, $context);
+            foreach ($resourceMetadata as $resourceMetadatum) {
+                $shortName = $resourceMetadatum->getShortName();
+                $prefixedShortName = '#'.($resourceMetadatum->getTypes()[0] ?? $shortName);
+                $resourceMetadatum = $this->transformResourceToResourceMetadata($resourceMetadatum);
+                $this->populateEntrypointProperties($resourceClass, $resourceMetadatum, $shortName, $prefixedShortName, $entrypointProperties);
+                $classes[] = $this->getClass($resourceClass, $resourceMetadatum, $shortName, $prefixedShortName, $context);
             }
         }
 

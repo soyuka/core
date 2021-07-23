@@ -22,6 +22,9 @@ trait DeprecationMetadataTrait
 {
     private $camelCaseToSnakeCaseNameConverter;
 
+    /**
+     * @param string $key
+     */
     public function getKeyValue($key, $value)
     {
         if (!$this->camelCaseToSnakeCaseNameConverter) {

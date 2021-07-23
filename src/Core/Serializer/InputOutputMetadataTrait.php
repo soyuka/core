@@ -36,7 +36,7 @@ trait InputOutputMetadataTrait
         }
 
         $operation = $context['operation'] ?? null;
-        if (!$operation && $this->resourceMetadataFactory) {
+        if (null === $operation && null !== $this->resourceMetadataFactory) {
             try {
                 $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {
@@ -58,7 +58,7 @@ trait InputOutputMetadataTrait
         }
 
         $operation = $context['operation'] ?? null;
-        if (!$operation && $this->resourceMetadataFactory) {
+        if (null === $operation && null !== $this->resourceMetadataFactory) {
             try {
                 $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {

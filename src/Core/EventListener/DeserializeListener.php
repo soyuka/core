@@ -111,7 +111,7 @@ final class DeserializeListener
         if (!$formats) {
             // BC check to be removed in 3.0
             if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-                trigger_deprecation('When using a "route_name", be sure to define the "_api_operation" route defaults as we will not rely on metadata in API Platform 3.0.', \E_USER_DEPRECATED);
+                @trigger_error('When using a "route_name", be sure to define the "_api_operation" route defaults as we will not rely on metadata in API Platform 3.0.', \E_USER_DEPRECATED);
                 $formats = $this->resourceMetadataFactory
                     ->create($attributes['resource_class'])
                     ->getOperationAttribute($attributes, 'input_formats', [], true);

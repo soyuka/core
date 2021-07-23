@@ -133,7 +133,7 @@ final class ApiProperty
     /**
      * @return string|null
      */
-    public function getDeprecationReason(): string
+    public function getDeprecationReason(): ?string
     {
         return $this->deprecationReason;
     }
@@ -141,7 +141,7 @@ final class ApiProperty
     /**
      * @return bool|null
      */
-    public function getFetchable(): bool
+    public function getFetchable(): ?bool
     {
         return $this->fetchable;
     }
@@ -149,7 +149,7 @@ final class ApiProperty
     /**
      * @return bool|null
      */
-    public function getFetchEager(): bool
+    public function getFetchEager(): ?bool
     {
         return $this->fetchEager;
     }
@@ -157,7 +157,7 @@ final class ApiProperty
     /**
      * @return array|null
      */
-    public function getJsonldContext(): array
+    public function getJsonldContext(): ?array
     {
         return $this->jsonldContext;
     }
@@ -165,7 +165,7 @@ final class ApiProperty
     /**
      * @return array|null
      */
-    public function getOpenapiContext(): array
+    public function getOpenapiContext(): ?array
     {
         return $this->openapiContext;
     }
@@ -173,7 +173,7 @@ final class ApiProperty
     /**
      * @return bool|null
      */
-    public function getPush(): bool
+    public function getPush(): ?bool
     {
         return $this->push;
     }
@@ -181,7 +181,7 @@ final class ApiProperty
     /**
      * @return string|null
      */
-    public function getSecurity(): string
+    public function getSecurity(): ?string
     {
         return $this->security;
     }
@@ -189,7 +189,7 @@ final class ApiProperty
     /**
      * @return string|null
      */
-    public function getSecurityPostDenormalize(): string
+    public function getSecurityPostDenormalize(): ?string
     {
         return $this->securityPostDenormalize;
     }

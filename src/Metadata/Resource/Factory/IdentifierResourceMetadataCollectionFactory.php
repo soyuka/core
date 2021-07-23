@@ -42,10 +42,7 @@ final class IdentifierResourceMetadataCollectionFactory implements ResourceMetad
      */
     public function create(string $resourceClass): ResourceMetadataCollection
     {
-        $resourceMetadataCollection = new ResourceMetadataCollection($resourceClass);
-        if ($this->decorated) {
-            $resourceMetadataCollection = $this->decorated->create($resourceClass);
-        }
+        $resourceMetadataCollection = $this->decorated->create($resourceClass);
 
         $identifiers = null;
         foreach ($resourceMetadataCollection as $i => $resource) {

@@ -20,6 +20,7 @@ use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 use ApiPlatform\Core\Exception\InvalidIdentifierException;
 use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Identifier\CompositeIdentifierParser;
+use ApiPlatform\Core\Identifier\ContextAwareIdentifierConverterInterface;
 use ApiPlatform\Core\Identifier\IdentifierConverterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
@@ -143,7 +144,12 @@ final class ReadListener
                     $identifiers[$parameterName] = $parameters[$parameterName];
                 }
 
-                $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class'], ['identifiers' => $operation->getIdentifiers()]);
+                if ($this->identifierConverter instanceof ContextAwareIdentifierConverterInterface) {
+                    $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class'], ['identifiers' => $operation->getIdentifiers()]);
+                } else {
+                    // TODO: remove in 3.0
+                    $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class']);
+                }
                 $data = $this->provider->provide($attributes['resource_class'], $identifiers, $operation->getName(), $context);
             } catch (InvalidIdentifierException $e) {
                 throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);

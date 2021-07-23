@@ -24,12 +24,13 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInte
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
-use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
+use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory as LegacyOpenApiFactory;
 use ApiPlatform\Core\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
+use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Operation;
@@ -68,7 +69,10 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     // TODO: remove this in 3.0
     private $decorated = null;
 
-    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, SchemaFactoryInterface $jsonSchemaFactory, TypeFactoryInterface $jsonSchemaTypeFactory, OperationPathResolverInterface $operationPathResolver, ContainerInterface $filterLocator, IdentifiersExtractorInterface $identifiersExtractor = null, array $formats = [], Options $openApiOptions = null, PaginationOptions $paginationOptions = null, RouterInterface $router = null)
+    /**
+     * TODO: remove $subresourceOperationFactory in 3.0
+     */
+    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, SchemaFactoryInterface $jsonSchemaFactory, TypeFactoryInterface $jsonSchemaTypeFactory, OperationPathResolverInterface $operationPathResolver, ContainerInterface $filterLocator, SubresourceOperationFactoryInterface $subresourceOperationFactory, IdentifiersExtractorInterface $identifiersExtractor = null, array $formats = [], Options $openApiOptions = null, PaginationOptions $paginationOptions = null, RouterInterface $router = null)
     {
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
         $this->jsonSchemaFactory = $jsonSchemaFactory;
@@ -86,7 +90,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
         if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use of %s instead of %s.', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
-            $this->decorated = new LegacyOpenApiFactory($resourceNameCollectionFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, $jsonSchemaFactory, $jsonSchemaTypeFactory, $operationPathResolver, $filterLocator, $identifiersExtractor, $formats, $openApiOptions, $paginationOptions);
+            $this->decorated = new LegacyOpenApiFactory($resourceNameCollectionFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, $jsonSchemaFactory, $jsonSchemaTypeFactory, $operationPathResolver, $filterLocator, $subresourceOperationFactory, $identifiersExtractor, $formats, $openApiOptions, $paginationOptions);
         }
     }
 
@@ -144,7 +148,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $links = [];
         $resourceShortName = $resource->getShortName();
 
-        if (!$resource->getOperations()) {
+        if (0 === $resource->getOperations()->count()) {
             return;
         }
 
@@ -379,6 +383,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     {
         $parameters = [];
 
+        /** @var ApiResource[] $resourceMetadataCollection */
         foreach ($resourceMetadataCollection as $resource) {
             foreach ($resource->getOperations() as $operationName => $operation) {
                 if ('GET' !== $operation->getMethod() || $operation->isCollection()) {

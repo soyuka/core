@@ -64,11 +64,10 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
                 if ($hasHit = $cacheItem->isHit()) {
                     $resourceCollection[$i] = $cacheItem->get();
 
-                    // find out why this is null ?!
+                    // TODO: find out why this is null ?!
                     if (null === $cacheItem->get()) {
                         return $this->localCache[$cacheKey] = $this->decorated->create($resourceClass);
                     }
-                    continue;
                 }
             }
 
@@ -78,7 +77,7 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
         }
 
         // Warmup cache
-        if (!$hasHit) {
+        if (false === $hasHit) {
             foreach ($this->decorated->create($resourceClass) as $i => $resourceMetadata) {
                 $cacheItem = $this->cacheItemPool->getItem($cacheKey.$i);
                 $resourceCollection[$i] = $resourceMetadata;

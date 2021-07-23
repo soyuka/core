@@ -22,6 +22,8 @@ namespace ApiPlatform\Metadata;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class ApiResource
 {
+    private Operations $operations;
+
     /**
      * @param iterable     $operations
      * @param string       $uriTemplate
@@ -77,14 +79,14 @@ class ApiResource
      * @param string       $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
      * @param bool         $compositeIdentifier
      * @param array        $exceptionToStatus
-     * @param array        $graphQl
+     * @param GraphQl|null $graphQl
      */
     public function __construct(
         private ?string $uriTemplate = null,
         private ?string $shortName = null,
         private ?string $description = null,
         private array $types = [],
-        private iterable $operations = [],
+        iterable $operations = [],
         private mixed $formats = null,
         private mixed $inputFormats = null,
         private mixed $outputFormats = null,
@@ -144,7 +146,7 @@ class ApiResource
     }
 
     /**
-     * @return array<string, Operation>
+     * @return Operations
      */
     public function getOperations(): Operations
     {

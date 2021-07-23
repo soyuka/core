@@ -55,7 +55,7 @@
             <argument>%api_platform.url_generation_strategy%</argument>
         </service>
 
-        <!-- TODO: 3.0 remove this service --> 
+        <!-- TODO: 3.0 remove this service -->
         <service id="api_platform.legacy_iri_converter" class="ApiPlatform\Core\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
@@ -70,7 +70,6 @@
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
         </service>
         <service id="ApiPlatform\Core\Api\IriConverterInterface" alias="api_platform.legacy_iri_converter" />
-        <service id="ApiPlatform\Api\IriConverterInterface" alias="api_platform.iri_converter" />
 
         <service id="api_platform.iri_converter" class="ApiPlatform\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.state_provider" />

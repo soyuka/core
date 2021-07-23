@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\Filter\QueryParameterValidator;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
 use ApiPlatform\Core\Util\RequestParser;
@@ -73,10 +74,10 @@ final class QueryParameterValidateListener
         }
 
         // TODO: remove in 3.0
+        $operationName = $attributes['collection_operation_name'] ?? null;
         if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
             (
-            !isset($attributes['collection_operation_name'])
-            || !($operationName = $attributes['collection_operation_name'])
+            null === $operationName
             || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY, !$this->enabled)
             )
         ) {
@@ -85,7 +86,12 @@ final class QueryParameterValidateListener
 
         $queryString = RequestParser::getQueryString($request);
         $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
-        $resourceFilters = $operation ? $operation->getFilters() : $this->resourceMetadataFactory->create($attributes['resource_class'])->getCollectionOperationAttribute($operationName, 'filters', [], true);
+        $resourceFilters = [];
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            $resourceFilters = $this->resourceMetadataFactory->create($attributes['resource_class'])->getCollectionOperationAttribute($operationName, 'filters', [], true);
+        } elseif ($operation) {
+            $resourceFilters = $operation->getFilters();
+        }
         $this->queryParameterValidator->validateFilters($attributes['resource_class'], $resourceFilters, $queryParameters);
     }
 }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Exception\OperationNotFoundException;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Operation;
 
 /**
@@ -41,7 +42,7 @@ final class ResourceMetadataCollection extends \ArrayObject
         $metadata = null;
 
         while ($it->valid()) {
-            /** @var resource */
+            /** @var ApiResource */
             $metadata = $it->current();
 
             foreach ($metadata->getOperations() as $name => $operation) {

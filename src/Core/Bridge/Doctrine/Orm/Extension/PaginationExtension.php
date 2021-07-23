@@ -315,6 +315,8 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
      */
     private function isPaginationEnabled(Request $request, $resourceMetadata, string $operationName = null): bool
     {
+        $clientEnabled = false;
+        $enabled = false;
         if ($resourceMetadata instanceof ResourceMetadata) {
             $enabled = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_enabled', $this->enabled, true);
             $clientEnabled = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_client_enabled', $this->clientEnabled, true);
@@ -371,7 +373,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $fetchJoinCollection = $operation->getPaginationFetchJoinCollection();
             }
 
-            if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && null !== $fetchJoinCollection) {
+            if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && isset($fetchJoinCollection)) {
                 return $fetchJoinCollection;
             }
 
@@ -379,7 +381,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $fetchJoinCollection = $resourceMetadata->getGraphqlAttribute($operationName, 'pagination_fetch_join_collection', null, true);
             }
 
-            if (isset($context['graphql_operation_name']) && null !== $fetchJoinCollection) {
+            if (isset($context['graphql_operation_name']) && isset($fetchJoinCollection)) {
                 return $fetchJoinCollection;
             }
         }
@@ -420,7 +422,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $useOutputWalkers = $operation->getPaginationUseOutputWalkers();
             }
 
-            if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && null !== $useOutputWalkers) {
+            if ((isset($context['collection_operation_name']) || isset($context['operation_name'])) && isset($useOutputWalkers)) {
                 return $useOutputWalkers;
             }
 
@@ -428,7 +430,7 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $useOutputWalkers = $resourceMetadata->getGraphqlAttribute($operationName, 'pagination_use_output_walkers', null, true);
             }
 
-            if (isset($context['graphql_operation_name']) && null !== $useOutputWalkers) {
+            if (isset($context['graphql_operation_name']) && isset($useOutputWalkers)) {
                 return $useOutputWalkers;
             }
         }

@@ -37,7 +37,7 @@ trait OperationRequestInitiatorTrait
         }
 
         // TODO: 3.0 $resourceMetadataCollectionFactory is mandatory
-        if (!$request->attributes->get('_api_resource_class') || !$this->resourceMetadataCollectionFactory) {
+        if (null === $request->attributes->get('_api_resource_class') || null === $this->resourceMetadataCollectionFactory) {
             return null;
         }
 

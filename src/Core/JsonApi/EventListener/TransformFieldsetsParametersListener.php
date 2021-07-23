@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\JsonApi\EventListener;
 
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\HttpKernel\Event\RequestEvent;

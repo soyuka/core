@@ -146,7 +146,7 @@ final class IriConverter implements IriConverterInterface
                 }
             }
 
-            if (!$operation) {
+            if (!isset($operation)) {
                 throw $e;
             }
         }
@@ -198,7 +198,7 @@ final class IriConverter implements IriConverterInterface
         }
 
         if (!$operation) {
-            throw new InvalidArgumentException(sprintf('Unable to find an operation for %s.', $resourceClass), $e->getCode(), $e);
+            throw new InvalidArgumentException(sprintf('Unable to find an operation for %s.', $resourceClass));
         }
 
         try {

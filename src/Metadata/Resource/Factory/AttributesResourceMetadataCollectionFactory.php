@@ -60,7 +60,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         }
 
         if (\PHP_VERSION_ID >= 80000 && $reflectionClass->getAttributes(ApiResource::class)) {
-            foreach ($this->buildResourceOperations($reflectionClass->getAttributes(), $resourceClass) as $i => $resource) {
+            foreach ($this->buildResourceOperations($reflectionClass->getAttributes(), $resourceClass) as $resource) {
                 $resourceMetadataCollection[] = $resource;
             }
         }
@@ -80,12 +80,11 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
      *
      * In the future, we will be able to use nested attributes (https://wiki.php.net/rfc/new_in_initializers)
      *
-     * @return resource[]
+     * @return ApiResource[]
      */
     private function buildResourceOperations(array $attributes, string $resourceClass): array
     {
         $shortName = (false !== $pos = strrpos($resourceClass, '\\')) ? substr($resourceClass, $pos + 1) : $resourceClass;
-        $operations = [];
         $resources = [];
         $index = -1;
         foreach ($attributes as $attribute) {

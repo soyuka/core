@@ -51,14 +51,14 @@ class LegacyDataProviderState implements ProviderInterface
 
     public function supports(string $resourceClass, array $identifiers = [], ?string $operationName = null, array $context = []): bool
     {
-        if (!$this->collectionDataProvider instanceof RestrictedDataProviderInterface && !$this->itemDataProvider instanceof RestrictedDataProviderInterface) {
-            return false;
-        }
-
-        if ($identifiers) {
+        if ($identifiers && $this->itemDataProvider instanceof RestrictedDataProviderInterface) {
             return $this->itemDataProvider->supports($resourceClass, $operationName, $context);
         }
 
-        return $this->collectionDataProvider->supports($resourceClass, $operationName, $context);
+        if ($this->collectionDataProvider instanceof RestrictedDataProviderInterface) {
+            return $this->collectionDataProvider->supports($resourceClass, $operationName, $context);
+        }
+
+        return false;
     }
 }

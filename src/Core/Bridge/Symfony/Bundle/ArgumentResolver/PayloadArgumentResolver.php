@@ -22,7 +22,8 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
 final class PayloadArgumentResolver implements ArgumentValueResolverInterface
 {
-    private $serializationContextBuilder;
+    private SerializerContextBuilderInterface $serializationContextBuilder;
+    private ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory;
 
     public function __construct(
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,

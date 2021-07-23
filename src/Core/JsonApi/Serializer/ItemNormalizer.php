@@ -24,6 +24,7 @@ use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
 use ApiPlatform\Core\Serializer\CacheKeyTrait;
 use ApiPlatform\Core\Serializer\ContextTrait;
 use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Exception\LogicException;

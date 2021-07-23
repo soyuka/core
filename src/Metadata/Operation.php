@@ -41,7 +41,7 @@ class Operation
      * @param bool            $stateless
      * @param string          $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
      * @param string          $acceptPatch
-     * @param string|int|null $status
+     * @param int|null        $status
      * @param string          $host
      * @param array           $schemes
      * @param string          $condition

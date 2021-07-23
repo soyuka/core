@@ -15,6 +15,8 @@ namespace ApiPlatform\Core\Bridge\Symfony\Messenger;
 
 use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 
 /**
@@ -25,6 +27,8 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
  */
 final class DataTransformer implements DataTransformerInterface
 {
+    use ClassInfoTrait;
+
     /**
      * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface
      */

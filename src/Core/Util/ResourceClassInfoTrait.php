@@ -66,22 +66,20 @@ trait ResourceClassInfoTrait
             return $this->resourceClassResolver->isResourceClass($class);
         }
 
-        if (!$this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface || !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            // assume that it's a resource class
-            return true;
-        }
-
         if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             return \count($this->resourceMetadataFactory->create($class)) > 0 ? true : false;
         }
 
         // TODO: 3.0 remove
-        try {
-            $this->resourceMetadataFactory->create($class);
-        } catch (ResourceClassNotFoundException $e) {
-            return false;
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            try {
+                $this->resourceMetadataFactory->create($class);
+            } catch (ResourceClassNotFoundException $e) {
+                return false;
+            }
         }
 
+        // assume that it's a resource class
         return true;
     }
 }

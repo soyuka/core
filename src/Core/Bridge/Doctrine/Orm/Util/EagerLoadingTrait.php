@@ -26,7 +26,6 @@ trait EagerLoadingTrait
 {
     private $forceEager;
     private $fetchPartial;
-    /** @var ResourceMetadataCollectionFactoryInterface */
     private $resourceMetadataFactory;
 
     /**

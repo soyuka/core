@@ -19,7 +19,9 @@ use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -81,7 +83,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
                     }
 
                     try {
-                        $entrypoint['_links'][lcfirst($operation->getShortName())]['href'] = $this->iriConverter instanceof IriConverterInterface ? $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName) : $this->iriConverter->getIriFromResourceClass($resourceClass);
+                        $entrypoint['_links'][lcfirst($operation->getShortName())]['href'] = $this->iriConverter->getIriFromResourceClass($resourceClass, $operationName);
                     } catch (InvalidArgumentException $ex) {
                         // Ignore resources without GET operations
                     }
