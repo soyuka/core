@@ -11,7 +11,7 @@ parameters:
 	bootstrapFiles:
 		- vendor/bin/.phpunit/phpunit/vendor/autoload.php
 		# We're aliasing classes for phpunit in this file, it needs to be added here see phpstan/#2194
-		- src/Bridge/Symfony/Bundle/Test/Constraint/ArraySubset.php
+		- src/Core/Bridge/Symfony/Bundle/Test/Constraint/ArraySubset.php
 		- tests/Fixtures/app/AppKernel.php
 	excludes_analyse:
 		# Symfony cache
@@ -29,9 +29,9 @@ parameters:
 		# The Symfony Configuration API isn't good enough to be analysed
 		- src/Bridge/Symfony/Bundle/DependencyInjection/Configuration.php
 		# Phpstan runs on phpunit > 9, a signature changed in this file
-		- src/Bridge/Symfony/Bundle/Test/Constraint/ArraySubsetLegacy.php
+		- src/Core/Bridge/Symfony/Bundle/Test/Constraint/ArraySubsetLegacy.php
 		# Imported code (temporary)
-		- src/Bridge/Symfony/Bundle/Test/BrowserKitAssertionsTrait.php
+		- src/Core/Bridge/Symfony/Bundle/Test/BrowserKitAssertionsTrait.php
 		- tests/Bridge/Symfony/Bundle/Test/WebTestCaseTest.php
 		- tests/ProphecyTrait.php
 		- tests/Behat/CoverageContext.php
