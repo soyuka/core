@@ -25,7 +25,6 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 final class CachedResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    use CachedTrait;
     public const CACHE_KEY_PREFIX = 'resource_metadata_collection_';
 
     private $decorated;
@@ -45,51 +44,27 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
     public function create(string $resourceClass): ResourceMetadataCollection
     {
         $cacheKey = self::CACHE_KEY_PREFIX.md5($resourceClass);
-        if (isset($this->localCache[$cacheKey])) {
-            return $this->localCache[$cacheKey];
+        if (\array_key_exists($cacheKey, $this->localCache)) {
+            return new ResourceMetadataCollection($resourceClass, $this->localCache[$cacheKey]);
         }
 
         try {
-            $cacheCollection = $this->cacheItemPool->getItem($cacheKey);
+            $cacheItem = $this->cacheItemPool->getItem($cacheKey);
         } catch (CacheException $e) {
-            return $this->localCache[$cacheKey] = $this->decorated->create($resourceClass);
+            $resourceMetadataCollection = $this->decorated->create($resourceClass);
+            $this->localCache[$cacheKey] = (array) $resourceMetadataCollection;
+            return $resourceMetadataCollection;
         }
 
-        $resourceCollection = new ResourceMetadataCollection($resourceClass);
-        if ($hasHit = $cacheCollection->isHit()) {
-            $resourceCount = $cacheCollection->get();
-            for ($i = 0; $i <= $resourceCount; ++$i) {
-                $cacheItem = $this->cacheItemPool->getItem($cacheKey.$i);
-
-                if ($hasHit = $cacheItem->isHit()) {
-                    $resourceCollection[$i] = $cacheItem->get();
-
-                    // TODO: find out why this is null ?!
-                    if (null === $cacheItem->get()) {
-                        return $this->localCache[$cacheKey] = $this->decorated->create($resourceClass);
-                    }
-                }
-            }
-
-            if ($hasHit) {
-                return $this->localCache[$cacheKey] = $resourceCollection;
-            }
+        if ($cacheItem->isHit()) {
+            $this->localCache[$cacheKey] = $cacheItem->get();
+            return new ResourceMetadataCollection($resourceClass, $this->localCache[$cacheKey]);
         }
 
-        // Warmup cache
-        if (false === $hasHit) {
-            foreach ($this->decorated->create($resourceClass) as $i => $resourceMetadata) {
-                $cacheItem = $this->cacheItemPool->getItem($cacheKey.$i);
-                $resourceCollection[$i] = $resourceMetadata;
-                $cacheItem->set($resourceMetadata);
-                $this->cacheItemPool->save($cacheItem);
-            }
-
-            $cacheCollection->set(\count($resourceCollection));
-            $this->cacheItemPool->save($cacheCollection);
-            $this->cacheItemPool->commit();
-        }
-
-        return $this->localCache[$cacheKey] = $resourceCollection;
+        $resourceMetadataCollection = $this->decorated->create($resourceClass);
+        $this->localCache[$cacheKey] = (array) $resourceMetadataCollection;
+        $cacheItem->set($this->localCache[$cacheKey]);
+        $this->cacheItemPool->save($cacheItem);
+        return $resourceMetadataCollection;
     }
 }

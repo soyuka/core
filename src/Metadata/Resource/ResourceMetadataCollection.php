@@ -27,10 +27,10 @@ final class ResourceMetadataCollection extends \ArrayObject
     private array $operationCache = [];
     private string $resourceClass;
 
-    public function __construct(string $resourceClass)
+    public function __construct(string $resourceClass, array $input = [])
     {
         $this->resourceClass = $resourceClass;
-        parent::__construct();
+        parent::__construct($input);
     }
 
     public function getOperation(?string $operationName = null, bool $forceCollection = false): Operation
