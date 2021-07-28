@@ -62,7 +62,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             // TODO: 3.0 becomes true by default
             $context['skip_null_values'] = $context['skip_null_values'] ?? $this->shouldSkipNullValues($attributes['resource_class'], $attributes['operation_name']);
             // TODO: remove in 3.0, operation type will not exist anymore
-            $context['operation_type'] = $operation->isCollection() ? OperationType::ITEM : OperationType::COLLECTION;
+            $context['operation_type'] = $operation->isCollection() ? OperationType::COLLECTION : OperationType::ITEM;
             $context['iri_only'] = $context['iri_only'] ?? false;
             $context['request_uri'] = $request->getRequestUri();
             $context['uri'] = $request->getUri();
@@ -175,7 +175,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
     private function shouldSkipNullValues(string $class, string $operationName): bool
     {
         if (!$this->resourceMetadataFactory) {
-            return true;
+            return false;
         }
 
         $collection = $this->resourceMetadataFactory->create($class);

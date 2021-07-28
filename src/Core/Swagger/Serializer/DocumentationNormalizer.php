@@ -31,9 +31,9 @@ use ApiPlatform\Core\JsonSchema\TypeFactory;
 use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ApiResourceToLegacyResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\PathResolver\OperationPathResolverInterface;
@@ -54,8 +54,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class DocumentationNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
+    use ApiResourceToLegacyResourceMetadataTrait;
     use FilterLocatorTrait;
-    use ResourceToResourceMetadataTrait;
 
     public const FORMAT = 'json';
     public const BASE_URL = 'base_url';

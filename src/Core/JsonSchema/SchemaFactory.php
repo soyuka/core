@@ -157,7 +157,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         // TODO: getFactoryOptions should be refactored because Item & Collection Operations don't exist anymore (API Platform 3.0)
-        $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationType, $operationName);
+        $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationType, $operationName, $operation);
         foreach ($this->propertyNameCollectionFactory->create($inputOrOutputClass, $options) as $propertyName) {
             $propertyMetadata = $this->propertyMetadataFactory->create($inputOrOutputClass, $propertyName, $options);
             if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
@@ -380,7 +380,7 @@ final class SchemaFactory implements SchemaFactoryInterface
     /**
      * Gets the options for the property name collection / property metadata factories.
      */
-    private function getFactoryOptions(array $serializerContext, array $validationGroups, ?string $operationType, ?string $operationName): array
+    private function getFactoryOptions(array $serializerContext, array $validationGroups, ?string $operationType, ?string $operationName, ?Operation $operation = null): array
     {
         $options = [
             /* @see https://github.com/symfony/symfony/blob/v5.1.0/src/Symfony/Component/PropertyInfo/Extractor/ReflectionExtractor.php */
@@ -390,6 +390,11 @@ final class SchemaFactory implements SchemaFactoryInterface
         if (isset($serializerContext[AbstractNormalizer::GROUPS])) {
             /* @see https://github.com/symfony/symfony/blob/v4.2.6/src/Symfony/Component/PropertyInfo/Extractor/SerializerExtractor.php */
             $options['serializer_groups'] = (array) $serializerContext[AbstractNormalizer::GROUPS];
+        }
+
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && $operation) {
+            $options['normalization_groups'] = $operation->getNormalizationContext()['groups'] ?? null;
+            $options['denormalization_groups'] = $operation->getDenormalizationContext()['groups'] ?? null;
         }
 
         if (null !== $operationType && null !== $operationName) {

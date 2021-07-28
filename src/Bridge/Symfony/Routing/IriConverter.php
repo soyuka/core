@@ -75,7 +75,12 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException(sprintf('No resource associated to "%s".', $iri));
         }
 
-        $operation = $parameters['_api_operation'] = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
+        $context['operation'] = $operation = $parameters['_api_operation'] = $this->resourceMetadataCollectionFactory->create($parameters['_api_resource_class'])->getOperation($parameters['_api_operation_name']);
+
+        if ($operation->isCollection()) {
+            throw new InvalidArgumentException(sprintf('The iri "%s" references a collection not an item.', $iri));
+        }
+
         $attributes = AttributesExtractor::extractAttributes($parameters);
         $shouldParseCompositeIdentifiers = $operation->getCompositeIdentifier() && \count($operation->getIdentifiers()) > 1;
         $identifiers = [];
@@ -102,7 +107,7 @@ final class IriConverter implements IriConverterInterface
             throw new InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if ($item = $this->stateProvider->provide($attributes['resource_class'], $identifiers, $attributes['operation_name'], ['operation' => $operation])) {
+        if ($item = $this->stateProvider->provide($attributes['resource_class'], $identifiers, $attributes['operation_name'], $context)) {
             return $item;
         }
 

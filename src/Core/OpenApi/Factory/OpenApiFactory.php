@@ -22,10 +22,10 @@ use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ApiResourceToLegacyResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
@@ -40,8 +40,8 @@ use Symfony\Component\PropertyInfo\Type;
  */
 final class OpenApiFactory implements OpenApiFactoryInterface
 {
+    use ApiResourceToLegacyResourceMetadataTrait;
     use FilterLocatorTrait;
-    use ResourceToResourceMetadataTrait;
 
     public const BASE_URL = 'base_url';
     public const OPENAPI_DEFINITION_NAME = 'openapi_definition_name';

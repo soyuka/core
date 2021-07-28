@@ -60,7 +60,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
             throw new ResourceClassNotFoundException(sprintf('Resource "%s" not found.', $resourceClass));
         }
 
-        if (\PHP_VERSION_ID >= 80000 && $reflectionClass->getAttributes(ApiResource::class)) {
+        if (\PHP_VERSION_ID >= 80000 && $this->hasResourceAttributes($reflectionClass)) {
             foreach ($this->buildResourceOperations($reflectionClass->getAttributes(), $resourceClass) as $resource) {
                 $resourceMetadataCollection[] = $resource;
             }
@@ -88,28 +88,19 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         $shortName = (false !== $pos = strrpos($resourceClass, '\\')) ? substr($resourceClass, $pos + 1) : $resourceClass;
         $resources = [];
         $index = -1;
+
         foreach ($attributes as $attribute) {
             if (ApiResource::class === $attribute->getName()) {
-                $resource = $attribute->newInstance()
-                                      ->withShortName($shortName)
-                                      ->withClass($resourceClass)
-                                      ->withTypes([$shortName]);
-
-                foreach ($this->defaults['attributes'] as $key => $value) {
-                    [$key, $value] = $this->getKeyValue($key, $value);
-                    if (!$resource->{'get'.ucfirst($key)}()) {
-                        $resource = $resource->{'with'.ucfirst($key)}($value);
-                    }
-                }
-
-                $resources[++$index] = $resource;
-
+                $resources[++$index] = $this->getResourceWithDefaults($resourceClass, $shortName, $attribute->newInstance());
                 continue;
             }
 
-            // Create default operations
             if (!is_subclass_of($attribute->getName(), Operation::class)) {
                 continue;
+            }
+
+            if (-1 === $index || $this->hasSameOperation($resources[$index], $attribute->getName())) {
+                $resources[++$index] = $this->getResourceWithDefaults($resourceClass, $shortName, new ApiResource());
             }
 
             [$key, $operation] = $this->getOperationWithDefaults($resources[$index], $attribute->newInstance());
@@ -167,5 +158,52 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         $key = sprintf('_api_%s_%s%s', $operation->getUriTemplate() ?: $operation->getShortName(), strtolower($operation->getMethod()), $operation instanceof GetCollection ? '_collection' : '');
 
         return [$key, $operation];
+    }
+
+    private function getResourceWithDefaults(string $resourceClass, string $shortName, ApiResource $resource)
+    {
+        $resource = $resource
+                        ->withShortName($shortName)
+                        ->withClass($resourceClass)
+                        ->withTypes([$shortName]);
+
+        foreach ($this->defaults['attributes'] as $key => $value) {
+            [$key, $value] = $this->getKeyValue($key, $value);
+            if (!$resource->{'get'.ucfirst($key)}()) {
+                $resource = $resource->{'with'.ucfirst($key)}($value);
+            }
+        }
+
+        return $resource;
+    }
+
+    private function hasResourceAttributes(\ReflectionClass $reflectionClass): bool
+    {
+        foreach ($reflectionClass->getAttributes() as $attribute) {
+            if (ApiResource::class === $attribute->getName() || is_subclass_of($attribute->getName(), Operation::class)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Does the resource already have an operation of the $operationClass type?
+     * Useful to determine if we need to create a new ApiResource when the class has only operation attributes, for example:.
+     *
+     * #[Get]
+     * #[Get(uriTemplate: '/alternate')]
+     * class Example {}
+     */
+    private function hasSameOperation(ApiResource $resource, string $operationClass): bool
+    {
+        foreach ($resource->getOperations() as $o) {
+            if ($o instanceof $operationClass) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

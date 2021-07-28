@@ -20,7 +20,6 @@ class GetCollection extends Operation
      * {@inheritdoc}
      */
     public function __construct(
-        string $method = self::METHOD_GET,
         ?string $uriTemplate = null,
         ?string $shortName = null,
         ?string $description = null,
@@ -90,7 +89,7 @@ class GetCollection extends Operation
         string $name = '',
         array $extraProperties = []
     ) {
-        parent::__construct(...\func_get_args());
+        parent::__construct(self::METHOD_GET, ...\func_get_args());
         $this->collection = true;
     }
 }

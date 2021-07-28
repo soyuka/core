@@ -20,7 +20,6 @@ class Patch extends Operation
      * {@inheritdoc}
      */
     public function __construct(
-        string $method = self::METHOD_PATCH,
         ?string $uriTemplate = null,
         ?string $shortName = null,
         ?string $description = null,
@@ -90,7 +89,6 @@ class Patch extends Operation
         string $name = '',
         array $extraProperties = [],
     ) {
-        parent::__construct(...\func_get_args());
-        $this->method = self::METHOD_PATCH;
+        parent::__construct(self::METHOD_PATCH, ...\func_get_args());
     }
 }

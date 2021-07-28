@@ -121,12 +121,12 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
             return $this->getResourceContextWithShortname($resourceClass, $referenceType, $shortName);
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass)[0];
-        if (null === $shortName = $resourceMetadata->getShortName()) {
+        $operation = $this->resourceMetadataFactory->create($resourceClass)->getOperation();
+        if (null === $shortName = $operation->getShortName()) {
             return [];
         }
 
-        if ($resourceMetadata->getNormalizationContext()['iri_only'] ?? false) {
+        if ($operation->getNormalizationContext()['iri_only'] ?? false) {
             $context = $this->getBaseContext($referenceType);
             $context['hydra:member']['@type'] = '@id';
 
@@ -196,7 +196,6 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
     private function getResourceContextWithShortname(string $resourceClass, int $referenceType, string $shortName): array
     {
         $context = $this->getBaseContext($referenceType);
-
         foreach ($this->propertyNameCollectionFactory->create($resourceClass) as $propertyName) {
             $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
 

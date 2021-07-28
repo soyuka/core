@@ -214,7 +214,6 @@ Feature: JSON-LD DTO input and output
       "user": "/users/1"
     }
     """
-    Then print last JSON response
     Then the response status code should be 200
     And the JSON should be equal to:
     """

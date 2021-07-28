@@ -20,7 +20,6 @@ class Post extends Operation
      * {@inheritdoc}
      */
     public function __construct(
-        string $method = self::METHOD_POST,
         ?string $uriTemplate = null,
         ?string $shortName = null,
         ?string $description = null,
@@ -90,8 +89,7 @@ class Post extends Operation
         string $name = '',
         array $extraProperties = [],
     ) {
-        parent::__construct(...\func_get_args());
-        $this->method = self::METHOD_POST;
+        parent::__construct(self::METHOD_POST, ...\func_get_args());
         $this->collection = true;
     }
 }

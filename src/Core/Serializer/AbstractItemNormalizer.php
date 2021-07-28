@@ -595,6 +595,12 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
             $options['serializer_groups'] = (array) $context[self::GROUPS];
         }
 
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            $operation = $context['operation'] ?? $this->resourceMetadataFactory->create($context['resource_class'])->getOperation($context['operation_name'] ?? null);
+            $options['normalization_groups'] = $operation->getNormalizationContext()['groups'] ?? null;
+            $options['denormalization_groups'] = $operation->getDenormalizationContext()['groups'] ?? null;
+        }
+
         if (isset($context['operation_name'])) {
             $options['operation_name'] = $context['operation_name'];
         }

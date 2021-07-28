@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Resource\Factory;
 
-use ApiPlatform\Core\Cache\CachedTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Psr\Cache\CacheException;
 use Psr\Cache\CacheItemPoolInterface;
@@ -53,11 +52,13 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
         } catch (CacheException $e) {
             $resourceMetadataCollection = $this->decorated->create($resourceClass);
             $this->localCache[$cacheKey] = (array) $resourceMetadataCollection;
+
             return $resourceMetadataCollection;
         }
 
         if ($cacheItem->isHit()) {
             $this->localCache[$cacheKey] = $cacheItem->get();
+
             return new ResourceMetadataCollection($resourceClass, $this->localCache[$cacheKey]);
         }
 
@@ -65,6 +66,7 @@ final class CachedResourceMetadataCollectionFactory implements ResourceMetadataC
         $this->localCache[$cacheKey] = (array) $resourceMetadataCollection;
         $cacheItem->set($this->localCache[$cacheKey]);
         $this->cacheItemPool->save($cacheItem);
+
         return $resourceMetadataCollection;
     }
 }

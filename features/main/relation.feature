@@ -396,6 +396,7 @@ Feature: Relations support
     }
     """
 
+  @createSchema
   Scenario: Eager load relations should not be duplicated
     Given there is an order with same customer and recipient
     When I add "Content-Type" header equal to "application/ld+json"

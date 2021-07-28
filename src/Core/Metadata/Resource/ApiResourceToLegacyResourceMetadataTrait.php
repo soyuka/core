@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
  *
  * @deprecated
  */
-trait ResourceToResourceMetadataTrait
+trait ApiResourceToLegacyResourceMetadataTrait
 {
     private $camelCaseToSnakeCaseNameConverter;
 
@@ -47,9 +47,13 @@ trait ResourceToResourceMetadataTrait
         }
 
         $attributes = $this->toArray($resource);
-        $graphql = $resource->getGraphQl() ? $this->toArray($resource->getGraphQl()) : null;
 
-        return new ResourceMetadata($resource->getShortName(), $resource->getDescription(), $resource->getTypes()[0] ?? null, $itemOperations, $collectionOperations, $attributes, null, $graphql);
+        $graphqlOperations = $resource->getGraphQlOperations() ? [] : null;
+        foreach ($resource->getGraphQlOperations() ?? [] as $operationName => $operation) {
+            $graphqlOperations[$operationName] = $this->toArray($operation);
+        }
+
+        return new ResourceMetadata($resource->getShortName(), $resource->getDescription(), $resource->getTypes()[0] ?? null, $itemOperations, $collectionOperations, $attributes, null, $graphqlOperations);
     }
 
     private function toArray($object): array

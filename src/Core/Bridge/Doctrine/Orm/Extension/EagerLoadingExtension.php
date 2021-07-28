@@ -131,7 +131,6 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
 
         if (!isset($context['groups']) && !isset($context['attributes'])) {
             $contextType = isset($context['api_denormalize']) ? 'denormalization_context' : 'normalization_context';
-
             if (null !== $this->requestStack && null !== $this->serializerContextBuilder && null !== $request = $this->requestStack->getCurrentRequest()) {
                 $context += $this->serializerContextBuilder->createFromRequest($request, 'normalization_context' === $contextType);
             } elseif ($operation) {

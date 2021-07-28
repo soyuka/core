@@ -23,9 +23,9 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\SubresourceMetadata;
+use ApiPlatform\Core\Metadata\Resource\ApiResourceToLegacyResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Metadata\Resource\ResourceToResourceMetadataTrait;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Symfony\Component\PropertyInfo\Type;
@@ -41,7 +41,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class DocumentationNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
-    use ResourceToResourceMetadataTrait;
+    use ApiResourceToLegacyResourceMetadataTrait;
     public const FORMAT = 'jsonld';
 
     /**

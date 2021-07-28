@@ -19,7 +19,6 @@ use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyInfo\Type;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Serializer\Mapping\AttributeMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface as SerializerClassMetadataFactoryInterface;
 
@@ -35,15 +34,13 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
 
     private $serializerClassMetadataFactory;
     private $decorated;
-    private $router;
 
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, SerializerClassMetadataFactoryInterface $serializerClassMetadataFactory, PropertyMetadataFactoryInterface $decorated, ResourceClassResolverInterface $resourceClassResolver = null, RouterInterface $router = null)
+    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataFactory, SerializerClassMetadataFactoryInterface $serializerClassMetadataFactory, PropertyMetadataFactoryInterface $decorated, ResourceClassResolverInterface $resourceClassResolver = null)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->serializerClassMetadataFactory = $serializerClassMetadataFactory;
         $this->decorated = $decorated;
         $this->resourceClassResolver = $resourceClassResolver;
-        $this->router = $router;
     }
 
     /**
@@ -58,16 +55,11 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
             $resourceClass = $childResourceClass;
         }
 
-        if (\array_key_exists('normalization_groups', $options) && \array_key_exists('denormalization_groups', $options)) {
-            $normalizationGroups = $options['normalization_groups'] ?? null;
-            $denormalizationGroups = $options['denormalization_groups'] ?? null;
-        } else {
-            try {
-                [$normalizationGroups, $denormalizationGroups] = $this->getEffectiveSerializerGroups($options, $resourceClass);
-            } catch (ResourceClassNotFoundException $e) {
-                // TODO: for input/output classes, the serializer groups must be read from the actual resource class
-                return $propertyMetadata;
-            }
+        try {
+            [$normalizationGroups, $denormalizationGroups] = $this->getEffectiveSerializerGroups($options, $resourceClass);
+        } catch (ResourceClassNotFoundException $e) {
+            // TODO: for input/output classes, the serializer groups must be read from the actual resource class
+            return $propertyMetadata;
         }
 
         $propertyMetadata = $this->transformReadWrite($propertyMetadata, $resourceClass, $property, $normalizationGroups, $denormalizationGroups);
@@ -176,14 +168,12 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
             return [$groups, $groups];
         }
 
-        // TODO: do an operation factory
-        if (isset($options['operation_name'])) {
-            $operation = $this->router->getRouteCollection()->get($options['operation_name']);
+        if (\array_key_exists('normalization_groups', $options) && \array_key_exists('denormalization_groups', $options)) {
+            return [$options['normalization_groups'] ?? null, $options['denormalization_groups'] ?? null];
+        }
 
-            return [
-                $operation->getDefault('_api_operation')['normalization_context']['groups'] ?? null,
-                $operation->getDefault('_api_operation')['denormalization_context']['groups'] ?? null,
-            ];
+        if (isset($options['operation_name'])) {
+            throw new \RuntimeException('You should specify "normalization_groups" and/or "denormalization_groups" when using the SerializerPropertyMetadataFactory.');
         }
 
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);

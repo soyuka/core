@@ -20,7 +20,6 @@ final class Get extends Operation
      * {@inheritdoc}
      */
     public function __construct(
-        string $method = self::METHOD_GET,
         ?string $uriTemplate = null,
         ?string $shortName = null,
         ?string $description = null,
@@ -90,6 +89,6 @@ final class Get extends Operation
         string $name = '',
         array $extraProperties = [],
     ) {
-        parent::__construct(...\func_get_args());
+        parent::__construct(self::METHOD_GET, ...\func_get_args());
     }
 }

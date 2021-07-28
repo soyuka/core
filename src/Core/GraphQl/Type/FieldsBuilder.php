@@ -532,7 +532,7 @@ final class FieldsBuilder implements FieldsBuilderInterface
             }
         }
 
-        return $forceNullable || !$graphqlType instanceof NullableType || $type->isNullable() || ($operation instanceof Mutation && $operationName === 'update')
+        return $forceNullable || !$graphqlType instanceof NullableType || $type->isNullable() || ($operation instanceof Mutation && 'update' === $operationName)
             ? $graphqlType
             : GraphQLType::nonNull($graphqlType);
     }
