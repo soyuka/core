@@ -19,40 +19,40 @@ class Operation
 {
     use WithResourceTrait;
 
-    private ?string $resolver;
-    private bool $collection;
-    private ?array $args;
-    private ?string $shortName;
-    private ?string $class;
+    private $resolver;
+    private $collection;
+    private $args;
+    private $shortName;
+    private $class;
     /**
      * @var array|string
      */
     private $identifiers;
-    private ?bool $compositeIdentifier;
-    private ?bool $paginationEnabled;
-    private ?string $paginationType;
-    private ?int $paginationItemsPerPage;
-    private ?int $paginationMaximumItemsPerPage;
-    private ?bool $paginationPartial;
-    private ?bool $paginationClientEnabled;
-    private ?bool $paginationClientItemsPerPage;
-    private ?bool $paginationClientPartial;
-    private ?bool $paginationFetchJoinCollection;
-    private ?bool $paginationUseOutputWalkers;
-    private array $order;
-    private ?string $description;
-    private array $normalizationContext;
-    private array $denormalizationContext;
-    private ?string $security;
-    private ?string $securityMessage;
-    private ?string $securityPostDenormalize;
-    private ?string $securityPostDenormalizeMessage;
-    private ?string $deprecationReason;
+    private $compositeIdentifier;
+    private $paginationEnabled;
+    private $paginationType;
+    private $paginationItemsPerPage;
+    private $paginationMaximumItemsPerPage;
+    private $paginationPartial;
+    private $paginationClientEnabled;
+    private $paginationClientItemsPerPage;
+    private $paginationClientPartial;
+    private $paginationFetchJoinCollection;
+    private $paginationUseOutputWalkers;
+    private $order;
+    private $description;
+    private $normalizationContext;
+    private $denormalizationContext;
+    private $security;
+    private $securityMessage;
+    private $securityPostDenormalize;
+    private $securityPostDenormalizeMessage;
+    private $deprecationReason;
     /**
      * @var string[]
      */
-    private array $filters;
-    private array $validationContext;
+    private $filters;
+    private $validationContext;
     /**
      * @var null
      */
@@ -69,18 +69,18 @@ class Operation
      * @var string|bool|null
      */
     private $messenger;
-    private ?bool $elasticsearch;
-    private ?int $urlGenerationStrategy;
-    private bool $read;
-    private bool $deserialize;
-    private bool $validate;
-    private bool $write;
-    private bool $serialize;
-    private ?bool $fetchPartial;
-    private ?bool $forceEager;
-    private int $priority;
-    private string $name;
-    private array $extraProperties;
+    private $elasticsearch;
+    private $urlGenerationStrategy;
+    private $read;
+    private $deserialize;
+    private $validate;
+    private $write;
+    private $serialize;
+    private $fetchPartial;
+    private $forceEager;
+    private $priority;
+    private $name;
+    private $extraProperties;
 
     /**
      * @param string            $resolver

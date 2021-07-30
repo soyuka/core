@@ -24,11 +24,11 @@ class Operation
     public const METHOD_DELETE = 'DELETE';
     public const METHOD_HEAD = 'HEAD';
     public const METHOD_OPTIONS = 'OPTIONS';
-    protected string $method;
-    protected ?string $uriTemplate;
-    protected ?string $shortName;
-    protected ?string $description;
-    protected array $types;
+    protected $method;
+    protected $uriTemplate;
+    protected $shortName;
+    protected $description;
+    protected $types;
     /**
      * @var array|mixed|string|null
      */
@@ -45,41 +45,41 @@ class Operation
      * @var array|mixed
      */
     protected $identifiers;
-    protected string $routePrefix;
-    protected ?string $routeName;
-    protected array $defaults;
-    protected array $requirements;
-    protected array $options;
-    protected ?bool $stateless;
-    protected ?string $sunset;
-    protected ?string $acceptPatch;
+    protected $routePrefix;
+    protected $routeName;
+    protected $defaults;
+    protected $requirements;
+    protected $options;
+    protected $stateless;
+    protected $sunset;
+    protected $acceptPatch;
     /**
      * @var string|int|null
      */
     protected $status;
-    protected string $host;
-    protected array $schemes;
-    protected string $condition;
-    protected string $controller;
-    protected ?string $class;
-    protected ?int $urlGenerationStrategy;
-    protected bool $collection;
-    protected ?string $deprecationReason;
-    protected array $cacheHeaders;
-    protected array $normalizationContext;
-    protected array $denormalizationContext;
+    protected $host;
+    protected $schemes;
+    protected $condition;
+    protected $controller;
+    protected $class;
+    protected $urlGenerationStrategy;
+    protected $collection;
+    protected $deprecationReason;
+    protected $cacheHeaders;
+    protected $normalizationContext;
+    protected $denormalizationContext;
     /**
      * @var string[]
      */
-    protected array $hydraContext;
-    protected array $openapiContext;
-    protected array $swaggerContext;
-    protected array $validationContext;
+    protected $hydraContext;
+    protected $openapiContext;
+    protected $swaggerContext;
+    protected $validationContext;
     /**
      * @var string[]
      */
-    protected array $filters;
-    protected ?bool $elasticsearch;
+    protected $filters;
+    protected $elasticsearch;
     /**
      * @var array|bool|mixed|null
      */
@@ -90,36 +90,36 @@ class Operation
     protected $messenger;
     protected $input;
     protected $output;
-    protected array $order;
-    protected ?bool $fetchPartial;
-    protected ?bool $forceEager;
-    protected ?bool $paginationClientEnabled;
-    protected ?bool $paginationClientItemsPerPage;
-    protected ?bool $paginationClientPartial;
-    protected array $paginationViaCursor;
-    protected ?bool $paginationEnabled;
-    protected ?bool $paginationFetchJoinCollection;
-    protected ?bool $paginationUseOutputWalkers;
-    protected ?int $paginationItemsPerPage;
-    protected ?int $paginationMaximumItemsPerPage;
-    protected ?bool $paginationPartial;
-    protected ?string $paginationType;
-    protected ?string $security;
-    protected ?string $securityMessage;
-    protected ?string $securityPostDenormalize;
-    protected ?string $securityPostDenormalizeMessage;
-    protected ?bool $compositeIdentifier;
-    protected array $exceptionToStatus;
-    protected ?bool $queryParameterValidationEnabled;
-    protected bool $read;
-    protected bool $deserialize;
-    protected bool $validate;
-    protected bool $write;
-    protected bool $serialize;
-    protected bool $queryParameterValidate;
-    protected int $priority;
-    protected string $name;
-    protected array $extraProperties;
+    protected $order;
+    protected $fetchPartial;
+    protected $forceEager;
+    protected $paginationClientEnabled;
+    protected $paginationClientItemsPerPage;
+    protected $paginationClientPartial;
+    protected $paginationViaCursor;
+    protected $paginationEnabled;
+    protected $paginationFetchJoinCollection;
+    protected $paginationUseOutputWalkers;
+    protected $paginationItemsPerPage;
+    protected $paginationMaximumItemsPerPage;
+    protected $paginationPartial;
+    protected $paginationType;
+    protected $security;
+    protected $securityMessage;
+    protected $securityPostDenormalize;
+    protected $securityPostDenormalizeMessage;
+    protected $compositeIdentifier;
+    protected $exceptionToStatus;
+    protected $queryParameterValidationEnabled;
+    protected $read;
+    protected $deserialize;
+    protected $validate;
+    protected $write;
+    protected $serialize;
+    protected $queryParameterValidate;
+    protected $priority;
+    protected $name;
+    protected $extraProperties;
 
     /**
      * @param string          $uriTemplate

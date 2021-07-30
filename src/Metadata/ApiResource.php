@@ -22,11 +22,11 @@ namespace ApiPlatform\Metadata;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 class ApiResource
 {
-    private Operations $operations;
-    private ?string $uriTemplate;
-    private ?string $shortName;
-    private ?string $description;
-    private array $types;
+    private $operations;
+    private $uriTemplate;
+    private $shortName;
+    private $description;
+    private $types;
     /**
      * @var array|mixed|string|null
      */
@@ -43,38 +43,38 @@ class ApiResource
      * @var array|mixed
      */
     private $identifiers;
-    private ?string $routePrefix;
-    private array $defaults;
-    private array $requirements;
-    private array $options;
-    private ?bool $stateless;
-    private ?string $sunset;
-    private ?string $acceptPatch;
+    private $routePrefix;
+    private $defaults;
+    private $requirements;
+    private $options;
+    private $stateless;
+    private $sunset;
+    private $acceptPatch;
     /**
      * @var mixed|string|null
      */
     private $status;
-    private string $host;
-    private array $schemes;
-    private string $condition;
-    private string $controller;
-    private ?string $class;
-    private ?int $urlGenerationStrategy;
-    private ?string $deprecationReason;
-    private array $cacheHeaders;
-    private ?array $normalizationContext;
-    private ?array $denormalizationContext;
+    private $host;
+    private $schemes;
+    private $condition;
+    private $controller;
+    private $class;
+    private $urlGenerationStrategy;
+    private $deprecationReason;
+    private $cacheHeaders;
+    private $normalizationContext;
+    private $denormalizationContext;
     /**
      * @var string[]|null
      */
-    private ?array $hydraContext;
-    private ?array $openapiContext;
-    private array $validationContext;
+    private $hydraContext;
+    private $openapiContext;
+    private $validationContext;
     /**
      * @var string[]
      */
-    private array $filters;
-    private ?bool $elasticsearch;
+    private $filters;
+    private $elasticsearch;
     /**
      * @var array|bool|mixed|null
      */
@@ -85,29 +85,29 @@ class ApiResource
     private $messenger;
     private $input;
     private $output;
-    private ?array $order;
-    private ?bool $fetchPartial;
-    private ?bool $forceEager;
-    private ?bool $paginationClientEnabled;
-    private ?bool $paginationClientItemsPerPage;
-    private ?bool $paginationClientPartial;
-    private ?array $paginationViaCursor;
-    private ?bool $paginationEnabled;
-    private ?bool $paginationFetchJoinCollection;
-    private ?bool $paginationUseOutputWalkers;
-    private ?int $paginationItemsPerPage;
-    private ?int $paginationMaximumItemsPerPage;
-    private ?bool $paginationPartial;
-    private ?string $paginationType;
-    private ?string $security;
-    private ?string $securityMessage;
-    private ?string $securityPostDenormalize;
-    private ?string $securityPostDenormalizeMessage;
-    private ?bool $compositeIdentifier;
-    private array $exceptionToStatus;
-    private ?bool $queryParameterValidationEnabled;
-    private ?array $graphQlOperations;
-    private array $extraProperties;
+    private $order;
+    private $fetchPartial;
+    private $forceEager;
+    private $paginationClientEnabled;
+    private $paginationClientItemsPerPage;
+    private $paginationClientPartial;
+    private $paginationViaCursor;
+    private $paginationEnabled;
+    private $paginationFetchJoinCollection;
+    private $paginationUseOutputWalkers;
+    private $paginationItemsPerPage;
+    private $paginationMaximumItemsPerPage;
+    private $paginationPartial;
+    private $paginationType;
+    private $security;
+    private $securityMessage;
+    private $securityPostDenormalize;
+    private $securityPostDenormalizeMessage;
+    private $compositeIdentifier;
+    private $exceptionToStatus;
+    private $queryParameterValidationEnabled;
+    private $graphQlOperations;
+    private $extraProperties;
 
     /**
      * @param string       $uriTemplate

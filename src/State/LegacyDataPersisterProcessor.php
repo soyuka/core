@@ -20,7 +20,7 @@ use ApiPlatform\Metadata\Operation;
 
 class LegacyDataPersisterProcessor implements ProcessorInterface
 {
-    private DataPersisterInterface $dataPersister;
+    private $dataPersister;
 
     public function __construct(DataPersisterInterface $dataPersister)
     {

@@ -21,9 +21,9 @@ use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 
 class LegacyDataProviderState implements ProviderInterface
 {
-    private ItemDataProviderInterface $itemDataProvider;
-    private CollectionDataProviderInterface $collectionDataProvider;
-    private SubresourceDataProviderInterface $subresourceDataProvider;
+    private $itemDataProvider;
+    private $collectionDataProvider;
+    private $subresourceDataProvider;
 
     public function __construct(ItemDataProviderInterface $itemDataProvider, CollectionDataProviderInterface $collectionDataProvider, SubresourceDataProviderInterface $subresourceDataProvider)
     {

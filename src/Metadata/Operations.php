@@ -32,7 +32,9 @@ final class Operations implements \IteratorAggregate, \Countable
             $this->operations[] = [$operationName, $operation];
         }
 
-        usort($this->operations, fn ($a, $b) => $a[1]->getPriority() - $b[1]->getPriority());
+        usort($this->operations, function ($a, $b) {
+            return $a[1]->getPriority() - $b[1]->getPriority();
+        });
     }
 
     public function getIterator(): \Traversable

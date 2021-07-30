@@ -24,8 +24,8 @@ use ApiPlatform\Metadata\Operation;
  */
 final class ResourceMetadataCollection extends \ArrayObject
 {
-    private array $operationCache = [];
-    private string $resourceClass;
+    private $operationCache = [];
+    private $resourceClass;
 
     public function __construct(string $resourceClass, array $input = [])
     {
