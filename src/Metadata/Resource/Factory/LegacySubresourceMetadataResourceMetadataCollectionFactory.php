@@ -104,47 +104,45 @@ final class LegacySubresourceMetadataResourceMetadataCollectionFactory implement
                     $identifiers[$parameterName] = [$property, $class];
                 }
 
-                $resource = new ApiResource(
-                    uriTemplate: $subresourceMetadata['path'],
-                    shortName: $subresourceMetadata['shortNames'][0],
-                    operations: [
-                        $subresourceMetadata['route_name'] => new Get(
-                            uriTemplate: $subresourceMetadata['path'],
-                            shortName: $subresourceMetadata['shortNames'][0],
-                            identifiers: $identifiers,
-                            defaults: $subresourceMetadata['defaults'],
-                            requirements: $subresourceMetadata['requirements'],
-                            options: $subresourceMetadata['options'],
-                            stateless: $subresourceMetadata['stateless'],
-                            host: $subresourceMetadata['host'],
-                            schemes: $subresourceMetadata['schemes'],
-                            condition: $subresourceMetadata['condition'],
-                            class: $subresourceMetadata['resource_class'],
-                            collection: $subresourceMetadata['collection'],
-                            compositeIdentifier: false,
-                            extraProperties: [
+                $resource = (new ApiResource())
+                    ->withUriTemplate($subresourceMetadata['path'])
+                    ->withShortName($subresourceMetadata['shortNames'][0])
+                    ->withOperations([
+                        $subresourceMetadata['route_name'] => (new Get())
+                            ->withUriTemplate($subresourceMetadata['path'])
+                            ->withShortName($subresourceMetadata['shortNames'][0])
+                            ->withIdentifiers($identifiers)
+                            ->withDefaults($subresourceMetadata['defaults'])
+                            ->withRequirements($subresourceMetadata['requirements'])
+                            ->withOptions($subresourceMetadata['options'])
+                            ->withStateless($subresourceMetadata['stateless'])
+                            ->withHost($subresourceMetadata['host'])
+                            ->withSchemes($subresourceMetadata['schemes'])
+                            ->withCondition($subresourceMetadata['condition'])
+                            ->withClass($subresourceMetadata['resource_class'])
+                            ->withCollection($subresourceMetadata['collection'])
+                            ->withCompositeIdentifier(false)
+                            ->withExtraProperties([
                                 'is_legacy_subresource' => true,
                                 'legacy_subresource_property' => $subresourceMetadata['property'],
                                 'legacy_subresource_identifiers' => $subresourceMetadata['identifiers'],
-                            ],
-                        ),
-                    ],
-                    identifiers: $identifiers,
-                    defaults: $subresourceMetadata['defaults'],
-                    requirements: $subresourceMetadata['requirements'],
-                    options: $subresourceMetadata['options'],
-                    stateless: $subresourceMetadata['stateless'],
-                    host: $subresourceMetadata['host'],
-                    schemes: $subresourceMetadata['schemes'],
-                    condition: $subresourceMetadata['condition'],
-                    class: $subresourceMetadata['resource_class'],
-                    compositeIdentifier: false,
-                    extraProperties: [
+                            ]),
+                    ])
+                    ->withIdentifiers($identifiers)
+                    ->withDefaults($subresourceMetadata['defaults'])
+                    ->withRequirements($subresourceMetadata['requirements'])
+                    ->withOptions($subresourceMetadata['options'])
+                    ->withStateless($subresourceMetadata['stateless'])
+                    ->withHost($subresourceMetadata['host'])
+                    ->withSchemes($subresourceMetadata['schemes'])
+                    ->withCondition($subresourceMetadata['condition'])
+                    ->withClass($subresourceMetadata['resource_class'])
+                    ->withCompositeIdentifier(false)
+                    ->withExtraProperties([
                         'is_legacy_subresource' => true,
                         'legacy_subresource_property' => $subresourceMetadata['property'],
                         'legacy_subresource_identifiers' => $subresourceMetadata['identifiers'],
-                    ]
-                );
+                    ]);
 
                 if ($subresourceMetadata['controller']) { // manage null values from subresources
                     $resource = $resource->withController($subresourceMetadata['controller']);

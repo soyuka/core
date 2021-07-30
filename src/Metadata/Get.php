@@ -24,10 +24,10 @@ final class Get extends Operation
         ?string $shortName = null,
         ?string $description = null,
         array $types = [],
-        mixed $formats = null,
-        mixed $inputFormats = null,
-        mixed $outputFormats = null,
-        array $identifiers = [],
+        $formats = null,
+        $inputFormats = null,
+        $outputFormats = null,
+        $identifiers = [],
         string $routePrefix = '',
         ?string $routeName = null,
         array $defaults = [],
@@ -54,10 +54,10 @@ final class Get extends Operation
         array $validationContext = [],
         array $filters = [],
         ?bool $elasticsearch = null,
-        mixed $mercure = null,
-        mixed $messenger = null,
-        mixed $input = null,
-        mixed $output = null,
+        $mercure = null,
+        $messenger = null,
+        $input = null,
+        $output = null,
         array $order = [],
         ?bool $fetchPartial = null,
         ?bool $forceEager = null,
@@ -87,7 +87,7 @@ final class Get extends Operation
         bool $queryParameterValidate = true,
         int $priority = 0,
         string $name = '',
-        array $extraProperties = [],
+        array $extraProperties = []
     ) {
         parent::__construct(self::METHOD_GET, ...\func_get_args());
     }

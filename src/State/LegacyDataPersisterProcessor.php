@@ -20,8 +20,11 @@ use ApiPlatform\Metadata\Operation;
 
 class LegacyDataPersisterProcessor implements ProcessorInterface
 {
-    public function __construct(private DataPersisterInterface $dataPersister)
+    private DataPersisterInterface $dataPersister;
+
+    public function __construct(DataPersisterInterface $dataPersister)
     {
+        $this->dataPersister = $dataPersister;
     }
 
     public function resumable(?string $operationName = null, array $context = []): bool

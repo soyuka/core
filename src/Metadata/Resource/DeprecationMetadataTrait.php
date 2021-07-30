@@ -22,7 +22,7 @@ trait DeprecationMetadataTrait
 {
     private $camelCaseToSnakeCaseNameConverter;
 
-    public function getKeyValue(string $key, mixed $value)
+    public function getKeyValue(string $key, $value)
     {
         if (!$this->camelCaseToSnakeCaseNameConverter) {
             $this->camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();

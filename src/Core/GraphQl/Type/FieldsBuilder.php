@@ -397,7 +397,7 @@ final class FieldsBuilder implements FieldsBuilderInterface
     /**
      * @param Operation|ApiOperation|null $operation
      */
-    private function getFilterArgs(array $args, ?string $resourceClass, mixed $operation, string $rootResource, ?string $property, string $operationName, int $depth): array
+    private function getFilterArgs(array $args, ?string $resourceClass, $operation, string $rootResource, ?string $property, string $operationName, int $depth): array
     {
         if (null === $operation || null === $resourceClass) {
             return $args;
@@ -438,7 +438,7 @@ final class FieldsBuilder implements FieldsBuilderInterface
     /**
      * @param Operation|ApiOperation|null $operation
      */
-    private function mergeFilterArgs(array $args, array $parsed, mixed $operation = null, $original = ''): array
+    private function mergeFilterArgs(array $args, array $parsed, $operation = null, $original = ''): array
     {
         foreach ($parsed as $key => $value) {
             // Never override keys that cannot be merged

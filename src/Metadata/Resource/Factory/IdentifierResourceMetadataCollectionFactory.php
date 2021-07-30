@@ -71,7 +71,7 @@ final class IdentifierResourceMetadataCollectionFactory implements ResourceMetad
         return $resourceMetadataCollection;
     }
 
-    private function normalizeIdentifiers(mixed $identifiers, string $resourceClass): array
+    private function normalizeIdentifiers($identifiers, string $resourceClass): array
     {
         if (!$identifiers) {
             return [];

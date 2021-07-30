@@ -19,10 +19,71 @@ class Operation
 {
     use WithResourceTrait;
 
+    private ?string $resolver;
+    private bool $collection;
+    private ?array $args;
+    private ?string $shortName;
+    private ?string $class;
+    /**
+     * @var array|string
+     */
+    private $identifiers;
+    private ?bool $compositeIdentifier;
+    private ?bool $paginationEnabled;
+    private ?string $paginationType;
+    private ?int $paginationItemsPerPage;
+    private ?int $paginationMaximumItemsPerPage;
+    private ?bool $paginationPartial;
+    private ?bool $paginationClientEnabled;
+    private ?bool $paginationClientItemsPerPage;
+    private ?bool $paginationClientPartial;
+    private ?bool $paginationFetchJoinCollection;
+    private ?bool $paginationUseOutputWalkers;
+    private array $order;
+    private ?string $description;
+    private array $normalizationContext;
+    private array $denormalizationContext;
+    private ?string $security;
+    private ?string $securityMessage;
+    private ?string $securityPostDenormalize;
+    private ?string $securityPostDenormalizeMessage;
+    private ?string $deprecationReason;
+    /**
+     * @var string[]
+     */
+    private array $filters;
+    private array $validationContext;
+    /**
+     * @var null
+     */
+    private $input;
+    /**
+     * @var null
+     */
+    private $output;
+    /**
+     * @var string|array|bool|null
+     */
+    private $mercure;
+    /**
+     * @var string|bool|null
+     */
+    private $messenger;
+    private ?bool $elasticsearch;
+    private ?int $urlGenerationStrategy;
+    private bool $read;
+    private bool $deserialize;
+    private bool $validate;
+    private bool $write;
+    private bool $serialize;
+    private ?bool $fetchPartial;
+    private ?bool $forceEager;
+    private int $priority;
+    private string $name;
+    private array $extraProperties;
+
     /**
      * @param string            $resolver
-     * @param bool              $collection
-     * @param array|null        $args
      * @param string            $shortName
      * @param string            $class
      * @param array             $identifiers
@@ -37,75 +98,112 @@ class Operation
      * @param bool              $paginationClientPartial
      * @param bool              $paginationFetchJoinCollection
      * @param bool              $paginationUseOutputWalkers
-     * @param array             $order
      * @param string            $description
-     * @param array             $normalizationContext
-     * @param array             $denormalizationContext
      * @param string            $security
      * @param string            $securityMessage
      * @param string            $securityPostDenormalize
      * @param string            $securityPostDenormalizeMessage
      * @param string            $deprecationReason
      * @param string[]          $filters
-     * @param array             $validationContext
      * @param bool|string|array $mercure
      * @param bool|string       $messenger
      * @param bool              $elasticsearch
      * @param int               $urlGenerationStrategy
-     * @param bool              $read
-     * @param bool              $deserialize
-     * @param bool              $validate
-     * @param bool              $write
-     * @param bool              $serialize
      * @param bool              $fetchPartial
      * @param bool              $forceEager
+     * @param mixed|null        $input
+     * @param mixed|null        $output
      */
     public function __construct(
-        protected ?string $resolver = null,
-        protected bool $collection = false,
-        protected ?array $args = null,
-        protected ?string $shortName = null,
-        protected ?string $class = null,
-        protected mixed $identifiers = [],
-        protected ?bool $compositeIdentifier = null,
-        protected ?bool $paginationEnabled = null,
-        protected ?string $paginationType = null,
-        protected ?int $paginationItemsPerPage = null,
-        protected ?int $paginationMaximumItemsPerPage = null,
-        protected ?bool $paginationPartial = null,
-        protected ?bool $paginationClientEnabled = null,
-        protected ?bool $paginationClientItemsPerPage = null,
-        protected ?bool $paginationClientPartial = null,
-        protected ?bool $paginationFetchJoinCollection = null,
-        protected ?bool $paginationUseOutputWalkers = null,
-        protected array $order = [],
-        protected ?string $description = null,
-        protected array $normalizationContext = [],
-        protected array $denormalizationContext = [],
-        protected ?string $security = null,
-        protected ?string $securityMessage = null,
-        protected ?string $securityPostDenormalize = null,
-        protected ?string $securityPostDenormalizeMessage = null,
-        protected ?string $deprecationReason = null,
-        protected array $filters = [],
-        protected array $validationContext = [],
-        protected mixed $input = null,
-        protected mixed $output = null,
-        protected mixed $mercure = null,
-        protected mixed $messenger = null,
-        protected ?bool $elasticsearch = null,
-        protected ?int $urlGenerationStrategy = null,
-        protected bool $read = true,
-        protected bool $deserialize = true,
-        protected bool $validate = true,
-        protected bool $write = true,
-        protected bool $serialize = true,
-        protected ?bool $fetchPartial = null,
-        protected ?bool $forceEager = null,
-        protected int $priority = 0,
-        protected string $name = '',
-        protected array $extraProperties = [],
+        ?string $resolver = null,
+        bool $collection = false,
+        ?array $args = null,
+        ?string $shortName = null,
+        ?string $class = null,
+        $identifiers = [],
+        ?bool $compositeIdentifier = null,
+        ?bool $paginationEnabled = null,
+        ?string $paginationType = null,
+        ?int $paginationItemsPerPage = null,
+        ?int $paginationMaximumItemsPerPage = null,
+        ?bool $paginationPartial = null,
+        ?bool $paginationClientEnabled = null,
+        ?bool $paginationClientItemsPerPage = null,
+        ?bool $paginationClientPartial = null,
+        ?bool $paginationFetchJoinCollection = null,
+        ?bool $paginationUseOutputWalkers = null,
+        array $order = [],
+        ?string $description = null,
+        array $normalizationContext = [],
+        array $denormalizationContext = [],
+        ?string $security = null,
+        ?string $securityMessage = null,
+        ?string $securityPostDenormalize = null,
+        ?string $securityPostDenormalizeMessage = null,
+        ?string $deprecationReason = null,
+        array $filters = [],
+        array $validationContext = [],
+        $input = null,
+        $output = null,
+        $mercure = null,
+        $messenger = null,
+        ?bool $elasticsearch = null,
+        ?int $urlGenerationStrategy = null,
+        bool $read = true,
+        bool $deserialize = true,
+        bool $validate = true,
+        bool $write = true,
+        bool $serialize = true,
+        ?bool $fetchPartial = null,
+        ?bool $forceEager = null,
+        int $priority = 0,
+        string $name = '',
+        array $extraProperties = []
     ) {
+        $this->resolver = $resolver;
+        $this->collection = $collection;
+        $this->args = $args;
+        $this->shortName = $shortName;
+        $this->class = $class;
+        $this->identifiers = $identifiers;
+        $this->compositeIdentifier = $compositeIdentifier;
+        $this->paginationEnabled = $paginationEnabled;
+        $this->paginationType = $paginationType;
+        $this->paginationItemsPerPage = $paginationItemsPerPage;
+        $this->paginationMaximumItemsPerPage = $paginationMaximumItemsPerPage;
+        $this->paginationPartial = $paginationPartial;
+        $this->paginationClientEnabled = $paginationClientEnabled;
+        $this->paginationClientItemsPerPage = $paginationClientItemsPerPage;
+        $this->paginationClientPartial = $paginationClientPartial;
+        $this->paginationFetchJoinCollection = $paginationFetchJoinCollection;
+        $this->paginationUseOutputWalkers = $paginationUseOutputWalkers;
+        $this->order = $order;
+        $this->description = $description;
+        $this->normalizationContext = $normalizationContext;
+        $this->denormalizationContext = $denormalizationContext;
+        $this->security = $security;
+        $this->securityMessage = $securityMessage;
+        $this->securityPostDenormalize = $securityPostDenormalize;
+        $this->securityPostDenormalizeMessage = $securityPostDenormalizeMessage;
+        $this->deprecationReason = $deprecationReason;
+        $this->filters = $filters;
+        $this->validationContext = $validationContext;
+        $this->input = $input;
+        $this->output = $output;
+        $this->mercure = $mercure;
+        $this->messenger = $messenger;
+        $this->elasticsearch = $elasticsearch;
+        $this->urlGenerationStrategy = $urlGenerationStrategy;
+        $this->read = $read;
+        $this->deserialize = $deserialize;
+        $this->validate = $validate;
+        $this->write = $write;
+        $this->serialize = $serialize;
+        $this->fetchPartial = $fetchPartial;
+        $this->forceEager = $forceEager;
+        $this->priority = $priority;
+        $this->name = $name;
+        $this->extraProperties = $extraProperties;
     }
 
     public function withOperation(self $operation): self
@@ -178,12 +276,12 @@ class Operation
         return $self;
     }
 
-    public function getIdentifiers(): mixed
+    public function getIdentifiers()
     {
         return $this->identifiers;
     }
 
-    public function withIdentifiers(mixed $identifiers = []): self
+    public function withIdentifiers($identifiers = []): self
     {
         $self = clone $this;
         $self->identifiers = $identifiers;
@@ -477,12 +575,12 @@ class Operation
         return $self;
     }
 
-    public function getInput(): mixed
+    public function getInput()
     {
         return $this->input;
     }
 
-    public function withInput(mixed $input = null): self
+    public function withInput($input = null): self
     {
         $self = clone $this;
         $self->input = $input;
@@ -490,12 +588,12 @@ class Operation
         return $self;
     }
 
-    public function getOutput(): mixed
+    public function getOutput()
     {
         return $this->output;
     }
 
-    public function withOutput(mixed $output = null): self
+    public function withOutput($output = null): self
     {
         $self = clone $this;
         $self->output = $output;
@@ -506,7 +604,7 @@ class Operation
     /**
      * @return bool|string|array|null
      */
-    public function getMercure(): mixed
+    public function getMercure()
     {
         return $this->mercure;
     }
@@ -516,7 +614,7 @@ class Operation
      *
      * @return $this
      */
-    public function withMercure(mixed $mercure = null): self
+    public function withMercure($mercure = null): self
     {
         $self = clone $this;
         $self->mercure = $mercure;
@@ -527,7 +625,7 @@ class Operation
     /**
      * @return bool|string|null
      */
-    public function getMessenger(): mixed
+    public function getMessenger()
     {
         return $this->messenger;
     }
@@ -537,7 +635,7 @@ class Operation
      *
      * @return $this
      */
-    public function withMessenger(mixed $messenger = null): self
+    public function withMessenger($messenger = null): self
     {
         $self = clone $this;
         $self->messenger = $messenger;

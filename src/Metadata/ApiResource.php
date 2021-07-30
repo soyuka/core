@@ -23,27 +23,104 @@ namespace ApiPlatform\Metadata;
 class ApiResource
 {
     private Operations $operations;
+    private ?string $uriTemplate;
+    private ?string $shortName;
+    private ?string $description;
+    private array $types;
+    /**
+     * @var array|mixed|string|null
+     */
+    private $formats;
+    /**
+     * @var array|mixed|string|null
+     */
+    private $inputFormats;
+    /**
+     * @var array|mixed|string|null
+     */
+    private $outputFormats;
+    /**
+     * @var array|mixed
+     */
+    private $identifiers;
+    private ?string $routePrefix;
+    private array $defaults;
+    private array $requirements;
+    private array $options;
+    private ?bool $stateless;
+    private ?string $sunset;
+    private ?string $acceptPatch;
+    /**
+     * @var mixed|string|null
+     */
+    private $status;
+    private string $host;
+    private array $schemes;
+    private string $condition;
+    private string $controller;
+    private ?string $class;
+    private ?int $urlGenerationStrategy;
+    private ?string $deprecationReason;
+    private array $cacheHeaders;
+    private ?array $normalizationContext;
+    private ?array $denormalizationContext;
+    /**
+     * @var string[]|null
+     */
+    private ?array $hydraContext;
+    private ?array $openapiContext;
+    private array $validationContext;
+    /**
+     * @var string[]
+     */
+    private array $filters;
+    private ?bool $elasticsearch;
+    /**
+     * @var array|bool|mixed|null
+     */
+    private $mercure;
+    /**
+     * @var bool|mixed|null
+     */
+    private $messenger;
+    private $input;
+    private $output;
+    private ?array $order;
+    private ?bool $fetchPartial;
+    private ?bool $forceEager;
+    private ?bool $paginationClientEnabled;
+    private ?bool $paginationClientItemsPerPage;
+    private ?bool $paginationClientPartial;
+    private ?array $paginationViaCursor;
+    private ?bool $paginationEnabled;
+    private ?bool $paginationFetchJoinCollection;
+    private ?bool $paginationUseOutputWalkers;
+    private ?int $paginationItemsPerPage;
+    private ?int $paginationMaximumItemsPerPage;
+    private ?bool $paginationPartial;
+    private ?string $paginationType;
+    private ?string $security;
+    private ?string $securityMessage;
+    private ?string $securityPostDenormalize;
+    private ?string $securityPostDenormalizeMessage;
+    private ?bool $compositeIdentifier;
+    private array $exceptionToStatus;
+    private ?bool $queryParameterValidationEnabled;
+    private ?array $graphQlOperations;
+    private array $extraProperties;
 
     /**
      * @param string       $uriTemplate
      * @param string       $shortName
      * @param string       $description
-     * @param array        $types
      * @param array|string $formats                        https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array|string $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param array|string $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
      * @param string       $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
-     * @param array        $defaults
-     * @param array        $requirements
-     * @param array        $options
      * @param bool         $stateless
      * @param string       $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
      * @param string       $acceptPatch
      * @param string       $status
-     * @param string       $host
-     * @param array        $schemes
-     * @param string       $condition
-     * @param string       $controller
      * @param string       $class
      * @param int          $urlGenerationStrategy
      * @param string       $deprecationReason              https://api-platform.com/docs/core/deprecations/#deprecating-resource-classes-operations-and-properties
@@ -77,70 +154,127 @@ class ApiResource
      * @param string       $securityPostDenormalize        https://api-platform.com/docs/core/security/#executing-access-control-rules-after-denormalization
      * @param string       $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
      * @param bool         $compositeIdentifier
-     * @param array        $exceptionToStatus
      */
     public function __construct(
-        private ?string $uriTemplate = null,
-        private ?string $shortName = null,
-        private ?string $description = null,
-        private array $types = [],
-        iterable $operations = [],
-        private mixed $formats = null,
-        private mixed $inputFormats = null,
-        private mixed $outputFormats = null,
-        private mixed $identifiers = [],
-        private ?string $routePrefix = '',
-        private array $defaults = [],
-        private array $requirements = [],
-        private array $options = [],
-        private ?bool $stateless = null,
-        private ?string $sunset = null,
-        private ?string $acceptPatch = null,
-        private mixed $status = null,
-        private string $host = '',
-        private array $schemes = [],
-        private string $condition = '',
-        private string $controller = 'api_platform.action.placeholder',
-        private ?string $class = null,
-        private ?int $urlGenerationStrategy = null,
-        private ?string $deprecationReason = null,
-        private array $cacheHeaders = [],
-        private ?array $normalizationContext = [],
-        private ?array $denormalizationContext = [],
-        private ?array $hydraContext = [],
-        private ?array $openapiContext = [],
-        private array $validationContext = [],
-        private array $filters = [],
-        private ?bool $elasticsearch = null,
-        private mixed $mercure = null,
-        private mixed $messenger = null,
-        private mixed $input = null,
-        private mixed $output = null,
-        private ?array $order = [],
-        private ?bool $fetchPartial = null,
-        private ?bool $forceEager = null,
-        private ?bool $paginationClientEnabled = null,
-        private ?bool $paginationClientItemsPerPage = null,
-        private ?bool $paginationClientPartial = null,
-        private ?array $paginationViaCursor = [],
-        private ?bool $paginationEnabled = null,
-        private ?bool $paginationFetchJoinCollection = null,
-        private ?bool $paginationUseOutputWalkers = null,
-        private ?int $paginationItemsPerPage = null,
-        private ?int $paginationMaximumItemsPerPage = null,
-        private ?bool $paginationPartial = null,
-        private ?string $paginationType = null,
-        private ?string $security = null,
-        private ?string $securityMessage = null,
-        private ?string $securityPostDenormalize = null,
-        private ?string $securityPostDenormalizeMessage = null,
-        private ?bool $compositeIdentifier = null,
-        private array $exceptionToStatus = [],
-        private ?bool $queryParameterValidationEnabled = null,
-        private ?array $graphQlOperations = null,
-        private array $extraProperties = []
+        ?string $uriTemplate = null,
+        ?string $shortName = null,
+        ?string $description = null,
+        array $types = [],
+        $operations = [],
+        $formats = null,
+        $inputFormats = null,
+        $outputFormats = null,
+        $identifiers = [],
+        ?string $routePrefix = '',
+        array $defaults = [],
+        array $requirements = [],
+        array $options = [],
+        ?bool $stateless = null,
+        ?string $sunset = null,
+        ?string $acceptPatch = null,
+        $status = null,
+        string $host = '',
+        array $schemes = [],
+        string $condition = '',
+        string $controller = 'api_platform.action.placeholder',
+        ?string $class = null,
+        ?int $urlGenerationStrategy = null,
+        ?string $deprecationReason = null,
+        array $cacheHeaders = [],
+        ?array $normalizationContext = [],
+        ?array $denormalizationContext = [],
+        ?array $hydraContext = [],
+        ?array $openapiContext = [],
+        array $validationContext = [],
+        array $filters = [],
+        ?bool $elasticsearch = null,
+        $mercure = null,
+        $messenger = null,
+        $input = null,
+        $output = null,
+        ?array $order = [],
+        ?bool $fetchPartial = null,
+        ?bool $forceEager = null,
+        ?bool $paginationClientEnabled = null,
+        ?bool $paginationClientItemsPerPage = null,
+        ?bool $paginationClientPartial = null,
+        ?array $paginationViaCursor = [],
+        ?bool $paginationEnabled = null,
+        ?bool $paginationFetchJoinCollection = null,
+        ?bool $paginationUseOutputWalkers = null,
+        ?int $paginationItemsPerPage = null,
+        ?int $paginationMaximumItemsPerPage = null,
+        ?bool $paginationPartial = null,
+        ?string $paginationType = null,
+        ?string $security = null,
+        ?string $securityMessage = null,
+        ?string $securityPostDenormalize = null,
+        ?string $securityPostDenormalizeMessage = null,
+        ?bool $compositeIdentifier = null,
+        array $exceptionToStatus = [],
+        ?bool $queryParameterValidationEnabled = null,
+        ?array $graphQlOperations = null,
+        array $extraProperties = []
     ) {
         $this->operations = new Operations($operations);
+        $this->uriTemplate = $uriTemplate;
+        $this->shortName = $shortName;
+        $this->description = $description;
+        $this->types = $types;
+        $this->formats = $formats;
+        $this->inputFormats = $inputFormats;
+        $this->outputFormats = $outputFormats;
+        $this->identifiers = $identifiers;
+        $this->routePrefix = $routePrefix;
+        $this->defaults = $defaults;
+        $this->requirements = $requirements;
+        $this->options = $options;
+        $this->stateless = $stateless;
+        $this->sunset = $sunset;
+        $this->acceptPatch = $acceptPatch;
+        $this->status = $status;
+        $this->host = $host;
+        $this->schemes = $schemes;
+        $this->condition = $condition;
+        $this->controller = $controller;
+        $this->class = $class;
+        $this->urlGenerationStrategy = $urlGenerationStrategy;
+        $this->deprecationReason = $deprecationReason;
+        $this->cacheHeaders = $cacheHeaders;
+        $this->normalizationContext = $normalizationContext;
+        $this->denormalizationContext = $denormalizationContext;
+        $this->hydraContext = $hydraContext;
+        $this->openapiContext = $openapiContext;
+        $this->validationContext = $validationContext;
+        $this->filters = $filters;
+        $this->elasticsearch = $elasticsearch;
+        $this->mercure = $mercure;
+        $this->messenger = $messenger;
+        $this->input = $input;
+        $this->output = $output;
+        $this->order = $order;
+        $this->fetchPartial = $fetchPartial;
+        $this->forceEager = $forceEager;
+        $this->paginationClientEnabled = $paginationClientEnabled;
+        $this->paginationClientItemsPerPage = $paginationClientItemsPerPage;
+        $this->paginationClientPartial = $paginationClientPartial;
+        $this->paginationViaCursor = $paginationViaCursor;
+        $this->paginationEnabled = $paginationEnabled;
+        $this->paginationFetchJoinCollection = $paginationFetchJoinCollection;
+        $this->paginationUseOutputWalkers = $paginationUseOutputWalkers;
+        $this->paginationItemsPerPage = $paginationItemsPerPage;
+        $this->paginationMaximumItemsPerPage = $paginationMaximumItemsPerPage;
+        $this->paginationPartial = $paginationPartial;
+        $this->paginationType = $paginationType;
+        $this->security = $security;
+        $this->securityMessage = $securityMessage;
+        $this->securityPostDenormalize = $securityPostDenormalize;
+        $this->securityPostDenormalizeMessage = $securityPostDenormalizeMessage;
+        $this->compositeIdentifier = $compositeIdentifier;
+        $this->exceptionToStatus = $exceptionToStatus;
+        $this->queryParameterValidationEnabled = $queryParameterValidationEnabled;
+        $this->graphQlOperations = $graphQlOperations;
+        $this->extraProperties = $extraProperties;
     }
 
     public function getOperations(): Operations
@@ -211,12 +345,15 @@ class ApiResource
     /**
      * @return array|mixed|string|null
      */
-    public function getFormats(): mixed
+    public function getFormats()
     {
         return $this->formats;
     }
 
-    public function withFormats(mixed $formats = null): self
+    /**
+     * @param mixed|null $formats
+     */
+    public function withFormats($formats = null): self
     {
         $self = clone $this;
         $self->formats = $formats;
@@ -227,12 +364,15 @@ class ApiResource
     /**
      * @return array|mixed|string|null
      */
-    public function getInputFormats(): mixed
+    public function getInputFormats()
     {
         return $this->inputFormats;
     }
 
-    public function withInputFormats(mixed $inputFormats = null): self
+    /**
+     * @param mixed|null $inputFormats
+     */
+    public function withInputFormats($inputFormats = null): self
     {
         $self = clone $this;
         $self->inputFormats = $inputFormats;
@@ -243,12 +383,15 @@ class ApiResource
     /**
      * @return array|mixed|string|null
      */
-    public function getOutputFormats(): mixed
+    public function getOutputFormats()
     {
         return $this->outputFormats;
     }
 
-    public function withOutputFormats(mixed $outputFormats = null): self
+    /**
+     * @param mixed|null $outputFormats
+     */
+    public function withOutputFormats($outputFormats = null): self
     {
         $self = clone $this;
         $self->outputFormats = $outputFormats;
@@ -256,12 +399,18 @@ class ApiResource
         return $self;
     }
 
-    public function getIdentifiers(): mixed
+    /**
+     * @return array|mixed|string|null
+     */
+    public function getIdentifiers()
     {
         return $this->identifiers;
     }
 
-    public function withIdentifiers(mixed $identifiers = []): self
+    /**
+     * @param mixed|array $identifiers
+     */
+    public function withIdentifiers($identifiers = []): self
     {
         $self = clone $this;
         $self->identifiers = $identifiers;
@@ -577,12 +726,15 @@ class ApiResource
     /**
      * @return array|bool|mixed|null
      */
-    public function getMercure(): mixed
+    public function getMercure()
     {
         return $this->mercure;
     }
 
-    public function withMercure(mixed $mercure = null): self
+    /**
+     * @param mixed|null $mercure
+     */
+    public function withMercure($mercure = null): self
     {
         $self = clone $this;
         $self->mercure = $mercure;
@@ -593,12 +745,15 @@ class ApiResource
     /**
      * @return bool|mixed|null
      */
-    public function getMessenger(): mixed
+    public function getMessenger()
     {
         return $this->messenger;
     }
 
-    public function withMessenger(mixed $messenger = null): self
+    /**
+     * @param mixed|null $messenger
+     */
+    public function withMessenger($messenger = null): self
     {
         $self = clone $this;
         $self->messenger = $messenger;
@@ -606,12 +761,18 @@ class ApiResource
         return $self;
     }
 
-    public function getInput(): mixed
+    /**
+     * @return mixed|null
+     */
+    public function getInput()
     {
         return $this->input;
     }
 
-    public function withInput(mixed $input = null): self
+    /**
+     * @param mixed|null $input
+     */
+    public function withInput($input = null): self
     {
         $self = clone $this;
         $self->input = $input;
@@ -619,12 +780,18 @@ class ApiResource
         return $self;
     }
 
-    public function getOutput(): mixed
+    /**
+     * @return mixed|null
+     */
+    public function getOutput()
     {
         return $this->output;
     }
 
-    public function withOutput(mixed $output = null): self
+    /**
+     * @param mixed|null $output
+     */
+    public function withOutput($output = null): self
     {
         $self = clone $this;
         $self->output = $output;

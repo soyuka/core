@@ -21,8 +21,15 @@ use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 
 class LegacyDataProviderState implements ProviderInterface
 {
-    public function __construct(private ItemDataProviderInterface $itemDataProvider, private CollectionDataProviderInterface $collectionDataProvider, private SubresourceDataProviderInterface $subresourceDataProvider)
+    private ItemDataProviderInterface $itemDataProvider;
+    private CollectionDataProviderInterface $collectionDataProvider;
+    private SubresourceDataProviderInterface $subresourceDataProvider;
+
+    public function __construct(ItemDataProviderInterface $itemDataProvider, CollectionDataProviderInterface $collectionDataProvider, SubresourceDataProviderInterface $subresourceDataProvider)
     {
+        $this->itemDataProvider = $itemDataProvider;
+        $this->collectionDataProvider = $collectionDataProvider;
+        $this->subresourceDataProvider = $subresourceDataProvider;
     }
 
     public function provide(string $resourceClass, array $identifiers = [], ?string $operationName = null, array $context = [])

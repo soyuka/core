@@ -101,9 +101,13 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
         $graphQlOperations = [];
         foreach ($resourceMetadata->getGraphql() as $operationName => $operation) {
             if (false !== strpos($operationName, 'query') || isset($operation['item_query']) || isset($operation['collection_query'])) {
-                $graphQlOperation = new Query(collection: isset($operation['collection_query']) || false !== strpos($operationName, 'collection'), name: $operationName);
+                $graphQlOperation = (new Query())
+                    ->withCollection(isset($operation['collection_query']) || false !== strpos($operationName, 'collection'))
+                    ->withName($operationName);
             } else {
-                $graphQlOperation = new Mutation(name: $operationName, description: ucfirst("{$operationName}s a {$resourceMetadata->getShortName()}."));
+                $graphQlOperation = (new Mutation())
+                    ->withDescription(ucfirst("{$operationName}s a {$resourceMetadata->getShortName()}."))
+                    ->withName($operationName);
             }
 
             $graphQlOperation = $graphQlOperation
@@ -126,7 +130,10 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
             $graphQlOperation = $graphQlOperation->withResource($resource);
 
             if ('update' === $operationName && $graphQlOperation instanceof Mutation && $graphQlOperation->getMercure()) {
-                $graphQlOperations['update_subscription'] = (new Subscription(name: 'update_subscription', description: "Subscribes to the $operationName event of a {$graphQlOperation->getShortName()}."))->withOperation($graphQlOperation);
+                $graphQlOperations['update_subscription'] = (new Subscription())
+                    ->withDescription("Subscribes to the $operationName event of a {$graphQlOperation->getShortName()}.")
+                    ->withName('update_subscription')
+                    ->withOperation($graphQlOperation);
             }
 
             $graphQlOperations[$operationName] = $graphQlOperation;
@@ -141,7 +148,10 @@ final class LegacyResourceMetadataResourceMetadataCollectionFactory implements R
     {
         $priority = 0;
         foreach ($operations as $operationName => $operation) {
-            $newOperation = new Operation(method: $operation['method'], collection: OperationType::COLLECTION === $type, priority: $priority++);
+            $newOperation = (new Operation())
+                ->withMethod($operation['method'])
+                ->withCollection(OperationType::COLLECTION === $type)
+                ->withPriority($priority++);
             foreach ($operation as $key => $value) {
                 [$key, $value, $hasNoEquivalence] = $this->getKeyValue($key, $value);
                 if ($hasNoEquivalence) {

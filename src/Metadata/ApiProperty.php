@@ -38,8 +38,8 @@ final class ApiProperty
         private bool $required = false,
         private bool $identifier = false,
         private bool $initializable = false,
-        private mixed $default = null,
-        private mixed $example = null,
+        private $default = null,
+        private $example = null,
         private array $schema = [],
         private ?string $deprecationReason = null,
         private ?bool $fetchable = null,
@@ -112,7 +112,7 @@ final class ApiProperty
     /**
      * @return mixed|null
      */
-    public function getDefault(): mixed
+    public function getDefault()
     {
         return $this->default;
     }
@@ -120,7 +120,7 @@ final class ApiProperty
     /**
      * @return mixed|null
      */
-    public function getExample(): mixed
+    public function getExample()
     {
         return $this->example;
     }
