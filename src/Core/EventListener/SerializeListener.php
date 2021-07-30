@@ -51,11 +51,13 @@ final class SerializeListener
         $this->serializerContextBuilder = $serializerContextBuilder;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+        if ($resourceMetadataFactory && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('The use of %s is deprecated, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class));
         }
 
-        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
+        if ($resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
+        }
     }
 
     /**
@@ -75,7 +77,8 @@ final class SerializeListener
 
         // TODO: 3.0 remove condition
         if (
-            !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface &&
+            (!$this->resourceMetadataFactory || $this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface)
+            &&
             (
                 !($attributes['respond'] ?? $request->attributes->getBoolean('_api_respond', false))
                 || ($attributes && $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY))

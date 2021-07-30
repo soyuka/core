@@ -19,7 +19,6 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
 /**
  * Helps creating metadata on the Resource based on the properties of this same resource. Computes "identifiers".
- * TODO: compute serialization groups as in SerializerPropertyMetadataFactory using the same injected services trying to avoid recursion.
  *
  * @author Antoine Bluchet <soyuka@gmail.com>
  * @experimental

@@ -38,14 +38,15 @@ final class ValidateListener
     private $validator;
     private $resourceMetadataFactory;
 
-    public function __construct(ValidatorInterface $validator, $resourceMetadataFactory = null)
+    public function __construct(ValidatorInterface $validator, $resourceMetadataFactory)
     {
         $this->validator = $validator;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
-        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
 
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        } else {
+            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         }
     }
 
@@ -77,7 +78,7 @@ final class ValidateListener
 
         // TODO: 3.0 remove condition
         if (
-            !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && (
+            $this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && (
             !$attributes['receive']
             || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
             )

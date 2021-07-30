@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\EventListener;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\DataPersister\DataPersisterInterface;
 use ApiPlatform\Core\EventListener\WriteListener;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
@@ -46,7 +45,7 @@ class WriteListenerTest extends TestCase
         $dataPersisterProphecy->persist($dummy, Argument::type('array'))->willReturn($dummy)->shouldBeCalled();
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromItem($dummy, UrlGeneratorInterface::ABS_PATH, Argument::any())->willReturn('/dummy/1')->shouldBeCalled();
+        $iriConverterProphecy->getIriFromItem($dummy)->willReturn('/dummy/1')->shouldBeCalled();
 
         $request = new Request([], [], ['_api_resource_class' => Dummy::class]);
 
@@ -116,7 +115,7 @@ class WriteListenerTest extends TestCase
         $dataPersisterProphecy->persist($dummy, Argument::type('array'))->willReturn($dummy2);
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromItem($dummy2, UrlGeneratorInterface::ABS_PATH, Argument::any())->willReturn('/dummy/2')->shouldBeCalled();
+        $iriConverterProphecy->getIriFromItem($dummy2)->willReturn('/dummy/2')->shouldBeCalled();
 
         $writeListener = new WriteListener($dataPersisterProphecy->reveal(), $iriConverterProphecy->reveal());
 
@@ -340,7 +339,7 @@ class WriteListenerTest extends TestCase
         $dataPersisterProphecy->persist($dummy, Argument::type('array'))->willReturn($dummy)->shouldBeCalled();
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromItem($dummy, UrlGeneratorInterface::ABS_PATH, Argument::any())->willReturn('/dummy/1')->shouldBeCalled();
+        $iriConverterProphecy->getIriFromItem($dummy)->willReturn('/dummy/1')->shouldBeCalled();
 
         $request = new Request([], [], ['_api_resource_class' => ConcreteDummy::class, '_api_item_operation_name' => 'put', '_api_persist' => true]);
         $request->setMethod('PUT');

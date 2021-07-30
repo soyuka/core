@@ -14,9 +14,13 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\Tests\Bridge\Symfony\Bundle\ArgumentResolver;
 
 use ApiPlatform\Core\Bridge\Symfony\Bundle\ArgumentResolver\PayloadArgumentResolver;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Prophecy\Argument;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +28,8 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
 class PayloadArgumentResolverTest extends KernelTestCase
 {
+    use ProphecyTrait;
+
     public function testItSupportsRequestWithPayloadOfExpectedType(): void
     {
         $resolver = $this->createArgumentResolver();
@@ -31,8 +37,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ]);
 
@@ -46,8 +51,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ]);
 
@@ -61,8 +65,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update_with_dto',
+            '_api_operation_name' => 'update_with_dto',
             'data' => new NotResource(),
         ]);
 
@@ -78,8 +81,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ]);
 
@@ -104,8 +106,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ]);
 
@@ -122,8 +123,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
         $request = $this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ]);
 
@@ -137,52 +137,39 @@ class PayloadArgumentResolverTest extends KernelTestCase
     {
         yield 'GET request' => [$this->createRequest('GET', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ])];
 
         yield 'HEAD request' => [$this->createRequest('HEAD', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ])];
 
         yield 'OPTIONS request' => [$this->createRequest('OPTIONS', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ])];
 
         yield 'TRACE request' => [$this->createRequest('TRACE', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ])];
 
         yield 'DELETE request' => [$this->createRequest('DELETE', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update',
+            '_api_operation_name' => 'update',
             'data' => new ResourceImplementation(),
         ])];
 
         yield 'request without attributes' => [$this->createRequest('PUT', [])];
 
-        yield 'request with receive=false' => [$this->createRequest('PUT', [
-            '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => false,
-            '_api_item_operation_name' => 'update',
-            'data' => new ResourceImplementation(),
-        ])];
-
         yield 'request on operation with deserialization disabled' => [$this->createRequest('PUT', [
             '_api_resource_class' => ResourceImplementation::class,
-            '_api_receive' => true,
-            '_api_item_operation_name' => 'update_no_deserialize',
+            '_api_operation_name' => 'update_no_deserialize',
             'data' => new ResourceImplementation(),
         ])];
     }
@@ -214,8 +201,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
         yield 'simple' => [
             $this->createRequest('PUT', [
                 '_api_resource_class' => ResourceImplementation::class,
-                '_api_receive' => true,
-                '_api_item_operation_name' => 'update',
+                '_api_operation_name' => 'update',
                 'data' => $resource,
             ]),
             static function (ResourceImplementation $payload) {},
@@ -225,8 +211,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
         yield 'with another argument named $data' => [
             $this->createRequest('PUT', [
                 '_api_resource_class' => ResourceImplementation::class,
-                '_api_receive' => true,
-                '_api_item_operation_name' => 'update',
+                '_api_operation_name' => 'update',
                 'data' => $resource,
             ]),
             static function (ResourceImplementation $payload, $data) {},
@@ -236,32 +221,15 @@ class PayloadArgumentResolverTest extends KernelTestCase
 
     private function createArgumentResolver(): PayloadArgumentResolver
     {
-        $metadataFactory = $this->prophesize(ResourceMetadataFactoryInterface::class);
-        $metadataFactory
-            ->create(ResourceImplementation::class)
-            ->willReturn(new ResourceMetadata(
-                ResourceImplementation::class,
-                null,
-                null,
-                [
-                    'update' => [
-                        'method' => 'PUT',
-                    ],
-                    'update_no_deserialize' => [
-                        'method' => 'PUT',
-                        'deserialize' => false,
-                    ],
-                    'update_with_dto' => [
-                        'method' => 'PUT',
-                        'input' => NotResource::class,
-                    ],
-                ],
-                [
-                    'create' => [
-                        'method' => 'POST',
-                    ],
-                ]
-            ));
+        $resourceMetadataFactory = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
+        $resourceMetadataFactory->create(ResourceImplementation::class)->willReturn(new ResourceMetadataCollection(ResourceImplementation::class, [
+            (new ApiResource())->withShortName('ResourceImplementation')->withOperations([
+                'update' => new Put(),
+                'update_no_deserialize' => (new Put())->withDeserialize(false),
+                'update_with_dto' => (new Put())->withInput(['class' => NotResource::class]),
+                'create' => new Post(),
+            ]),
+        ]));
 
         $serializerContextBuilder = $this->prophesize(SerializerContextBuilderInterface::class);
         $serializerContextBuilder
@@ -278,7 +246,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
                     'resource_class' => ResourceImplementation::class,
                 ];
 
-                if ('update_with_dto' === $request->attributes->get('_api_item_operation_name')) {
+                if ('update_with_dto' === $request->attributes->get('_api_operation_name')) {
                     $context['input'] = NotResource::class;
                 } else {
                     $context['input'] = null;
@@ -288,7 +256,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
             });
 
         return new PayloadArgumentResolver(
-            $metadataFactory->reveal(),
+            $resourceMetadataFactory->reveal(),
             $serializerContextBuilder->reveal()
         );
     }

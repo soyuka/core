@@ -54,15 +54,18 @@ final class DeserializeListener
         $this->resourceMetadataFactory = ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface || $resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) ? $resourceMetadataFactory : $legacyResourceMetadataFactory;
 
         if ($resourceMetadataFactory) {
-            if (!$resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            if (!$resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
                 @trigger_error(sprintf('Passing an array or an instance of "%s" as 3rd parameter of the constructor of "%s" is deprecated since API Platform 2.5, pass an instance of "%s" instead', FormatsProviderInterface::class, __CLASS__, ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
             }
 
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
-            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
-        }
+            if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+            }
 
-        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface ? $resourceMetadataFactory : null;
+            if ($resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+                $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
+            }
+        }
 
         if (\is_array($resourceMetadataFactory)) {
             $this->formats = $resourceMetadataFactory;
@@ -97,7 +100,7 @@ final class DeserializeListener
             return;
         }
 
-        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && (
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface && (
             !$attributes['receive']
             || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
         )) {
@@ -106,7 +109,7 @@ final class DeserializeListener
 
         $context = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
 
-        $formats = $operation->getInputFormats() ?? null;
+        $formats = $operation ? $operation->getInputFormats() ?? null : null;
 
         if (!$formats) {
             // BC check to be removed in 3.0

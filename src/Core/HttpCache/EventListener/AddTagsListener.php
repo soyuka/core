@@ -35,7 +35,7 @@ final class AddTagsListener
     use OperationRequestInitiatorTrait;
     private $iriConverter;
 
-    public function __construct(IriConverterInterface $iriConverter, ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory)
+    public function __construct(IriConverterInterface $iriConverter, ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null)
     {
         $this->iriConverter = $iriConverter;
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;

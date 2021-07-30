@@ -14,9 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\EventListener;
 
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
-use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\OperationDataProviderTrait;
-use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 use ApiPlatform\Core\Exception\InvalidIdentifierException;
 use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Identifier\CompositeIdentifierParser;
@@ -52,7 +50,7 @@ final class ReadListener
     /** @var ?ProviderInterface */
     private $provider = null;
 
-    public function __construct(CollectionDataProviderInterface $collectionDataProvider, ItemDataProviderInterface $itemDataProvider, SubresourceDataProviderInterface $subresourceDataProvider = null, SerializerContextBuilderInterface $serializerContextBuilder = null, IdentifierConverterInterface $identifierConverter = null, $resourceMetadataFactory = null, ProviderInterface $provider = null)
+    public function __construct($collectionDataProvider, $itemDataProvider = null, $subresourceDataProvider = null, SerializerContextBuilderInterface $serializerContextBuilder = null, IdentifierConverterInterface $identifierConverter = null, $resourceMetadataFactory = null)
     {
         $this->collectionDataProvider = $collectionDataProvider;
         $this->itemDataProvider = $itemDataProvider;
@@ -60,6 +58,10 @@ final class ReadListener
         $this->serializerContextBuilder = $serializerContextBuilder;
         $this->identifierConverter = $identifierConverter;
         $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if ($collectionDataProvider instanceof CollectionDataProviderInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Using a "%s" as first argument of the "%s" is deprecated, use a "%s" instead.', CollectionDataProviderInterface::class, __CLASS__, ProviderInterface::class));
+        }
 
         if (!$identifierConverter instanceof ContextAwareIdentifierConverterInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('An "%s" is mandatory.', ContextAwareIdentifierConverterInterface::class));
@@ -69,8 +71,13 @@ final class ReadListener
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
-        $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
-        $this->provider = $provider;
+        if ($resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
+        }
+
+        if ($collectionDataProvider instanceof ProviderInterface) {
+            $this->provider = $collectionDataProvider;
+        }
     }
 
     /**
@@ -97,9 +104,11 @@ final class ReadListener
 
         // TODO: 3.0 remove condition
         if (
-            !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && (
-            !$attributes['receive']
-            || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
+            ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface || !$this->resourceMetadataFactory)
+            && (
+                !$attributes['receive']
+                || $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY)
+                || $request->isMethod('POST')
             )
         ) {
             return;
@@ -110,7 +119,12 @@ final class ReadListener
             $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
         }
 
-        $context = null === $filters ? [] : ['filters' => $filters, 'operation' => $operation, 'legacy_attributes' => $attributes + ['identifiers' => $operation->getIdentifiers(), 'has_composite_identifier' => $operation->getCompositeIdentifier()]];
+        $context = $operation ? ['operation' => $operation, 'legacy_attributes' => $attributes + ['identifiers' => $operation->getIdentifiers(), 'has_composite_identifier' => $operation->getCompositeIdentifier()]] : [];
+
+        if ($filters) {
+            $context['filters'] = $filters;
+        }
+
         if ($this->identifierConverter) {
             $context[IdentifierConverterInterface::HAS_IDENTIFIER_CONVERTER] = true;
         }
@@ -165,7 +179,7 @@ final class ReadListener
             return;
         }
 
-        if (isset($attributes['operation_name'])) {
+        if ($operation && isset($attributes['operation_name'])) {
             trigger_deprecation('api-platform/core', '2.7', 'Using a #[Resource] without a state provider is deprecated since 2.7 and will not be possible anymore in 3.0.');
             $attributes[sprintf('%s_operation_name', ($operation->getIdentifiers() ?? []) ? 'item' : 'collection')] = $operation->getName();
         }

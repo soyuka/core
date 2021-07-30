@@ -109,7 +109,6 @@ final class EagerLoadingExtension implements ContextAwareQueryCollectionExtensio
         if (null !== $operationName) {
             // TODO remove in 3.0
             $options[($collection ? 'collection' : 'item').'_operation_name'] = $operationName;
-            $options['operation_name'] = $operationName;
         }
 
         $operation = null;

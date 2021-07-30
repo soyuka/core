@@ -31,7 +31,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
 {
     private $resourceMetadataFactory;
 
-    public function __construct($resourceMetadataFactory = null)
+    public function __construct($resourceMetadataFactory)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 

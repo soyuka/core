@@ -104,7 +104,7 @@ final class WriteListener
             return;
         }
 
-        $context = ['operation' => $operation, 'legacy_attributes' => $attributes + ['identifiers' => $operation->getIdentifiers(), 'has_composite_identifier' => $operation->getCompositeIdentifier()]];
+        $context = $operation ? ['operation' => $operation, 'legacy_attributes' => $attributes + ['identifiers' => $operation->getIdentifiers(), 'has_composite_identifier' => $operation->getCompositeIdentifier()]] : [];
         if ($this->dataPersister instanceof ProcessorInterface && !$this->dataPersister->supports($controllerResult, $attributes['identifiers'], $operation->getName(), $context)) {
             return;
         }
@@ -139,7 +139,7 @@ final class WriteListener
                     break;
                 }
 
-                if ($this->isResourceClass($this->getObjectClass($controllerResult))) {
+                if ($this->isResourceClass($this->getObjectClass($controllerResult)) && $this->iriConverter) {
                     $request->attributes->set('_api_write_item_iri', $this->iriConverter->getIriFromItem($controllerResult));
                 }
 

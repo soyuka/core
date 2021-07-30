@@ -17,6 +17,7 @@ use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Serializer\Filter\FilterInterface;
 use ApiPlatform\Core\Util\RequestAttributesExtractor;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -35,8 +36,8 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
     {
         $this->decorated = $decorated;
         $this->filterLocator = $filterLocator;
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be not be used anymore in 3.0.', ResourceMetadataFactoryInterface::class), \E_USER_DEPRECATED);
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('The use of %s is deprecated, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;
@@ -54,16 +55,11 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
         $context = $this->decorated->createFromRequest($request, $normalization, $attributes);
 
         // TODO: remove in 3.0
-        if (
-            !$this->resourceMetadataFactory
-            && isset($attributes['operation_name']) && isset($context['filters'])
-        ) {
-            $resourceFilters = $context['filters'];
-        } elseif ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
             $resourceFilters = $resourceMetadata->getOperationAttribute($attributes, 'filters', [], true);
         } else {
-            $resourceFilters = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name'])->getFilters();
+            $resourceFilters = $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name'] ?? null)->getFilters();
         }
 
         if (!$resourceFilters) {

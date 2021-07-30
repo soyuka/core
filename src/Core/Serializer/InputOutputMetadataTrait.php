@@ -27,7 +27,7 @@ trait InputOutputMetadataTrait
 
     protected function getInputClass(string $class, array $context = []): ?string
     {
-        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+        if (!$this->resourceMetadataFactory || !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             return $this->getInputOutputMetadata($class, 'input', $context);
         }
 
@@ -36,7 +36,7 @@ trait InputOutputMetadataTrait
         }
 
         $operation = $context['operation'] ?? null;
-        if (null === $operation && null !== $this->resourceMetadataFactory) {
+        if (!$operation) {
             try {
                 $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {
@@ -49,7 +49,7 @@ trait InputOutputMetadataTrait
 
     protected function getOutputClass(string $class, array $context = []): ?string
     {
-        if (!$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+        if (!$this->resourceMetadataFactory || !$this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             return $this->getInputOutputMetadata($class, 'output', $context);
         }
 
@@ -58,7 +58,7 @@ trait InputOutputMetadataTrait
         }
 
         $operation = $context['operation'] ?? null;
-        if (null === $operation && null !== $this->resourceMetadataFactory) {
+        if (null === $operation) {
             try {
                 $operation = $this->resourceMetadataFactory->create($class)->getOperation($context['operation_name'] ?? null);
             } catch (OperationNotFoundException $e) {
@@ -72,23 +72,16 @@ trait InputOutputMetadataTrait
     // TODO: remove in 3.0
     private function getInputOutputMetadata(string $class, string $inputOrOutput, array $context)
     {
-        if (null !== ($context[$inputOrOutput]['class'] ?? null)) {
+        if (null === $this->resourceMetadataFactory || null !== ($context[$inputOrOutput]['class'] ?? null)) {
             return $context[$inputOrOutput]['class'] ?? null;
         }
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            try {
-                $metadata = $this->resourceMetadataFactory->create($class);
-            } catch (ResourceClassNotFoundException $e) {
-                return null;
-            }
-
-            return $metadata->getAttribute($inputOrOutput)['class'] ?? null;
+        try {
+            $metadata = $this->resourceMetadataFactory->create($class);
+        } catch (ResourceClassNotFoundException $e) {
+            return null;
         }
 
-        // note we should always go through the context above this is not right
-        $metadata = $this->resourceMetadataFactory->create($class);
-
-        return \count($metadata) ? $metadata[0]->getInput()['class'] ?? null : null;
+        return $metadata->getAttribute($inputOrOutput)['class'] ?? null;
     }
 }

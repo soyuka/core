@@ -239,6 +239,8 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 }
 
                 $maxItemsPerPage = $resourceMetadata->getCollectionOperationAttribute($operationName, 'pagination_maximum_items_per_page', $maxItemsPerPage ?? $this->maximumItemPerPage, true);
+                $itemsPerPage = (int) $this->getPaginationParameter($request, $this->itemsPerPageParameterName, $itemsPerPage);
+                $itemsPerPage = (null !== $maxItemsPerPage && $itemsPerPage >= $maxItemsPerPage ? $maxItemsPerPage : $itemsPerPage);
             }
         } elseif ($resourceMetadata instanceof ResourceMetadataCollection) {
             try {
@@ -246,6 +248,8 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $itemsPerPage = $operation->getPaginationItemsPerPage();
                 if ($operation->getPaginationClientItemsPerPage()) {
                     $maxItemsPerPage = $operation->getPaginationMaximumItemsPerPage() ?? $this->maximumItemPerPage;
+                    $itemsPerPage = (int) $this->getPaginationParameter($request, $this->itemsPerPageParameterName, $itemsPerPage);
+                    $itemsPerPage = (null !== $maxItemsPerPage && $itemsPerPage >= $maxItemsPerPage ? $maxItemsPerPage : $itemsPerPage);
                 }
             } catch (OperationNotFoundException $e) {
                 // In some cases the operation may not exist
@@ -256,9 +260,6 @@ final class PaginationExtension implements ContextAwareQueryResultCollectionExte
                 $itemsPerPage = $collectionArgs[$resourceClass]['first'] ?? $itemsPerPage;
             }
         }
-
-        $itemsPerPage = (int) $this->getPaginationParameter($request, $this->itemsPerPageParameterName, $itemsPerPage);
-        $itemsPerPage = (null !== $maxItemsPerPage && $itemsPerPage >= $maxItemsPerPage ? $maxItemsPerPage : $itemsPerPage);
 
         if (0 > $itemsPerPage) {
             throw new InvalidArgumentException('Item per page parameter should not be less than 0');

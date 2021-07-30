@@ -41,7 +41,7 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
     private $iriConverter;
     private $urlGenerator;
 
-    public function __construct($resourceMetadataFactory, IriConverterInterface $iriConverter, UrlGeneratorInterface $urlGenerator)
+    public function __construct($resourceMetadataFactory, $iriConverter, UrlGeneratorInterface $urlGenerator)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->iriConverter = $iriConverter;
