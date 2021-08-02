@@ -42,6 +42,7 @@ use Symfony\Component\Routing\Route;
 /**
  * @author Antoine Bluchet <soyuka@gmail.com>
  * @author Amrouche Hamza <hamza.simperfit@gmail.com>
+ *
  * @group legacy
  */
 class LegacyApiLoaderTest extends TestCase
