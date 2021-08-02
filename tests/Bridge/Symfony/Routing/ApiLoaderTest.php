@@ -21,8 +21,6 @@ use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
 use ApiPlatform\Core\Operation\UnderscorePathSegmentNameGenerator;
 use ApiPlatform\Core\PathResolver\CustomOperationPathResolver;
 use ApiPlatform\Core\PathResolver\OperationPathResolver;
@@ -33,7 +31,9 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -52,7 +52,7 @@ class ApiLoaderTest extends TestCase
     {
         $path = '/dummies/{id}.{_format}';
 
-        $resourceCollection = new ResourceCollection([new Resource(
+        $resourceCollection = new ResourceMetadataCollection(Dummy::class, [new ApiResource(
             shortName: 'dummy',
             operations: [
                 // Default operations based on OperationResourceMetadataFactory
@@ -92,7 +92,7 @@ class ApiLoaderTest extends TestCase
             identifiers: ['id']
         )]);
 
-        $routeCollection = $this->getApiLoaderWithResourceCollection($resourceCollection)->load(null);
+        $routeCollection = $this->getApiLoaderWithResourceMetadataCollection($resourceCollection)->load(null);
 
         $this->assertEquals(
             $this->getRoute(
@@ -102,7 +102,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_get_item',
-                $resourceCollection[0]->operations['api_dummies_get_item']->__serialize(),
                 ['my_default' => 'default_value', '_controller' => 'should_not_be_overriden'],
                 ['GET'],
                 ['id' => '\d+']
@@ -118,7 +117,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_delete_item',
-                $resourceCollection[0]->operations['api_dummies_delete_item']->__serialize(),
                 [],
                 ['DELETE'],
                 []
@@ -134,7 +132,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_put_item',
-                $resourceCollection[0]->operations['api_dummies_put_item']->__serialize(),
                 [],
                 ['PUT'],
                 []
@@ -150,7 +147,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_my_op_collection',
-                $resourceCollection[0]->operations['api_dummies_my_op_collection']->__serialize(),
                 ['my_default' => 'default_value', '_format' => 'a valid format'],
                 ['GET'],
                 ['_format' => 'a valid format'],
@@ -170,7 +166,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_my_second_op_collection',
-                $resourceCollection[0]->operations['api_dummies_my_second_op_collection']->__serialize(),
                 [],
                 ['POST'],
                 [],
@@ -189,7 +184,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_my_path_op_collection',
-                $resourceCollection[0]->operations['api_dummies_my_path_op_collection']->__serialize(),
                 [],
                 ['GET'],
                 [],
@@ -205,7 +199,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_my_stateless_op_collection',
-                $resourceCollection[0]->operations['api_dummies_my_stateless_op_collection']->__serialize(),
                 [],
                 ['GET'],
                 [],
@@ -219,7 +212,7 @@ class ApiLoaderTest extends TestCase
         $prefix = '/foobar-prefix';
         $path = '/dummies/{id}.{_format}';
 
-        $resourceCollection = new ResourceCollection([new Resource(
+        $resourceCollection = new ResourceMetadataCollection(Dummy::class, [new ApiResource(
             shortName: 'dummy',
             operations: [
                 'api_dummies_get_item' => new Get(
@@ -234,7 +227,7 @@ class ApiLoaderTest extends TestCase
             identifiers: ['id'],
         )]);
 
-        $routeCollection = $this->getApiLoaderWithResourceCollection($resourceCollection)->load(null);
+        $routeCollection = $this->getApiLoaderWithResourceMetadataCollection($resourceCollection)->load(null);
 
         $prefixedPath = $prefix.$path;
 
@@ -246,7 +239,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_get_item',
-                $resourceCollection[0]->operations['api_dummies_get_item']->__serialize(),
                 ['my_default' => 'default_value', '_controller' => 'should_not_be_overriden'],
                 ['GET'],
                 ['id' => '\d+']
@@ -262,7 +254,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_delete_item',
-                $resourceCollection[0]->operations['api_dummies_delete_item']->__serialize(),
                 [],
                 ['DELETE'],
             ),
@@ -277,7 +268,6 @@ class ApiLoaderTest extends TestCase
                 RelatedDummyEntity::class,
                 [],
                 'api_dummies_put_item',
-                $resourceCollection[0]->operations['api_dummies_put_item']->__serialize(),
                 [],
                 ['PUT'],
             ),
@@ -285,9 +275,9 @@ class ApiLoaderTest extends TestCase
         );
     }
 
-    private function getApiLoaderWithResourceCollection(ResourceCollection $resourceCollection): ApiLoader
+    private function getApiLoaderWithResourceMetadataCollection(ResourceMetadataCollection $resourceCollection): ApiLoader
     {
-        $routingConfig = __DIR__.'/../../../../src/Bridge/Symfony/Bundle/Resources/config/routing';
+        $routingConfig = __DIR__.'/../../../../src/Core/Bridge/Symfony/Bundle/Resources/config/routing';
 
         $kernelProphecy = $this->prophesize(KernelInterface::class);
         $kernelProphecy->locateResource(Argument::any())->willReturn($routingConfig);
@@ -306,7 +296,7 @@ class ApiLoaderTest extends TestCase
 
         $containerProphecy->has(Argument::type('string'))->willReturn(false);
 
-        $resourceMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
+        $resourceMetadataFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
         $resourceMetadataFactoryProphecy->create(DummyEntity::class)->willReturn($resourceCollection);
         $resourceMetadataFactoryProphecy->create(RelatedDummyEntity::class)->willReturn($resourceCollection);
 
@@ -332,7 +322,7 @@ class ApiLoaderTest extends TestCase
         return new ApiLoader($kernelProphecy->reveal(), $resourceNameCollectionFactoryProphecy->reveal(), $resourceMetadataFactory, $operationPathResolver, $containerProphecy->reveal(), ['jsonld' => ['application/ld+json']], [], null, false, true, true, false, false, $identifiersExtractor);
     }
 
-    private function getRoute(string $path, string $controller, ?bool $stateless, string $resourceClass, array $identifiers, string $operationName, array $serializedOperation, array $extraDefaults = [], array $methods = [], array $requirements = [], array $options = [], string $host = '', array $schemes = [], string $condition = ''): Route
+    private function getRoute(string $path, string $controller, ?bool $stateless, string $resourceClass, array $identifiers, string $operationName, array $extraDefaults = [], array $methods = [], array $requirements = [], array $options = [], string $host = '', array $schemes = [], string $condition = ''): Route
     {
         return new Route(
             $path,
@@ -341,10 +331,7 @@ class ApiLoaderTest extends TestCase
                 '_format' => null,
                 '_stateless' => $stateless,
                 '_api_resource_class' => $resourceClass,
-                '_api_identifiers' => $identifiers,
-                '_api_has_composite_identifier' => null,
-                '_api_operation_name' => $operationName,
-                '_api_operation' => $serializedOperation,
+                '_api_operation_name' => $operationName
             ] + $extraDefaults,
             $requirements,
             $options,

@@ -48,7 +48,7 @@
             <tag name="routing.loader" />
         </service>
 
-        <service id="ApiPlatform\Core\Api\UrlGeneratorInterface" alias="api_platform.router" />
+        <service id="ApiPlatform\Api\UrlGeneratorInterface" alias="api_platform.router" />
 
         <service id="api_platform.router" class="ApiPlatform\Core\Bridge\Symfony\Routing\Router" public="false">
             <argument type="service" id="router" />
@@ -56,7 +56,7 @@
         </service>
 
         <!-- TODO: 3.0 remove this service -->
-        <service id="api_platform.legacy_iri_converter" class="ApiPlatform\Core\Bridge\Symfony\Routing\IriConverter" public="false">
+        <service id="api_platform.iri_converter.legacy" class="ApiPlatform\Core\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
             <argument type="service" id="api_platform.item_data_provider" />
@@ -69,12 +69,12 @@
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
         </service>
-        <service id="ApiPlatform\Core\Api\IriConverterInterface" alias="api_platform.legacy_iri_converter" />
+        <service id="ApiPlatform\Core\Api\IriConverterInterface" alias="api_platform.iri_converter.legacy" />
 
         <service id="api_platform.iri_converter" class="ApiPlatform\Bridge\Symfony\Routing\IriConverter" public="false">
             <argument type="service" id="api_platform.state_provider" />
             <argument type="service" id="api_platform.router" />
-            <argument type="service" id="api_platform.new_identifiers_extractor" />
+            <argument type="service" id="api_platform.identifiers_extractor" />
             <argument type="service" id="api_platform.identifier.converter" />
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
@@ -271,14 +271,14 @@
         <!-- Identifiers -->
 
         <!-- TODO: 3.0 change class -->
-        <service id="api_platform.identifiers_extractor" class="ApiPlatform\Core\Api\IdentifiersExtractor" public="false">
+        <service id="api_platform.identifiers_extractor.legacy" class="ApiPlatform\Core\Api\IdentifiersExtractor" public="false">
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
             <argument type="service" id="api_platform.property_accessor" />
             <argument type="service" id="api_platform.resource_class_resolver" />
         </service>
 
-        <service id="api_platform.identifiers_extractor.cached" class="ApiPlatform\Core\Api\CachedIdentifiersExtractor" decorates="api_platform.identifiers_extractor" public="false">
+        <service id="api_platform.identifiers_extractor.cached" class="ApiPlatform\Core\Api\CachedIdentifiersExtractor" decorates="api_platform.identifiers_extractor.legacy" public="false">
             <argument type="service" id="api_platform.cache.identifiers_extractor" />
             <argument type="service" id="api_platform.identifiers_extractor.cached.inner" />
             <argument type="service" id="api_platform.property_accessor" />
@@ -286,14 +286,14 @@
         </service>
         <service id="ApiPlatform\Core\Api\IdentifiersExtractorInterface" alias="api_platform.identifiers_extractor.cached" />
 
-        <service id="api_platform.new_identifiers_extractor" class="ApiPlatform\Api\IdentifiersExtractor" public="false">
+        <service id="api_platform.identifiers_extractor" class="ApiPlatform\Api\IdentifiersExtractor" public="false">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
             <argument type="service" id="api_platform.metadata.property.metadata_factory" />
             <argument type="service" id="api_platform.property_accessor" />
         </service>
-        <service id="ApiPlatform\Core\IdentifiersExtractorInterface" alias="api_platform.new_identifiers_extractor" />
+        <service id="ApiPlatform\Api\IdentifiersExtractorInterface" alias="api_platform.identifiers_extractor" />
 
         <service id="api_platform.identifier.converter" class="ApiPlatform\Core\Identifier\IdentifierConverter" public="false">
             <argument type="service" id="api_platform.identifiers_extractor.cached" />

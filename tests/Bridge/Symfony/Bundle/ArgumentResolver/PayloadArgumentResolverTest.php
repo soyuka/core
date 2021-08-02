@@ -15,6 +15,8 @@ namespace ApiPlatform\Core\Tests\Bridge\Symfony\Bundle\ArgumentResolver;
 
 use ApiPlatform\Core\Bridge\Symfony\Bundle\ArgumentResolver\PayloadArgumentResolver;
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\ResourceImplementation;
+use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\ResourceInterface;
 use ApiPlatform\Core\Tests\ProphecyTrait;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
@@ -201,7 +203,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
         yield 'simple' => [
             $this->createRequest('PUT', [
                 '_api_resource_class' => ResourceImplementation::class,
-                '_api_operation_name' => 'update',
+                '_api_operation_name' => '_api_/resource_implementations.{_format}_put',
                 'data' => $resource,
             ]),
             static function (ResourceImplementation $payload) {},
@@ -211,7 +213,7 @@ class PayloadArgumentResolverTest extends KernelTestCase
         yield 'with another argument named $data' => [
             $this->createRequest('PUT', [
                 '_api_resource_class' => ResourceImplementation::class,
-                '_api_operation_name' => 'update',
+                '_api_operation_name' => '_api_/resource_implementations.{_format}_put',
                 'data' => $resource,
             ]),
             static function (ResourceImplementation $payload, $data) {},

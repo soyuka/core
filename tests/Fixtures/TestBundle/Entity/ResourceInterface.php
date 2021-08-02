@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Bridge\Symfony\Bundle\ArgumentResolver;
+namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
 
 interface ResourceInterface
 {

@@ -155,7 +155,7 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $this->setFilterLocator($filterLocator, true);
 
         if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;

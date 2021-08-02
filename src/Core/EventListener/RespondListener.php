@@ -42,7 +42,7 @@ final class RespondListener
     public function __construct($resourceMetadataFactory = null, IriConverterInterface $iriConverter = null)
     {
         if ($resourceMetadataFactory && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         if ($resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {

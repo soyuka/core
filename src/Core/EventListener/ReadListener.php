@@ -63,8 +63,8 @@ final class ReadListener
             trigger_deprecation('api-platform/core', '2.7', sprintf('Using a "%s" as first argument of the "%s" is deprecated, use a "%s" instead.', CollectionDataProviderInterface::class, __CLASS__, ProviderInterface::class));
         }
 
-        if (!$identifierConverter instanceof ContextAwareIdentifierConverterInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('An "%s" is mandatory.', ContextAwareIdentifierConverterInterface::class));
+        if ($identifierConverter && !$identifierConverter instanceof ContextAwareIdentifierConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ContextAwareIdentifierConverterInterface::class, IdentifierConverterInterface::class));
         }
 
         if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
@@ -136,7 +136,7 @@ final class ReadListener
         }
 
         // TODO: 3.0 this is the default
-        if ($this->provider && $operation && $this->identifierConverter) {
+        if ($this->provider && $operation) {
             $shouldParseCompositeIdentifiers = $operation->getCompositeIdentifier() && \count($operation->getIdentifiers()) > 1;
             $parameters = $request->attributes->all();
             $identifiers = [];
@@ -158,12 +158,10 @@ final class ReadListener
                     $identifiers[$parameterName] = $parameters[$parameterName];
                 }
 
-                if ($this->identifierConverter instanceof ContextAwareIdentifierConverterInterface) {
-                    $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class'], ['identifiers' => $operation->getIdentifiers()]);
-                } else {
-                    // TODO: remove in 3.0
-                    $identifiers = $this->identifierConverter->convert($identifiers, $attributes['resource_class']);
+                if ($this->identifierConverter) {
+                    $identifiers = $this->identifierConverter instanceof ContextAwareIdentifierConverterInterface ? $this->identifierConverter->convert($identifiers, $attributes['resource_class'], ['identifiers' => $operation->getIdentifiers()]) : $this->identifierConverter->convert($identifiers, $attributes['resource_class']);
                 }
+
                 $data = $this->provider->provide($attributes['resource_class'], $identifiers, $operation->getName(), $context);
             } catch (InvalidIdentifierException $e) {
                 throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);

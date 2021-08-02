@@ -26,6 +26,7 @@ use Elasticsearch\Client as ElasticsearchClient;
 use FOS\UserBundle\FOSUserBundle;
 use GraphQL\GraphQL;
 use Symfony\Bundle\FullStack;
+use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Bundle\MercureBundle\MercureBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Definition\BaseNode;
@@ -87,6 +88,7 @@ final class Configuration implements ConfigurationInterface
                     ->defaultValue('0.0.0')
                 ->end()
                 ->booleanNode('show_webby')->defaultTrue()->info('If true, show Webby on the documentation page')->end()
+                ->booleanNode('metadata_backward_compatibility_layer')->defaultTrue()->info('If true, declared services are using legacy interfaces for the following services: "api_platform.iri_converter", "api_platform.openapi.factory", "api_platform.identifiers_extractor".')->end()
                 ->scalarNode('default_operation_path_resolver')
                     ->defaultValue('api_platform.operation_path_resolver.underscore')
                     ->setDeprecated(...$this->buildDeprecationArgs('2.1', 'The use of the `default_operation_path_resolver` has been deprecated in 2.1 and will be removed in 3.0. Use `path_segment_name_generator` instead.'))
@@ -209,6 +211,7 @@ final class Configuration implements ConfigurationInterface
         $this->addMessengerSection($rootNode);
         $this->addElasticsearchSection($rootNode);
         $this->addOpenApiSection($rootNode);
+        $this->addMakerSection($rootNode);
 
         $this->addExceptionToStatusSection($rootNode);
 
@@ -627,6 +630,16 @@ final class Configuration implements ConfigurationInterface
             $snakeCased = $nameConverter->normalize($attribute);
             $defaultsNode->children()->variableNode($snakeCased);
         }
+    }
+
+    private function addMakerSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('maker')
+                    ->{class_exists(MakerBundle::class) ? 'canBeDisabled' : 'canBeEnabled'}()
+                ->end()
+            ->end();
     }
 
     private function buildDeprecationArgs(string $version, string $message): array

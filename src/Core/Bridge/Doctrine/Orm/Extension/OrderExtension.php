@@ -40,8 +40,8 @@ final class OrderExtension implements ContextAwareQueryCollectionExtensionInterf
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
 
-        if ($this->resourceMetadataFactory) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be replaced by %s in 3.0.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+        if ($this->resourceMetadataFactory && $this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->order = $order;

@@ -45,17 +45,17 @@ final class AddFormatListener
      */
     public function __construct(Negotiator $negotiator, $resourceMetadataFactory, array $formats = [])
     {
-        $this->negotiator = $negotiator;
-        $this->resourceMetadataFactory = $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface ? $resourceMetadataFactory : null;
-        $this->formats = $formats;
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && !$resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
+            trigger_deprecation('api-plaform/core', '2.5', sprintf('Passing an array or an instance of "%s" as 2nd parameter of the constructor of "%s" is deprecated since API Platform 2.5, pass an instance of "%s" instead', FormatsProviderInterface::class, __CLASS__, ResourceMetadataFactoryInterface::class));
+        }
 
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
-        if (!$resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            trigger_deprecation('api-plaform/core', '2.5', sprintf('Passing an array or an instance of "%s" as 2nd parameter of the constructor of "%s" is deprecated since API Platform 2.5, pass an instance of "%s" instead', FormatsProviderInterface::class, __CLASS__, ResourceMetadataFactoryInterface::class));
-        }
+        $this->negotiator = $negotiator;
+        $this->resourceMetadataFactory = $resourceMetadataFactory instanceof ResourceMetadataFactoryInterface ? $resourceMetadataFactory : null;
+        $this->formats = $formats;
 
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface ? $resourceMetadataFactory : null;
 

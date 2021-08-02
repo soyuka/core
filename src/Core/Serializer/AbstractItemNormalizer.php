@@ -103,8 +103,8 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
         $this->allowPlainIdentifiers = $allowPlainIdentifiers;
 
         $this->dataTransformers = $dataTransformers;
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, null === $resourceMetadataFactory ? 'null' : ResourceMetadataFactoryInterface::class));
+        if ($resourceMetadataFactory && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
         }
 
         $this->resourceMetadataFactory = $resourceMetadataFactory;

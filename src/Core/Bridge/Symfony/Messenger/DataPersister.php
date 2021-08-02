@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Symfony\Messenger;
 
+use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
@@ -66,7 +67,12 @@ final class DataPersister implements ContextAwareDataPersisterInterface
             }
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
+        try {
+            $resourceMetadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? $this->getObjectClass($data));
+        } catch (ResourceClassNotFoundException $e) {
+            return false;
+        }
+
         if (null !== $operationName = $context['collection_operation_name'] ?? $context['item_operation_name'] ?? null) {
             return false !== $resourceMetadata->getTypedOperationAttribute(
                 $context['collection_operation_name'] ?? false ? OperationType::COLLECTION : OperationType::ITEM,

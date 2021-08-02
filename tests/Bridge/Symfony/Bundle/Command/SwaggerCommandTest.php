@@ -66,7 +66,7 @@ class SwaggerCommandTest extends KernelTestCase
         $expected = <<<YAML
   /dummy_cars:
     get:
-      operationId: '_api_/dummy_cars.{_format}_get'
+      operationId: '_api_/dummy_cars.{_format}_get_collection'
       tags:
         - DummyCar
 YAML;

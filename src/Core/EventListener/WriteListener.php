@@ -48,7 +48,7 @@ final class WriteListener
     public function __construct($dataPersister, $iriConverter = null, $resourceMetadataFactory = null, ResourceClassResolverInterface $resourceClassResolver = null)
     {
         if ($dataPersister instanceof DataPersisterInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', DataPersisterInterface::class, ProcessorInterface::class));
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', ProcessorInterface::class, DataPersisterInterface::class));
         }
         $this->dataPersister = $dataPersister;
 

@@ -127,7 +127,9 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerElasticsearchConfiguration($container, $config, $loader);
         $this->registerDataTransformerConfiguration($container);
         $this->registerSecurityConfiguration($container, $loader);
+        $this->registerMakerConfiguration($container, $config, $loader);
         $this->registerArgumentResolverConfiguration($container, $loader);
+        $this->registerLegacyServices($container, $config);
 
         $container->registerForAutoconfiguration(DataPersisterInterface::class)
             ->addTag('api_platform.data_persister');
@@ -745,9 +747,34 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.openapi.license.url', $config['openapi']['license']['url']);
     }
 
+    private function registerMakerConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
+    {
+        if (!$this->isConfigEnabled($container, $config['maker'])) {
+            return;
+        }
+
+        $loader->load('maker.xml');
+    }
+
     private function registerArgumentResolverConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
     {
         $loader->load('argument_resolver.xml');
+    }
+
+    private function registerLegacyServices(ContainerBuilder $container, array $config): void
+    {
+        if (!$config['metadata_backward_compatibility_layer']) {
+            return;
+        }
+
+        $container->removeDefinition('api_platform.identifiers_extractor');
+        $container->setAlias('api_platform.identifiers_extractor', 'api_platform.identifiers_extractor.legacy');
+
+        $container->removeDefinition('api_platform.iri_converter');
+        $container->setAlias('api_platform.iri_converter', 'api_platform.iri_converter.legacy');
+
+        $container->removeDefinition('api_platform.openapi.factory');
+        $container->setAlias('api_platform.openapi.factory', 'api_platform.openapi.factory.legacy');
     }
 
     private function buildDeprecationArgs(string $version, string $message): array

@@ -69,7 +69,7 @@ final class ApiLoader extends Loader
         $this->fileLoader = new XmlFileLoader(new FileLocator($paths));
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
         if ($resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            @trigger_error(sprintf('The use of %s is deprecated since API Platform 2.7 and will be removed in 3.0, use %s instead.', ResourceMetadataFactoryInterface::class, ResourceMetadataCollectionFactoryInterface::class), \E_USER_DEPRECATED);
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, null === $resourceMetadataFactory ? 'null' : ResourceMetadataFactoryInterface::class));
         }
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->operationPathResolver = $operationPathResolver;
