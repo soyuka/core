@@ -28,7 +28,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
-use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
+use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
@@ -56,6 +56,9 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
+/**
+ * @group legacy
+ */
 class LegacyOpenApiFactoryTest extends TestCase
 {
     use ProphecyTrait;
@@ -215,7 +218,7 @@ class LegacyOpenApiFactoryTest extends TestCase
         $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
         $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
 
-        $factory = new LegacyOpenApiFactory(
+        $factory = new OpenApiFactory(
             $resourceNameCollectionFactoryProphecy->reveal(),
             $resourceMetadataFactory,
             $propertyNameCollectionFactory,
@@ -631,7 +634,7 @@ class LegacyOpenApiFactoryTest extends TestCase
         $identifiersExtractorProphecy = $this->prophesize(IdentifiersExtractorInterface::class);
         $identifiersExtractorProphecy->getIdentifiersFromResourceClass(Argument::type('string'))->willReturn(['id']);
 
-        $factory = new LegacyOpenApiFactory(
+        $factory = new OpenApiFactory(
             $resourceNameCollectionFactoryProphecy->reveal(),
             $resourceMetadataFactory,
             $propertyNameCollectionFactory,
@@ -735,7 +738,7 @@ class LegacyOpenApiFactoryTest extends TestCase
         $typeFactory->setSchemaFactory($schemaFactory);
         $filterLocatorProphecy = $this->prophesize(ContainerInterface::class);
 
-        $factory = new LegacyOpenApiFactory(
+        $factory = new OpenApiFactory(
             $resourceNameCollectionFactoryProphecy->reveal(),
             $resourceMetadataFactory,
             $propertyNameCollectionFactory,

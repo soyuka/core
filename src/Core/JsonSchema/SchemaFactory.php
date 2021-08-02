@@ -86,17 +86,16 @@ final class SchemaFactory implements SchemaFactoryInterface
             throw new \LogicException('The $operationType and $operationName arguments must be null for non-resource class.');
         }
 
-        $operation = $resourceMetadata instanceof ResourceMetadataCollection ? $resourceMetadata->getOperation($operationName) : null;
+        $operation = $resourceMetadata instanceof ResourceMetadataCollection ? $resourceMetadata->getOperation($operationName, OperationType::COLLECTION === $operationType) : null;
 
         $version = $schema->getVersion();
         $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $operation, $serializerContext);
 
-        if (null === $operationType || null === $operationName || !$operation) {
+        $method = $operation ? $operation->getMethod() : 'GET';
+        if (!$operation && (null === $operationType || null === $operationName)) {
             $method = Schema::TYPE_INPUT === $type ? 'POST' : 'GET';
         } elseif ($resourceMetadata instanceof ResourceMetadata) {
             $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET');
-        } else {
-            $method = $operation->getMethod();
         }
 
         if (Schema::TYPE_OUTPUT !== $type && !\in_array($method, ['POST', 'PATCH', 'PUT'], true)) {

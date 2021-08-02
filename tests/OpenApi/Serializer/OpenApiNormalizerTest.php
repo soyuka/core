@@ -25,10 +25,7 @@ use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
-use ApiPlatform\Core\OpenApi\Factory\LegacyOpenApiFactory;
-use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
+use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory as LegacyOpenApiFactory;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
@@ -39,12 +36,16 @@ use ApiPlatform\Core\PathResolver\CustomOperationPathResolver;
 use ApiPlatform\Core\PathResolver\OperationPathResolver;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
 use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\OpenApi\Factory\OpenApiFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Container\ContainerInterface;
@@ -248,37 +249,34 @@ class OpenApiNormalizerTest extends TestCase
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, Argument::any())->shouldBeCalled()->willReturn(new PropertyNameCollection(['id', 'name', 'description', 'dummyDate']));
         $propertyNameCollectionFactoryProphecy->create('Zorro', Argument::any())->shouldBeCalled()->willReturn(new PropertyNameCollection(['id']));
 
-        $dummyMetadata = new ResourceCollection([
-            new Resource(
-                shortName: 'Dummy',
-                description: 'This is a dummy.',
-                types: ['http://schema.example.com/Dummy'],
-                operations: [
-                    'get' => new Get(uriTemplate: '/dummies/{id}', inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                    'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                    'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                    'get_collection' => new GetCollection(uriTemplate: '/dummies', inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                    'post' => new Post(uriTemplate: '/dummies', openapiContext: ['security' => [], 'servers' => ['url' => '/test']], inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
+        $baseOperation = (new Operation())->withClass(Dummy::class)->withShortName('Dummy')->withDescription('This is a dummy.')->withTypes(['http://schema.example.com/Dummy'])
+            ->withInputFormats(self::OPERATION_FORMATS['input_formats'])->withOutputFormats(self::OPERATION_FORMATS['output_formats']);
+
+        $dummyMetadata = new ResourceMetadataCollection(Dummy::class, [
+            (new ApiResource())->withOperations(
+                [
+                    'get' => (new Get())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation),
+                    'put' => (new Put())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation),
+                    'delete' => (new Delete())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation),
+                    'get_collection' => (new GetCollection())->withUriTemplate('/dummies')->withOperation($baseOperation),
+                    'post' => (new Post())->withUriTemplate('/dummies')->withOpenapiContext(['security' => [], 'servers' => ['url' => '/test']])->withOperation($baseOperation),
                 ]
             ),
-        ]
-        );
+        ]);
 
-        $zorroMetadata = new ResourceCollection(
-            [
-                new Resource(
-                    shortName: 'Zorro',
-                    description: 'This is zorro.',
-                    types: ['http://schema.example.com/Zorro'],
-                    operations: [
-                        'get' => new Get(uriTemplate: '/zorros/{id}', shortName: 'Zorro', inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                        'get_collection' => new GetCollection(uriTemplate: '/zorros', shortName: 'Zorro', inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                    ]
-                ),
-            ]
-        );
+        $zorroBaseOperation = (new Operation())->withClass('Zorro')->withShortName('Zorro')->withDescription('This is zorro.')->withTypes(['http://schema.example.com/Zorro'])
+            ->withInputFormats(self::OPERATION_FORMATS['input_formats'])->withOutputFormats(self::OPERATION_FORMATS['output_formats']);
 
-        $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
+        $zorroMetadata = new ResourceMetadataCollection(Dummy::class, [
+            (new ApiResource())->withOperations(
+                [
+                    'get' => (new Get())->withUriTemplate('/zorros/{id}')->withOperation($zorroBaseOperation),
+                    'get_collection' => (new GetCollection())->withUriTemplate('/zorros')->withOperation($zorroBaseOperation),
+                ]
+            ),
+        ]);
+
+        $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
         $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn($dummyMetadata);
         $resourceCollectionMetadataFactoryProphecy->create('Zorro')->shouldBeCalled()->willReturn($zorroMetadata);
 

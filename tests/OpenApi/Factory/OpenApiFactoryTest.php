@@ -22,15 +22,12 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Metadata\Resource\Factory\LegacyResourceNameCollectionFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
-use ApiPlatform\Core\Metadata\ResourceCollection\Factory\ResourceCollectionMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\ResourceCollection\ResourceCollection;
-use ApiPlatform\Core\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Core\OpenApi\Model;
+use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
-use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use ApiPlatform\Core\Operation\UnderscorePathSegmentNameGenerator;
 use ApiPlatform\Core\PathResolver\CustomOperationPathResolver;
 use ApiPlatform\Core\PathResolver\OperationPathResolver;
@@ -38,12 +35,16 @@ use ApiPlatform\Core\Tests\Fixtures\DummyFilter;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
 use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\OpenApi\Factory\OpenApiFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Container\ContainerInterface;
@@ -61,117 +62,87 @@ class OpenApiFactoryTest extends TestCase
 
     public function testInvoke(): void
     {
-        $dummyResource = new Resource(
-            shortName: 'Dummy',
-            description: 'This is a dummy.',
-            types: ['http://schema.example.com/Dummy'],
+        $baseOperation = (new Operation())->withShortName('Dummy')->withDescription('This is a dummy')->withTypes(['http://schema.example.com/Dummy'])->withClass(Dummy::class)->withInputFormats(self::OPERATION_FORMATS['input_formats'])->withOutputFormats(self::OPERATION_FORMATS['output_formats'])->withOutput([
+            'class' => OutputDto::class,
+        ])->withPaginationClientItemsPerPage(true);
+
+        $dummyResource = new ApiResource(
             operations: [
-                'get' => new Get(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                'put' => new Put(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                'delete' => new Delete(inputFormats: self::OPERATION_FORMATS['input_formats'], outputFormats: self::OPERATION_FORMATS['output_formats']),
-                'custom' => new Operation(
-                    method: 'HEAD',
-                    uriTemplate: '/foo/{id}',
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats'],
-                    openapiContext: [
-                        'x-visibility' => 'hide',
-                        'description' => 'Custom description',
-                        'parameters' => [
-                            ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
-                            ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
-                        ],
-                        'tags' => ['Dummy', 'Profile'],
-                        'responses' => [
-                            '202' => [
-                                'description' => 'Success',
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => ['$ref' => '#/components/schemas/Dummy'],
-                                    ],
-                                ],
-                                'headers' => [
-                                    'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
-                                ],
-                                'links' => [
-                                    'Foo' => ['$ref' => '#/components/schemas/Dummy'],
+                'getDummyItem' => (new Get())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation)->withIdentifiers(['id' => [Dummy::class, 'id']]),
+                'putDummyItem' => (new Put())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation)->withIdentifiers(['id' => [Dummy::class, 'id']]),
+                'deleteDummyItem' => (new Delete())->withUriTemplate('/dummies/{id}')->withOperation($baseOperation)->withIdentifiers(['id' => [Dummy::class, 'id']]),
+                'customDummyItem' => (new Operation())->withMethod(Operation::METHOD_HEAD)->withUriTemplate('/foo/{id}')->withOperation($baseOperation)->withIdentifiers(['id' => [Dummy::class, 'id']])->withOpenapiContext([
+                    'x-visibility' => 'hide',
+                    'description' => 'Custom description',
+                    'parameters' => [
+                        ['description' => 'Test parameter', 'name' => 'param', 'in' => 'path', 'required' => true],
+                        ['description' => 'Replace parameter', 'name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'format' => 'uuid']],
+                    ],
+                    'tags' => ['Dummy', 'Profile'],
+                    'responses' => [
+                        '202' => [
+                            'description' => 'Success',
+                            'content' => [
+                                'application/json' => [
+                                    'schema' => ['$ref' => '#/components/schemas/Dummy'],
                                 ],
                             ],
-                            '205' => [],
+                            'headers' => [
+                                'Foo' => ['description' => 'A nice header', 'schema' => ['type' => 'integer']],
+                            ],
+                            'links' => [
+                                'Foo' => ['$ref' => '#/components/schemas/Dummy'],
+                            ],
                         ],
-                        'requestBody' => [
-                            'required' => true,
-                            'description' => 'Custom request body',
-                            'content' => [
-                                'multipart/form-data' => [
-                                    'schema' => [
-                                        'type' => 'object',
-                                        'properties' => [
-                                            'file' => [
-                                                'type' => 'string',
-                                                'format' => 'binary',
-                                            ],
+                        '205' => [],
+                    ],
+                    'requestBody' => [
+                        'required' => true,
+                        'description' => 'Custom request body',
+                        'content' => [
+                            'multipart/form-data' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'file' => [
+                                            'type' => 'string',
+                                            'format' => 'binary',
                                         ],
                                     ],
                                 ],
                             ],
                         ],
-                    ]
+                    ],
+                    'externalDocs' => ['url' => 'http://schema.example.com/Dummy', 'description' => 'See also'],
+                ]
                 ),
-                'custom-http-verb' => new Operation(
-                    method: 'TEST',
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats']
-                ),
-                'formats' => new Put(
-                    uriTemplate: '/formatted/{id}',
-                    inputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']],
-                    outputFormats: ['json' => ['application/json'], 'csv' => ['text/csv']]
-                ),
-                'get_collection' => new Get(
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats'],
-                    openapiContext: [
-                        'parameters' => [
-                            ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
-                        ],
-                    ]
-                ),
-                'post_collection' => new Post(
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats']
-                ),
+                'custom-http-verb' => (new Operation())->withMethod('TEST')->withOperation($baseOperation),
+                'formatsDummyItem' => (new Put())->withOperation($baseOperation)->withUriTemplate('/formatted/{id}')->withIdentifiers(['id' => [Dummy::class, 'id']])->withInputFormats(['json' => ['application/json'], 'csv' => ['text/csv']])->withOutputFormats(['json' => ['application/json'], 'csv' => ['text/csv']]),
+                'getDummyCollection' => (new GetCollection())->withUriTemplate('/dummies')->withOpenApiContext([
+                    'parameters' => [
+                        ['description' => 'Test modified collection page number', 'name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'default' => 1], 'allowEmptyValue' => true],
+                    ],
+                ],
+                )->withOperation($baseOperation),
+                'postDummyCollection' => (new Post())->withUriTemplate('/dummies')->withOperation($baseOperation),
                 // Filtered
-                'filtered_collection' => new Get(
-                    uriTemplate: '/filtered',
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats'],
-                    filters: ['f1', 'f2', 'f3', 'f4', 'f5']
-                ),
+                'filteredDummyCollection' => (new Get())->withUriTemplate('/filtered')->withCollection(true)->withFilters(['f1', 'f2', 'f3', 'f4', 'f5'])->withOperation($baseOperation),
                 // Paginated
-                'paginated_collection' => new Get(
-                    uriTemplate: '/paginated',
-                    inputFormats: self::OPERATION_FORMATS['input_formats'],
-                    outputFormats: self::OPERATION_FORMATS['output_formats'],
-                    paginationClientEnabled: true,
-                    paginationClientItemsPerPage: true,
-                    paginationItemsPerPage: 20
-                ),
+                'paginatedDummyCollection' => (new Get())->withUriTemplate('/paginated')
+                                                   ->withCollection(true)
+                                               ->withPaginationClientEnabled(true)
+                                               ->withPaginationClientItemsPerPage(true)
+                                               ->withPaginationItemsPerPage(20)
+                                           ->withPaginationMaximumItemsPerPage(80)
+                                                   ->withOperation($baseOperation),
             ],
-            output: [
-                'class' => OutputDto::class,
-            ],
-            paginationClientItemsPerPage: true,
         );
 
-        $subresourceOperationFactoryProphecy = $this->prophesize(SubresourceOperationFactoryInterface::class);
-        $subresourceOperationFactoryProphecy->create(Argument::any())->willReturn([]);
-
-        $resourceNameCollectionFactoryProphecy = $this->prophesize(LegacyResourceNameCollectionFactoryInterface::class);
+        $resourceNameCollectionFactoryProphecy = $this->prophesize(ResourceNameCollectionFactoryInterface::class);
         $resourceNameCollectionFactoryProphecy->create()->shouldBeCalled()->willReturn(new ResourceNameCollection([Dummy::class]));
 
-        $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceCollectionMetadataFactoryInterface::class);
-        $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceCollection([$dummyResource]));
+        $resourceCollectionMetadataFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
+        $resourceCollectionMetadataFactoryProphecy->create(Dummy::class)->shouldBeCalled()->willReturn(new ResourceMetadataCollection(Dummy::class, [$dummyResource]));
 
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, Argument::any())->shouldBeCalled()->willReturn(new PropertyNameCollection(['id', 'name', 'description', 'dummyDate', 'enum']));
@@ -268,10 +239,10 @@ class OpenApiFactoryTest extends TestCase
         );
 
         $dummySchema = new Schema('openapi');
-        // $dummySchema = new Model\Schema(false, null, false, false, null, ['url' => 'http://schema.example.com/Dummy']);
         $dummySchema->setDefinitions(new \ArrayObject([
             'type' => 'object',
-            'description' => 'This is a dummy.',
+            'description' => 'This is a dummy',
+            'externalDocs' => ['url' => 'http://schema.example.com/Dummy'],
             'properties' => [
                 'id' => new \ArrayObject([
                     'type' => 'integer',
@@ -302,7 +273,6 @@ class OpenApiFactoryTest extends TestCase
                     'description' => 'This is an enum.',
                 ]),
             ],
-            'externalDocs' => ['url' => 'http://schema.example.com/Dummy'],
         ]));
 
         $openApi = $factory(['base_url' => '/app_dev.php/']);
@@ -375,7 +345,7 @@ class OpenApiFactoryTest extends TestCase
                         'application/ld+json' => new Model\MediaType(new \ArrayObject(new \ArrayObject(['$ref' => '#/components/schemas/Dummy.OutputDto']))),
                     ]),
                     null,
-                    new \ArrayObject(['GetDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$response.body#/id']), null, 'The `id` value returned in the response can be used as the `id` parameter in `GET /dummies/{id}`.')])
+                    new \ArrayObject(['getDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$response.body#/id']), null, 'This is a dummy')])
                 ),
                 '400' => new Model\Response('Invalid input'),
                 '422' => new Model\Response('Unprocessable entity'),
@@ -414,7 +384,7 @@ class OpenApiFactoryTest extends TestCase
             'Retrieves a Dummy resource.',
             'Retrieves a Dummy resource.',
             null,
-            [new Model\Parameter('id', 'path', 'Resource identifier', true, false, false, ['type' => 'string'])]
+            [new Model\Parameter('id', 'path', 'Dummy identifier', true, false, false, ['type' => 'string'])]
         ));
 
         $this->assertEquals($dummyPath->getPut(), new Model\Operation(
@@ -427,7 +397,7 @@ class OpenApiFactoryTest extends TestCase
                         'application/ld+json' => new Model\MediaType(new \ArrayObject(['$ref' => '#/components/schemas/Dummy.OutputDto'])),
                     ]),
                     null,
-                    new \ArrayObject(['GetDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$response.body#/id']), null, 'The `id` value returned in the response can be used as the `id` parameter in `GET /dummies/{id}`.')])
+                    new \ArrayObject(['getDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$request.path.id']), null, 'This is a dummy')])
                 ),
                 '400' => new Model\Response('Invalid input'),
                 '422' => new Model\Response('Unprocessable entity'),
@@ -436,7 +406,7 @@ class OpenApiFactoryTest extends TestCase
             'Replaces the Dummy resource.',
             'Replaces the Dummy resource.',
             null,
-            [new Model\Parameter('id', 'path', 'Resource identifier', true, false, false, ['type' => 'string'])],
+            [new Model\Parameter('id', 'path', 'Dummy identifier', true, false, false, ['type' => 'string'])],
             new Model\RequestBody(
                 'The updated Dummy resource',
                 new \ArrayObject([
@@ -456,7 +426,7 @@ class OpenApiFactoryTest extends TestCase
             'Removes the Dummy resource.',
             'Removes the Dummy resource.',
             null,
-            [new Model\Parameter('id', 'path', 'Resource identifier', true, false, false, ['type' => 'string'])]
+            [new Model\Parameter('id', 'path', 'Dummy identifier', true, false, false, ['type' => 'string'])]
         ));
 
         $customPath = $paths->getPath('/foo/{id}');
@@ -478,7 +448,7 @@ class OpenApiFactoryTest extends TestCase
             ],
             'Dummy',
             'Custom description',
-            null,
+            new ExternalDocumentation('See also', 'http://schema.example.com/Dummy'),
             [new Model\Parameter('param', 'path', 'Test parameter', true), new Model\Parameter('id', 'path', 'Replace parameter', true, false, false, ['type' => 'string', 'format' => 'uuid'])],
             new Model\RequestBody('Custom request body', new \ArrayObject([
                 'multipart/form-data' => [
@@ -512,7 +482,7 @@ class OpenApiFactoryTest extends TestCase
                         'text/csv' => new Model\MediaType(new \ArrayObject(['$ref' => '#/components/schemas/Dummy.OutputDto'])),
                     ]),
                     null,
-                    new \ArrayObject(['GetDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$response.body#/id']), null, 'The `id` value returned in the response can be used as the `id` parameter in `GET /dummies/{id}`.')])
+                    new \ArrayObject(['getDummyItem' => new Model\Link('getDummyItem', new \ArrayObject(['id' => '$request.path.id']), null, 'This is a dummy')])
                 ),
                 '400' => new Model\Response('Invalid input'),
                 '422' => new Model\Response('Unprocessable entity'),
@@ -521,7 +491,7 @@ class OpenApiFactoryTest extends TestCase
             'Replaces the Dummy resource.',
             'Replaces the Dummy resource.',
             null,
-            [new Model\Parameter('id', 'path', 'Resource identifier', true, false, false, ['type' => 'string'])],
+            [new Model\Parameter('id', 'path', 'Dummy identifier', true, false, false, ['type' => 'string'])],
             new Model\RequestBody(
                 'The updated Dummy resource',
                 new \ArrayObject([

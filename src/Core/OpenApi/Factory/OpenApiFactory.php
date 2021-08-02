@@ -22,12 +22,12 @@ use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ApiResourceToLegacyResourceMetadataTrait;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\OpenApi\Model;
 use ApiPlatform\Core\OpenApi\Model\ExternalDocumentation;
+use ApiPlatform\Core\OpenApi\Model\PathItem;
 use ApiPlatform\Core\OpenApi\OpenApi;
 use ApiPlatform\Core\OpenApi\Options;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
@@ -40,7 +40,6 @@ use Symfony\Component\PropertyInfo\Type;
  */
 final class OpenApiFactory implements OpenApiFactoryInterface
 {
-    use ApiResourceToLegacyResourceMetadataTrait;
     use FilterLocatorTrait;
 
     public const BASE_URL = 'base_url';
@@ -146,11 +145,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $resourceClass = $operation['resource_class'] ?? $rootResourceClass;
             $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
             $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET');
+
+            if (!\in_array($method, PathItem::$methods, true)) {
+                continue;
+            }
+
             [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($resourceClass, $operationName, $operationType, $resourceMetadata);
             $operationId = $operation['openapi_context']['operationId'] ?? lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
             $linkedOperationId = 'get'.ucfirst($resourceShortName).ucfirst(OperationType::ITEM);
             $pathItem = $paths->getPath($path) ?: new Model\PathItem();
             $forceSchemaCollection = OperationType::SUBRESOURCE === $operationType ? ($operation['collection'] ?? false) : false;
+
             $schema = new Schema('openapi');
             $schema->setDefinitions($schemas);
 
@@ -336,7 +341,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
      */
     private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType): string
     {
-        $path = $operation['uri_template'] ?? $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
+        $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
         if ('.{_format}' === substr($path, -10)) {
             $path = substr($path, 0, -10);
         }

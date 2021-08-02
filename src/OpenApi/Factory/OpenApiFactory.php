@@ -128,13 +128,13 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     private function collectPaths(ApiResource $resource, ResourceMetadataCollection $resourceMetadataCollection, Model\Paths $paths, \ArrayObject $schemas): void
     {
         $links = [];
-        $resourceShortName = $resource->getShortName();
 
         if (0 === $resource->getOperations()->count()) {
             return;
         }
 
         foreach ($resource->getOperations() as $operationName => $operation) {
+            $resourceShortName = $operation->getShortName();
             // No path to return
             if (null === $operation->getUriTemplate() && null === $operation->getRouteName()) {
                 continue;
@@ -146,11 +146,13 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $path = $this->getPath($operation->getUriTemplate() ?? $this->router->getRouteCollection()->get($operation->getRouteName())->getPath());
             $method = $operation->getMethod();
 
+            if (!\in_array($method, Model\PathItem::$methods, true)) {
+                continue;
+            }
+
             [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($operation);
 
             $operationId = $operation->getOpenapiContext()['operationId'] ?? $operationName;
-
-            $linkedOperationId = $this->getLinkedOperationName($resource->getOperations());
 
             if ($path) {
                 $pathItem = $paths->getPath($path) ?: new Model\PathItem();
@@ -158,7 +160,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $pathItem = new Model\PathItem();
             }
 
-            $forceSchemaCollection = $operation->isCollection() ?? false;
+            $forceSchemaCollection = $operation->isCollection() && 'GET' === $method ? true : false;
             $schema = new Schema('openapi');
             $schema->setDefinitions($schemas);
 
@@ -182,7 +184,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             // Set up parameters
             if ($identifiers) {
                 foreach (array_keys($identifiers) as $parameterName) {
-                    $parameter = new Model\Parameter($parameterName, 'path', $resource->getShortName().' identifier', true, false, false, ['type' => 'string']);
+                    $parameter = new Model\Parameter($parameterName, 'path', $operation->getShortName().' identifier', true, false, false, ['type' => 'string']);
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
                     }
@@ -191,7 +193,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 }
             }
 
-            if ($operation->isCollection()) {
+            if ($operation->isCollection() && Operation::METHOD_POST !== $method) {
                 foreach (array_merge($this->getPaginationParameters($operation), $this->getFiltersParameters($operation)) as $parameter) {
                     if ($this->hasParameter($parameter, $parameters)) {
                         continue;
@@ -199,35 +201,34 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
                     $parameters[] = $parameter;
                 }
-                $links[$operationId] = $this->getLinks($resourceMetadataCollection, $operationName, $path);
             }
 
             // Create responses
             switch ($method) {
-                case 'GET':
-                    $successStatus = (string) $resource->getStatus() ?: 200;
+                case Operation::METHOD_GET:
+                    $successStatus = (string) $operation->getStatus() ?: 200;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $responses[$successStatus] = new Model\Response(sprintf('%s resource', $resourceShortName), $responseContent);
+                    $responses[$successStatus] = new Model\Response(sprintf('%s %s', $resourceShortName, $operation->isCollection() ? 'collection' : 'resource'), $responseContent);
                     break;
-                case 'POST':
-                    $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
+                case Operation::METHOD_POST:
+                    $responseLinks = $this->getLinks($resourceMetadataCollection, $operation);
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
-                    $successStatus = (string) $resource->getStatus() ?: 201;
+                    $successStatus = (string) $operation->getStatus() ?: 201;
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource created', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
                     break;
-                case 'PATCH':
-                case 'PUT':
-                    $responseLinks = new \ArrayObject(isset($links[$linkedOperationId]) ? [ucfirst($linkedOperationId) => $links[$linkedOperationId]] : []);
-                    $successStatus = (string) $resource->getStatus() ?: 200;
+                case Operation::METHOD_PATCH:
+                case Operation::METHOD_PUT:
+                    $responseLinks = $this->getLinks($resourceMetadataCollection, $operation);
+                    $successStatus = (string) $operation->getStatus() ?: 200;
                     $responseContent = $this->buildContent($responseMimeTypes, $operationOutputSchemas);
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource updated', $resourceShortName), $responseContent, null, $responseLinks);
                     $responses['400'] = new Model\Response('Invalid input');
                     $responses['422'] = new Model\Response('Unprocessable entity');
                     break;
-                case 'DELETE':
-                    $successStatus = (string) $resource->getStatus() ?: 204;
+                case Operation::METHOD_DELETE:
+                    $successStatus = (string) $operation->getStatus() ?: 204;
                     $responses[$successStatus] = new Model\Response(sprintf('%s resource deleted', $resourceShortName));
                     break;
             }
@@ -249,7 +250,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             $requestBody = null;
             if ($contextRequestBody = $operation->getOpenapiContext()['requestBody'] ?? false) {
                 $requestBody = new Model\RequestBody($contextRequestBody['description'] ?? '', new \ArrayObject($contextRequestBody['content']), $contextRequestBody['required'] ?? false);
-            } elseif ('PUT' === $method || 'POST' === $method || 'PATCH' === $method) {
+            } elseif (\in_array($method, [Operation::METHOD_PATCH, Operation::METHOD_PUT, Operation::METHOD_POST], true)) {
                 $operationInputSchemas = [];
                 foreach ($requestMimeTypes as $operationFormat) {
                     $operationInputSchema = $this->jsonSchemaFactory->buildSchema($resourceClass, $operationFormat, Schema::TYPE_INPUT, null, $operationName, $schema, null, $forceSchemaCollection);
@@ -264,8 +265,8 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 $operationId,
                 $operation->getOpenapiContext()['tags'] ?? ([$operation->getShortName()] ?? [$resourceShortName]),
                 $responses,
-                $operation->getOpenapiContext()['summary'] ?? $this->getPathDescription($resourceShortName, $method),
-                $operation->getOpenapiContext()['description'] ?? $this->getPathDescription($resourceShortName, $method),
+                $operation->getOpenapiContext()['summary'] ?? $this->getPathDescription($resourceShortName, $method, $operation->isCollection()),
+                $operation->getOpenapiContext()['description'] ?? $this->getPathDescription($resourceShortName, $method, $operation->isCollection()),
                 isset($operation->getOpenapiContext()['externalDocs']) ? new ExternalDocumentation($operation->getOpenapiContext()['externalDocs']['description'] ?? null, $operation->getOpenapiContext()['externalDocs']['url']) : null,
                 $parameters,
                 $requestBody,
@@ -333,11 +334,11 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         return 0 === strpos($path, '/') ? $path : '/'.$path;
     }
 
-    private function getPathDescription(string $resourceShortName, string $method): string
+    private function getPathDescription(string $resourceShortName, string $method, bool $isCollection): string
     {
         switch ($method) {
             case 'GET':
-                $pathSummary = 'Retrieves a %s resource.';
+                $pathSummary = $isCollection ? 'Retrieves the collection of %s resources.' : 'Retrieves a %s resource.';
                 break;
             case 'POST':
                 $pathSummary = 'Creates a %s resource.';
@@ -360,29 +361,55 @@ final class OpenApiFactory implements OpenApiFactoryInterface
 
     /**
      * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#linkObject.
+     *
+     * return Model\Link[]
      */
-    private function getLinks(ResourceMetadataCollection $resourceMetadataCollection, string $operationName, string $path): Model\Link
+    private function getLinks(ResourceMetadataCollection $resourceMetadataCollection, Operation $currentOperation): \ArrayObject
     {
-        $parameters = [];
+        $links = new \ArrayObject();
 
+        // Only compute get links for now
         /** @var ApiResource[] $resourceMetadataCollection */
         foreach ($resourceMetadataCollection as $resource) {
             foreach ($resource->getOperations() as $operationName => $operation) {
-                if ('GET' !== $operation->getMethod() || $operation->isCollection()) {
+                $parameters = [];
+                if ($operationName === $operation->getName() || isset($links[$operationName]) || $operation->isCollection() || Operation::METHOD_GET !== $operation->getMethod()) {
                     continue;
                 }
-                foreach ($resource->getIdentifiers() as $parameterName => [$class, $propertyName]) {
-                    $parameters[$parameterName] = sprintf('$response.body#/%s', $propertyName);
+
+                if ($currentOperation->getIdentifiers()) {
+                    foreach ($currentOperation->getIdentifiers() as $parameterName => [$class, $propertyName]) {
+                        $operationIdentifiers = $operation->getIdentifiers();
+                        if (!isset($operationIdentifiers[$parameterName])) {
+                            continue;
+                        }
+
+                        if ($operationIdentifiers[$parameterName] === [$class, $propertyName]) {
+                            $parameters[$parameterName] = '$request.path.'.$propertyName;
+                        }
+                    }
                 }
+
+                foreach ($operation->getIdentifiers() as $parameterName => [$class, $propertyName]) {
+                    if (isset($parameters[$parameterName])) {
+                        continue;
+                    }
+
+                    if ($class === $currentOperation->getClass()) {
+                        $parameters[$parameterName] = '$response.body#/'.$propertyName;
+                    }
+                }
+
+                $links[$operationName] = new Model\Link(
+                    $operationName,
+                    new \ArrayObject($parameters),
+                    null,
+                    $operation->getDescription() ?? ''
+                );
             }
         }
 
-        return new Model\Link(
-            $operationName,
-            new \ArrayObject($parameters),
-            null,
-            1 === \count($parameters) ? sprintf('The `%1$s` value returned in the response can be used as the `%1$s` parameter in `GET %2$s`.', key($parameters), $path) : sprintf('The values returned in the response can be used in `GET %s`.', $path)
-        );
+        return $links;
     }
 
     /**
@@ -444,7 +471,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                     'minimum' => 0,
                 ];
 
-                if (null !== $maxItemsPerPage = $operation->getPaginationMaximumItemsPerPage()) {
+                if (null !== $maxItemsPerPage = ($operation->getPaginationMaximumItemsPerPage() ?? $this->paginationOptions->getMaximumItemsPerPage())) {
                     $schema['maximum'] = $maxItemsPerPage;
                 }
 
@@ -525,16 +552,5 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         }
 
         return false;
-    }
-
-    private function getLinkedOperationName($operations): ?string
-    {
-        foreach ($operations as $operationName => $operation) {
-            if ('GET' === $operation->getMethod() && $operation->getIdentifiers()) {
-                return $operationName;
-            }
-        }
-
-        return null;
     }
 }
