@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Core\GraphQl\Type;
 
 use ApiPlatform\Core\Exception\InvalidArgumentException;
+use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use GraphQL\Error\SyntaxError;
 use GraphQL\Language\AST\ListTypeNode;
@@ -114,7 +115,12 @@ final class TypeConverter implements TypeConverterInterface
             return null;
         }
 
-        $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
+        try {
+            $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
+        } catch (ResourceClassNotFoundException $e) {
+            return null;
+        }
+
         $hasGraphQl = false;
         $operation = null;
         foreach ($resourceMetadataCollection as $resourceMetadata) {

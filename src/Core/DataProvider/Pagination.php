@@ -238,7 +238,7 @@ final class Pagination
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             if ($resourceMetadata instanceof ResourceMetadataCollection) {
-                $operation = $resourceMetadata->getOperation($operationName);
+                $operation = $resourceMetadata->getGraphQlOperation($operationName);
 
                 return $operation->getPaginationType() ?? 'cursor';
             }

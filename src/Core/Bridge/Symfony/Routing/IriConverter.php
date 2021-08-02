@@ -67,7 +67,6 @@ final class IriConverter implements IriConverterInterface
         trigger_deprecation('api-platform/core', '2.7', sprintf('The service "%s" is deprecated, use %s instead.', self::class, NewIriConverter::class));
     }
 
-
     /**
      * {@inheritdoc}
      */

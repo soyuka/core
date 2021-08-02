@@ -40,7 +40,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
 
     public function create(?string $resourceClass, string $operationName, array $resolverContext, bool $normalization): array
     {
-        $context = ['operation_name' => $operationName, 'graphql_operation_name' => $operationName];
+        $context = ['resource_class' => $resourceClass, 'graphql_operation_name' => $operationName];
         $operation = null;
 
         if ($resourceClass) {
@@ -50,8 +50,11 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             } catch (OperationNotFoundException $e) {
                 // It's possible that the serialization context may not be tight to an existing operation
             }
-            $context['resource_class'] = $resourceClass;
-            $context['operation_name'] = $resourceMetadata->getOperation()->getName();
+
+            try {
+                $context['operation_name'] = $resourceMetadata->getOperation()->getName();
+            } catch (OperationNotFoundException $e) {
+            }
         }
 
         if (isset($resolverContext['fields'])) {

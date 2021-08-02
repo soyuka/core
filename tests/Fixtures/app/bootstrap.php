@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use ApiPlatform\Core\Tests\DeprecationErrorHandler;
+use Doctrine\Common\Annotations\AnnotationRegistry;
 
 date_default_timezone_set('UTC');
 

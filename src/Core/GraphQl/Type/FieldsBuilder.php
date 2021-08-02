@@ -159,7 +159,7 @@ final class FieldsBuilder implements FieldsBuilderInterface
         $subscriptionFields = [];
         $shortName = $operation->getShortName();
         $resourceType = new Type(Type::BUILTIN_TYPE_OBJECT, true, $resourceClass);
-        $description = $operation->getDescription();
+        $description = $operation->getDescription() ?? sprintf('Subscribes to the action event of a %s.', $shortName);
         $deprecationReason = $operation->getDeprecationReason();
 
         if ($fieldConfiguration = $this->getResourceFieldConfiguration(null, $description, $deprecationReason, $resourceType, $resourceClass, false, $subscriptionName)) {

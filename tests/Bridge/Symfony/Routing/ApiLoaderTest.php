@@ -27,11 +27,11 @@ use ApiPlatform\Core\PathResolver\OperationPathResolver;
 use ApiPlatform\Core\Tests\Fixtures\DummyEntity;
 use ApiPlatform\Core\Tests\Fixtures\RelatedDummyEntity;
 use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use PHPUnit\Framework\TestCase;
@@ -331,7 +331,7 @@ class ApiLoaderTest extends TestCase
                 '_format' => null,
                 '_stateless' => $stateless,
                 '_api_resource_class' => $resourceClass,
-                '_api_operation_name' => $operationName
+                '_api_operation_name' => $operationName,
             ] + $extraDefaults,
             $requirements,
             $options,
