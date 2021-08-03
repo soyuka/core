@@ -519,7 +519,7 @@ class DocumentationNormalizerV2Test extends TestCase
                             'type' => 'string',
                             'description' => 'This is a converted name.',
                         ]),
-                    ]
+                    ],
                 ]),
             ]),
             'securityDefinitions' => [

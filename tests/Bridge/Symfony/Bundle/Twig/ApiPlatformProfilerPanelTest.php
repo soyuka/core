@@ -163,57 +163,57 @@ class ApiPlatformProfilerPanelTest extends WebTestCase
         $this->assertNotEmpty($crawler->filter('.tab:nth-of-type(3) .tab-content'));
     }
 
-    // public function testGetCollectionProfiler()
-    // {
-    //     $client = static::createClient();
-    //     $client->enableProfiler();
-    //     $client->request('GET', '/dummies', [], [], ['HTTP_ACCEPT' => 'application/ld+json']);
-    //     $this->assertEquals(200, $client->getResponse()->getStatusCode());
-    //     $crawler = $client->request('GET', '/_profiler/latest?panel=api_platform.data_collector.request');
-    //     $this->assertEquals(200, $client->getResponse()->getStatusCode());
-    //
-    //     // Metadata tab
-    //     $tabContent = $crawler->filter('.tab:nth-of-type(1) .tab-content');
-    //     $this->assertSame('get', $tabContent->filter('table:nth-of-type(2) th.status-success')->html(), 'The actual operation should be highlighted.');
-    //     $this->assertEmpty($tabContent->filter('table:not(:nth-of-type(2)) .status-success'), 'Only the actual operation should be highlighted.');
-    //
-    //     // Data provider tab
-    //     $tabContent = $crawler->filter('.tab:nth-of-type(2) .tab-content');
-    //     $this->assertSame('TRUE', $tabContent->filter('table tbody .status-success')->html());
-    //     $this->assertStringContainsString('mongodb' === $this->env ? OdmCollectionDataProvider::class : CollectionDataProvider::class, $tabContent->filter('table tbody')->html());
-    //
-    //     $this->assertStringContainsString('No calls to item data provider have been recorded.', $tabContent->html());
-    //     $this->assertStringContainsString('No calls to subresource data provider have been recorded.', $tabContent->html());
-    //
-    //     // Data persiters tab
-    //     $this->assertStringContainsString('No calls to data persister have been recorded.', $crawler->filter('.tab:nth-of-type(3) .tab-content .empty')->html());
-    // }
-    //
-    // public function testPostCollectionProfiler()
-    // {
-    //     $client = static::createClient();
-    //     $client->enableProfiler();
-    //     $client->request('POST', '/dummies', [], [], ['HTTP_ACCEPT' => 'application/ld+json', 'CONTENT_TYPE' => 'application/ld+json'], '{"name": "foo"}');
-    //     $this->assertEquals(201, $client->getResponse()->getStatusCode());
-    //     $crawler = $client->request('get', '/_profiler/latest?panel=api_platform.data_collector.request');
-    //     $this->assertEquals(200, $client->getResponse()->getStatusCode());
-    //
-    //     // Metadata tab
-    //     $tabContent = $crawler->filter('.tab:nth-of-type(1) .tab-content');
-    //     $this->assertSame('post', $tabContent->filter('table:nth-of-type(2) th.status-success')->html(), 'The actual operation should be highlighted.');
-    //     $this->assertEmpty($tabContent->filter('table:not(:nth-of-type(2)) .status-success'), 'Only the actual operation should be highlighted.');
-    //
-    //     // Data provider tab
-    //     $tabContent = $crawler->filter('.tab:nth-of-type(2) .tab-content');
-    //     $this->assertStringContainsString('No calls to collection data provider have been recorded.', $tabContent->html());
-    //     $this->assertStringContainsString('No calls to item data provider have been recorded.', $tabContent->html());
-    //     $this->assertStringContainsString('No calls to subresource data provider have been recorded.', $tabContent->html());
-    //
-    //     // Data persiters tab
-    //     $tabContent = $crawler->filter('.tab:nth-of-type(3) .tab-content');
-    //     $this->assertSame('TRUE', $tabContent->filter('table tbody .status-success')->html());
-    //     $this->assertStringContainsString(DataPersister::class, $tabContent->filter('table tbody')->html());
-    // }
+    public function testGetCollectionProfiler()
+    {
+        $client = static::createClient();
+        $client->enableProfiler();
+        $client->request('GET', '/dummies', [], [], ['HTTP_ACCEPT' => 'application/ld+json']);
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        $crawler = $client->request('GET', '/_profiler/latest?panel=api_platform.data_collector.request');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+        // Metadata tab
+        $tabContent = $crawler->filter('.tab:nth-of-type(1) .tab-content');
+        $this->assertSame('_api_/dummies.{_format}_get_collection', $tabContent->filter('table:nth-of-type(2) th.status-success')->html(), 'The actual operation should be highlighted.');
+        $this->assertEmpty($tabContent->filter('table:not(:nth-of-type(2)) .status-success'), 'Only the actual operation should be highlighted.');
+
+        // Data provider tab
+        $tabContent = $crawler->filter('.tab:nth-of-type(2) .tab-content');
+        $this->assertSame('TRUE', $tabContent->filter('table tbody .status-success')->html());
+        $this->assertStringContainsString('mongodb' === $this->env ? OdmCollectionDataProvider::class : CollectionDataProvider::class, $tabContent->filter('table tbody')->html());
+
+        $this->assertStringContainsString('No calls to item data provider have been recorded.', $tabContent->html());
+        $this->assertStringContainsString('No calls to subresource data provider have been recorded.', $tabContent->html());
+
+        // Data persiters tab
+        $this->assertStringContainsString('No calls to data persister have been recorded.', $crawler->filter('.tab:nth-of-type(3) .tab-content .empty')->html());
+    }
+
+    public function testPostCollectionProfiler()
+    {
+        $client = static::createClient();
+        $client->enableProfiler();
+        $client->request('POST', '/dummies', [], [], ['HTTP_ACCEPT' => 'application/ld+json', 'CONTENT_TYPE' => 'application/ld+json'], '{"name": "foo"}');
+        $this->assertEquals(201, $client->getResponse()->getStatusCode());
+        $crawler = $client->request('get', '/_profiler/latest?panel=api_platform.data_collector.request');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+        // Metadata tab
+        $tabContent = $crawler->filter('.tab:nth-of-type(1) .tab-content');
+        $this->assertSame('_api_/dummies.{_format}_post_collection', $tabContent->filter('table:nth-of-type(2) th.status-success')->html(), 'The actual operation should be highlighted.');
+        $this->assertEmpty($tabContent->filter('table:not(:nth-of-type(2)) .status-success'), 'Only the actual operation should be highlighted.');
+
+        // Data provider tab
+        $tabContent = $crawler->filter('.tab:nth-of-type(2) .tab-content');
+        $this->assertStringContainsString('No calls to collection data provider have been recorded.', $tabContent->html());
+        $this->assertStringContainsString('No calls to item data provider have been recorded.', $tabContent->html());
+        $this->assertStringContainsString('No calls to subresource data provider have been recorded.', $tabContent->html());
+
+        // Data persiters tab
+        $tabContent = $crawler->filter('.tab:nth-of-type(3) .tab-content');
+        $this->assertSame('TRUE', $tabContent->filter('table tbody .status-success')->html());
+        $this->assertStringContainsString(DataPersister::class, $tabContent->filter('table tbody')->html());
+    }
 
     /**
      * @group legacy
@@ -235,7 +235,7 @@ class ApiPlatformProfilerPanelTest extends WebTestCase
 
         // Metadata tab
         $tabContent = $crawler->filter('.tab:nth-of-type(1) .tab-content');
-        $this->assertSame('get', $tabContent->filter('table:nth-of-type(1) th.status-success')->html(), 'The actual operation should be highlighted.');
+        $this->assertSame('_api_/dummies/{id}.{_format}_get', $tabContent->filter('table:nth-of-type(1) th.status-success')->html(), 'The actual operation should be highlighted.');
         $this->assertEmpty($tabContent->filter('table:not(:nth-of-type(1)) .status-success'), 'Only the actual operation should be highlighted.');
 
         // Data provider tab

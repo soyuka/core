@@ -131,7 +131,7 @@ class AppKernel extends Kernel
             'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] : ['storage_id' => 'session.storage.mock_file'],
             'profiler' => [
                 'enabled' => true,
-                'collect' => false,
+                'collect' => true,
             ],
             'messenger' => [
                 'default_bus' => 'messenger.bus.default',
