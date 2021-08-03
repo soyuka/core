@@ -366,7 +366,6 @@ class AddFormatListenerTest extends TestCase
      */
     public function testLegacyFormatsParameter($formatsProvider): void
     {
-        $this->expectDeprecation('Since api-platform/core 2.7: Use "ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface" instead of "ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface".');
         $this->expectDeprecation('Since api-plaform/core 2.5: Passing an array or an instance of "ApiPlatform\Core\Api\FormatsProviderInterface" as 2nd parameter of the constructor of "ApiPlatform\Core\EventListener\AddFormatListener" is deprecated since API Platform 2.5, pass an instance of "ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface" instead');
         new AddFormatListener(new Negotiator(), $formatsProvider);
     }

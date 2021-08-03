@@ -62,7 +62,7 @@ final class SchemaBuilder implements SchemaBuilderInterface
             $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
             foreach ($resourceMetadataCollection as $resourceMetadata) {
                 foreach ($resourceMetadata->getGraphQlOperations() ?? [] as $operationName => $operation) {
-                    $configuration = $operation->getArgs() ? ['args' => $operation->getArgs()] : [];
+                    $configuration = null !== $operation->getArgs() ? ['args' => $operation->getArgs()] : [];
 
                     //TODO: 3.0 remove these
                     if ('item_query' === $operationName) {
@@ -90,6 +90,8 @@ final class SchemaBuilder implements SchemaBuilderInterface
 
                     if ($operation instanceof Subscription && $operation->getMercure()) {
                         $subscriptionFields += $this->fieldsBuilder->getSubscriptionFields($resourceClass, $operation, $operationName);
+
+                        continue;
                     }
 
                     $mutationFields += $this->fieldsBuilder->getMutationFields($resourceClass, $operation, $operationName);

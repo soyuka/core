@@ -19,9 +19,9 @@ class DeprecationErrorHandler
 
     public static function register($mode = 0)
     {
-        $handler = new self();
-        $oldErrorHandler = set_error_handler([$handler, 'handleError']);
-        $handler->setDecorated($oldErrorHandler);
+        // $handler = new self();
+        // $oldErrorHandler = set_error_handler([$handler, 'handleError']);
+        // $handler->setDecorated($oldErrorHandler);
     }
 
     /**

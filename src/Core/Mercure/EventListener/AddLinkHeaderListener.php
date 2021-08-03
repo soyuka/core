@@ -45,9 +45,11 @@ final class AddLinkHeaderListener
     public function __construct($resourceMetadataFactory, $discovery)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+        if ($resourceMetadataFactory && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
-        } else {
+        } 
+
+        if ($resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
             $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         }
 

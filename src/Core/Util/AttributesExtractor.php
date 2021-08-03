@@ -77,7 +77,7 @@ final class AttributesExtractor
         }
 
         if (false === $hasRequestAttributeKey) {
-            return $result;
+            return [];
         }
 
         $result += [

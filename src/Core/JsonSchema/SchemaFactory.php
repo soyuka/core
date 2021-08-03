@@ -149,9 +149,9 @@ final class SchemaFactory implements SchemaFactoryInterface
 
         // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
         // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-        if ($resourceMetadata instanceof ResourceMetadata) {
+        if ($resourceMetadata instanceof ResourceMetadata && $resourceMetadata->getIri()) {
             $definition['externalDocs'] = ['url' => $resourceMetadata->getIri()];
-        } elseif ($operation && $operation->getTypes()) {
+        } elseif ($operation && ($operation->getTypes()[0] ?? null)) {
             $definition['externalDocs'] = ['url' => $operation->getTypes()[0]];
         }
 

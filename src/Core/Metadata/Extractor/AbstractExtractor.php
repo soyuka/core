@@ -66,7 +66,7 @@ abstract class AbstractExtractor implements ExtractorInterface
      *
      * @copyright (c) Fabien Potencier <fabien@symfony.com>
      *
-     * @param $value The source which might contain "%placeholders%"
+     * @param mixed $value The source which might contain "%placeholders%"
      *
      * @throws \RuntimeException When a container value is not a string or a numeric value
      *

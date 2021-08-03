@@ -90,7 +90,6 @@ class SchemaBuilderTest extends TestCase
         $this->fieldsBuilderProphecy->getItemQueryFields($resourceClass, Argument::type(Operation::class), 'custom_item_query', [])->willReturn(['custom_item_query' => ['custom_item_query_fields']]);
         $this->fieldsBuilderProphecy->getCollectionQueryFields($resourceClass, Argument::type(Operation::class), 'custom_collection_query', [])->willReturn(['custom_collection_query' => ['custom_collection_query_fields']]);
         $this->fieldsBuilderProphecy->getMutationFields($resourceClass, Argument::type(Operation::class), 'mutation')->willReturn(['mutation' => ['mutation_fields']]);
-        $this->fieldsBuilderProphecy->getMutationFields($resourceClass, Argument::type(Operation::class), 'update')->willReturn(['mutation' => ['mutation_fields']]);
         $this->fieldsBuilderProphecy->getSubscriptionFields($resourceClass, Argument::type(Operation::class), 'update')->willReturn(['subscription' => ['subscription_fields']]);
 
         $this->resourceNameCollectionFactoryProphecy->create()->willReturn(new ResourceNameCollection([$resourceClass]));
@@ -173,12 +172,7 @@ class SchemaBuilderTest extends TestCase
                         'node' => ['node_fields'],
                     ],
                 ]),
-                new ObjectType([
-                    'name' => 'Mutation',
-                    'fields' => [
-                        'mutation' => ['mutation_fields'],
-                    ],
-                ]),
+                null,
                 new ObjectType([
                     'name' => 'Subscription',
                     'fields' => [
