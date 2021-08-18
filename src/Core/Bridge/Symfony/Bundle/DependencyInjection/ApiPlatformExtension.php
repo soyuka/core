@@ -794,6 +794,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
         $container->removeDefinition('api_platform.openapi.factory');
         $container->setAlias('api_platform.openapi.factory', 'api_platform.openapi.factory.legacy');
+
+        $definition = $container->getDefinition('api_platform.metadata.property.metadata_factory.serializer');
+        $definition->setArgument(0, $container->getDefinition('api_platform.metadata.resource.metadata_factory'));
+        $container->setDefinition('api_platform.metadata.property.metadata_factory.serializer', $definition);
     }
 
     private function registerRectorConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
