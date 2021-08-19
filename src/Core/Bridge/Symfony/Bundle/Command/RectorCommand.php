@@ -13,7 +13,14 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Command;
 
+use ApiPlatform\Core\Bridge\Rector\Parser\TransformApiSubresourceVisitor;
 use ApiPlatform\Core\Bridge\Rector\Set\ApiPlatformSetList;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
+use PhpParser\Lexer\Emulative;
+use PhpParser\NodeTraverser;
+use PhpParser\Parser\Php7;
+use PhpParser\PrettyPrinter\Standard;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,14 +38,20 @@ final class RectorCommand extends Command
         'annotation-to-api-resource' => '@ApiResource to new #[ApiResource]',
         'attribute-to-api-resource' => '@ApiResource to legacy #[ApiResource] and new #[ApiResource]',
         'keep-attribute' => 'Legacy #[ApiResource] to new #[ApiResource]',
+        'transform-apisubresource' => 'Transform @ApiSubresource',
     ];
 
     protected static $defaultName = 'api:rector:upgrade';
 
+    private $resourceNameCollectionFactory;
+    private $subresourceOperationFactory;
     private $metadataBackwardCompatibilityLayer;
+    private $localCache = [];
 
-    public function __construct(bool $metadataBackwardCompatibilityLayer)
+    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, SubresourceOperationFactoryInterface $subresourceOperationFactory, bool $metadataBackwardCompatibilityLayer)
     {
+        $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
+        $this->subresourceOperationFactory = $subresourceOperationFactory;
         $this->metadataBackwardCompatibilityLayer = $metadataBackwardCompatibilityLayer;
 
         parent::__construct();
@@ -129,6 +142,10 @@ final class RectorCommand extends Command
             case $operationKeys[3]:
                 $command .= ' --config='.ApiPlatformSetList::ATTRIBUTE_TO_API_RESOURCE_ATTRIBUTE;
                 break;
+            case $operationKeys[4]:
+                $this->transformApiSubresource($input->getArgument('src'));
+                $command .= ' --config='.ApiPlatformSetList::TRANSFORM_API_SUBRESOURCE;
+                break;
         }
 
         $io->title('Run '.$command);
@@ -151,5 +168,72 @@ final class RectorCommand extends Command
         }
 
         return array_search($choice, $operations, true);
+    }
+
+    private function transformApiSubresource(string $src)
+    {
+        foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
+            try {
+                new \ReflectionClass($resourceClass);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            if (!isset($this->localCache[$resourceClass])) {
+                $this->localCache[$resourceClass] = [];
+            }
+
+            foreach ($this->subresourceOperationFactory->create($resourceClass) as $subresourceMetadata) {
+                $identifiers = [];
+                // Removing the third tuple element
+                foreach ($subresourceMetadata['identifiers'] as $parameterName => [$property, $class, $isPresent]) {
+                    if (!$isPresent) {
+                        continue;
+                    }
+
+                    $identifiers[$parameterName] = [$property, $class];
+                }
+
+                $subresourceMetadata['identifiers'] = $identifiers;
+
+                if (!isset($this->localCache[$subresourceMetadata['resource_class']])) {
+                    $this->localCache[$subresourceMetadata['resource_class']] = [];
+                }
+
+                $this->localCache[$subresourceMetadata['resource_class']][] = $subresourceMetadata;
+            }
+        }
+
+        foreach ($this->localCache as $resourceClass => $linkedSubresourceMetadata) {
+            $fileName = (new \ReflectionClass($resourceClass))->getFilename();
+
+            if (!str_contains($fileName, $src)) {
+                continue;
+            }
+
+            foreach ($linkedSubresourceMetadata as $subresourceMetadata) {
+                $lexer = new Emulative([
+                    'usedAttributes' => [
+                        'comments',
+                        'startLine', 'endLine',
+                        'startTokenPos', 'endTokenPos',
+                    ],
+                ]);
+                $parser = new Php7($lexer);
+
+                $traverser = new NodeTraverser();
+                $traverser->addVisitor(new TransformApiSubresourceVisitor($subresourceMetadata));
+                $prettyPrinter = new Standard();
+
+                $oldStmts = $parser->parse(file_get_contents($fileName));
+                $oldTokens = $lexer->getTokens();
+
+                $newStmts = $traverser->traverse($oldStmts);
+
+                $newCode = $prettyPrinter->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+
+                file_put_contents($fileName, $newCode);
+            }
+        }
     }
 }

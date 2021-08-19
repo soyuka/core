@@ -36,4 +36,8 @@ final class ApiPlatformSetList implements SetListInterface
      * @var string
      */
     public const ATTRIBUTE_TO_API_RESOURCE_ATTRIBUTE = __DIR__.'/../config/sets/attribute-to-api-resource-attribute.php';
+    /**
+     * @var string
+     */
+    public const TRANSFORM_API_SUBRESOURCE = __DIR__.'/../config/sets/transform-api-subresource.php';
 }

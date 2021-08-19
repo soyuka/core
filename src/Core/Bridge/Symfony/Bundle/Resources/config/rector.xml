@@ -7,6 +7,8 @@
     <services>
         <service id="api_platform.rector.command" class="ApiPlatform\Core\Bridge\Symfony\Bundle\Command\RectorCommand">
             <tag name="console.command" />
+            <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+            <argument type="service" id="api_platform.subresource_operation_factory" />
             <argument>%api_platform.metadata_backward_compatibility_layer%</argument>
         </service>
     </services>
