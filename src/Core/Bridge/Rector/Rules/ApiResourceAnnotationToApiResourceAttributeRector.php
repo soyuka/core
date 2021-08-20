@@ -166,9 +166,21 @@ CODE_SAMPLE
                 $tagValue = clone $tag->value;
                 $this->resolveOperations($tagValue, $node);
 
-                // TODO: refactor this instead of multiple if
+                /**
+                 *
+                 *
+                 *
+                 *
+                 *
+                 * Graphql doesnt work yet
+                 * it should use "resolver"
+                 *
+                 *
+                 *
+                 *
+                 */
                 if ($graphQlValue = $tagValue->getValue('graphql')) {
-                    $tagValue->values['graphQlOperations'] = $graphQlValue;
+                    //$tagValue->values['graphQlOperations'] = $graphQlValue;
                     unset($tagValue->values['graphql']);
                 }
 
