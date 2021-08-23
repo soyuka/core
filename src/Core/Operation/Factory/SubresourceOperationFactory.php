@@ -19,6 +19,7 @@ use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Exception\ResourceClassNotFoundException;
 
 /**
  * @internal
@@ -51,7 +52,11 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
     public function create(string $resourceClass): array
     {
         $tree = [];
-        $this->computeSubresourceOperations($resourceClass, $tree);
+        try {
+            $this->computeSubresourceOperations($resourceClass, $tree);
+        } catch (ResourceClassNotFoundException $e) {
+            return [];
+        }
 
         return $tree;
     }
