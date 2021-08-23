@@ -52,10 +52,10 @@ use ApiPlatform\Core\Tests\Fixtures\TestBundle\Controller\DummyDtoNoInput\Create
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Controller\DummyDtoNoInput\DoubleBatAction;
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
 
-#[ApiResource(attributes: ['input' => false, 'output' => OutputDto::class])]
-#[Post(operationName: 'post', path: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
+#[ApiResource(input: false, output: OutputDto::class)]
+#[Post(name: 'post', uriTemplate: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
 #[GetCollection]
-#[Post(operationName: 'post_double_bat', path: '/dummy_dto_no_inputs/{id}/double_bat', controller: DoubleBatAction::class, status: 200)]
+#[Post(name: 'post_double_bat', uriTemplate: '/dummy_dto_no_inputs/{id}/double_bat', controller: DoubleBatAction::class, status: 200)]
 #[Get]
 #[Delete]
 class DummyDtoNoInput

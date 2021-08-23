@@ -36,7 +36,7 @@ use ApiPlatform\Metadata\ApiResource;
 
 #[ApiResource]
 #[GetCollection]
-#[Get(operationName: 'get', controller: NotFoundAction::class, read: false, output: false)]
+#[Get(name: 'get', controller: NotFoundAction::class, read: false, output: false)]
 class DisableItemOperation
 {
 }

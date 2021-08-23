@@ -55,7 +55,7 @@ use ApiPlatform\Metadata\Get;
 
 #[ApiResource]
 #[Get]
-#[Get(operationName: 'get_by_isbn', path: '/books/by_isbn/{isbn}.{_format}', requirements: ['isbn' => '.+'], identifiers: 'isbn')]
+#[Get(name: 'get_by_isbn', uriTemplate: '/books/by_isbn/{isbn}.{_format}', requirements: ['isbn' => '.+'], identifiers: 'isbn')]
 class Book
 CODE_SAMPLE
             , [self::REMOVE_INITIAL_ATTRIBUTE => true])]);
@@ -88,6 +88,26 @@ CODE_SAMPLE
                     continue;
                 }
                 $items = $this->createItemsFromArgs($attribute->args);
+
+                // Transform graphql attribute
+                foreach ($items as $itemKey => $itemValue) {
+                    if ('graphql' !== $itemKey) {
+                        break;
+                    }
+
+                    foreach ($itemValue as $operationName => $operationValue) {
+                        foreach ($operationValue as $attribute => $value) {
+                            if (\in_array($attribute, ['collection_query', 'item_query', 'mutation'], true)) {
+                                $itemValue[$operationName]['resolver'] = $value;
+                                unset($itemValue[$operationName][$attribute]);
+                            }
+                        }
+                    }
+
+                    $items['graphQlOperations'] = $itemValue;
+                    unset($items['graphql']);
+                }
+
                 $arguments = $this->resolveOperations($items, $node);
                 $apiResourceAttributeGroup = $this->phpAttributeGroupFactory->createFromClassWithItems(\ApiPlatform\Metadata\ApiResource::class, $arguments);
                 array_unshift($node->attrGroups, $apiResourceAttributeGroup);

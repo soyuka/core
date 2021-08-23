@@ -20,13 +20,13 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ApiResource]
-#[GetCollection(operationName: 'get_custom', path: 'custom_action_collection_dummies')]
-#[GetCollection(operationName: 'custom_denormalization', routeName: 'custom_denormalization')]
-#[GetCollection(operationName: 'short_custom_denormalization', routeName: 'short_custom_denormalization')]
+#[GetCollection(name: 'get_custom', uriTemplate: 'custom_action_collection_dummies')]
+#[GetCollection(name: 'custom_denormalization', routeName: 'custom_denormalization')]
+#[GetCollection(name: 'short_custom_denormalization', routeName: 'short_custom_denormalization')]
 #[GetCollection]
-#[Get(operationName: 'get_custom', path: 'custom_action_collection_dummies/{id}')]
-#[Get(operationName: 'custom_normalization', routeName: 'custom_normalization')]
-#[Get(operationName: 'short_custom_normalization', routeName: 'short_custom_normalization')]
+#[Get(name: 'get_custom', uriTemplate: 'custom_action_collection_dummies/{id}')]
+#[Get(name: 'custom_normalization', routeName: 'custom_normalization')]
+#[Get(name: 'short_custom_normalization', routeName: 'short_custom_normalization')]
 #[Get]
 class CustomActionDummy
 {

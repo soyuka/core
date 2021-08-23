@@ -83,7 +83,7 @@ use ApiPlatform\Metadata\Get;
 
 #[ApiResource]
 #[Get]
-#[Get(operationName: 'get_by_isbn', path: '/books/by_isbn/{isbn}.{_format}', requirements: ['isbn' => '.+'], identifiers: 'isbn')]
+#[Get(name: 'get_by_isbn', uriTemplate: '/books/by_isbn/{isbn}.{_format}', requirements: ['isbn' => '.+'], identifiers: 'isbn')]
 class Book
 CODE_SAMPLE
             , [
@@ -166,32 +166,34 @@ CODE_SAMPLE
                 $tagValue = clone $tag->value;
                 $this->resolveOperations($tagValue, $node);
 
-                /**
-                 *
-                 *
-                 *
-                 *
-                 *
-                 * Graphql doesnt work yet
-                 * it should use "resolver"
-                 *
-                 *
-                 *
-                 *
-                 */
+                // Transform "graphql" keys
                 if ($graphQlValue = $tagValue->getValue('graphql')) {
-                    //$tagValue->values['graphQlOperations'] = $graphQlValue;
+                    foreach ($graphQlValue->values ?? [] as $operationName => $operationValue) {
+                        if(!\is_array($operationValue)){
+                            break;
+                        }
+
+                        foreach ($operationValue as $key => $value) {
+                            if (\in_array($key, ['"collection_query"', '"item_query"', '"mutation"'], true)) {
+                                $graphQlValue->values[$operationName]['"resolver"'] = $value;
+                                unset($graphQlValue->values[$operationName][$key]);
+                            }
+                        }
+                    }
+                    $tagValue->values['graphQlOperations'] = $graphQlValue;
                     unset($tagValue->values['graphql']);
                 }
 
                 $camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
 
+                // Transform "attributes" keys
                 foreach ($tagValue->getValue('attributes')->values ?? [] as $attribute => $value) {
                     $tagValue->values[$camelCaseToSnakeCaseNameConverter->denormalize($attribute)] = $value;
                 }
 
                 $tagValue->removeValue('attributes');
 
+                // Transform deprecated keys
                 foreach ($tagValue->values ?? [] as $attribute => $value) {
                     [$updatedAttribute, $updatedValue] = $this->getKeyValue(str_replace('"', '', $camelCaseToSnakeCaseNameConverter->normalize($attribute)), $value);
                     if ($attribute !== $updatedAttribute) {
