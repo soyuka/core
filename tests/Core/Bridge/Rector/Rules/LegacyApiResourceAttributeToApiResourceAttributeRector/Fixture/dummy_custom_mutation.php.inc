@@ -63,9 +63,15 @@ class DummyCustomMutation
 
 namespace ApiPlatform\Tests\Bridge\Rector\Rules\LegacyApiResourceAttributeToApiResourceAttributeRector\Fixture;
 
+use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\ApiResource;
 
-#[ApiResource(graphQlOperations: ['sum' => ['normalization_context' => ['groups' => ['result']], 'denormalization_context' => ['groups' => ['sum']], 'resolver' => 'app.graphql.mutation_resolver.dummy_custom'], 'sumNotPersisted' => ['normalization_context' => ['groups' => ['result']], 'denormalization_context' => ['groups' => ['sum']], 'resolver' => 'app.graphql.mutation_resolver.dummy_custom_not_persisted'], 'sumNoWriteCustomResult' => ['normalization_context' => ['groups' => ['result']], 'denormalization_context' => ['groups' => ['sum']], 'write' => false, 'resolver' => 'app.graphql.mutation_resolver.dummy_custom_no_write_custom_result'], 'sumOnlyPersist' => ['normalization_context' => ['groups' => ['result']], 'denormalization_context' => ['groups' => ['sum']], 'read' => false, 'deserialize' => false, 'validate' => false, 'serialize' => false, 'resolver' => 'app.graphql.mutation_resolver.dummy_custom_only_persist'], 'testCustomArguments' => ['args' => ['operandC' => ['type' => 'Int!']], 'resolver' => 'app.graphql.mutation_resolver.dummy_custom']])]
+#[ApiResource]
+#[Mutation(name: 'sum', resolver: 'app.graphql.mutation_resolver.dummy_custom', normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
+#[Mutation(name: 'sumNotPersisted', resolver: 'app.graphql.mutation_resolver.dummy_custom_not_persisted', normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
+#[Mutation(name: 'sumNoWriteCustomResult', resolver: 'app.graphql.mutation_resolver.dummy_custom_no_write_custom_result', write: false, normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
+#[Mutation(name: 'sumOnlyPersist', resolver: 'app.graphql.mutation_resolver.dummy_custom_only_persist', read: false, deserialize: false, validate: false, serialize: false, normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
+#[Mutation(name: 'testCustomArguments', resolver: 'app.graphql.mutation_resolver.dummy_custom', args: ['operandC' => ['type' => 'Int!']])]
 class DummyCustomMutation
 {
 }

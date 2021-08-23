@@ -53,7 +53,7 @@ use ApiPlatform\Core\Tests\Fixtures\TestBundle\Controller\DummyDtoNoInput\Double
 use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
 
 #[ApiResource(input: false, output: OutputDto::class)]
-#[Post(name: 'post', uriTemplate: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
+#[Post(uriTemplate: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
 #[GetCollection]
 #[Post(name: 'post_double_bat', uriTemplate: '/dummy_dto_no_inputs/{id}/double_bat', controller: DoubleBatAction::class, status: 200)]
 #[Get]

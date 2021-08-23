@@ -30,9 +30,9 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
 
     protected PhpAttributeGroupFactory $phpAttributeGroupFactory;
 
-    protected array $operationTypes = ['collectionOperations', 'itemOperations'];
+    protected array $operationTypes = ['collectionOperations', 'itemOperations', 'graphql'];
 
-    protected function normalizeOperations(array $operations): array
+    protected function normalizeOperations(array $operations, string $type): array
     {
         foreach ($operations as $name => $arguments) {
             /*
@@ -43,7 +43,7 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
              */
             if (\is_array($arguments)) {
                 // add operation name
-                $arguments = ['operationName' => $name] + $arguments;
+                $arguments = ['name' => $name] + $arguments;
                 foreach ($arguments as $key => $argument) {
                     // camelize argument name
                     $camelizedKey = (string) (new UnicodeString($key))->camel();
@@ -59,11 +59,16 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
              * Case of default action, ex:
              * collectionOperations={"get", "post"},
              * itemOperations={"get", "put", "delete"},
+             * graphql={"create", "delete"}
              */
             if (\is_string($arguments)) {
                 unset($operations[$name]);
                 $name = $arguments;
-                $arguments = [];
+                $arguments = ('graphql' !== $type) ? [] : ['name' => $arguments];
+            }
+
+            if (isset($arguments['name']) && \in_array(strtolower($arguments['name']), ('graphql' !== $type) ? ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'] : ['item_query', 'collection_query', 'mutation'], true)) {
+                unset($arguments['name']);
             }
 
             $operations[$name] = $arguments;
@@ -80,9 +85,6 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
         // Replace old attributes with new attributes
         foreach ($arguments as $key => $value) {
             [$updatedKey, $updatedValue] = $this->getKeyValue($camelCaseToSnakeCaseNameConverter->normalize($key), $value);
-            if ('operationName' === $updatedKey) {
-                $updatedKey = 'name';
-            }
             unset($arguments[$key]);
             $arguments[$updatedKey] = $updatedValue;
         }

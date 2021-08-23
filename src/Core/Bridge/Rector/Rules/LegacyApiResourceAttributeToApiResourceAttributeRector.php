@@ -88,26 +88,6 @@ CODE_SAMPLE
                     continue;
                 }
                 $items = $this->createItemsFromArgs($attribute->args);
-
-                // Transform graphql attribute
-                foreach ($items as $itemKey => $itemValue) {
-                    if ('graphql' !== $itemKey) {
-                        break;
-                    }
-
-                    foreach ($itemValue as $operationName => $operationValue) {
-                        foreach ($operationValue as $attribute => $value) {
-                            if (\in_array($attribute, ['collection_query', 'item_query', 'mutation'], true)) {
-                                $itemValue[$operationName]['resolver'] = $value;
-                                unset($itemValue[$operationName][$attribute]);
-                            }
-                        }
-                    }
-
-                    $items['graphQlOperations'] = $itemValue;
-                    unset($items['graphql']);
-                }
-
                 $arguments = $this->resolveOperations($items, $node);
                 $apiResourceAttributeGroup = $this->phpAttributeGroupFactory->createFromClassWithItems(\ApiPlatform\Metadata\ApiResource::class, $arguments);
                 array_unshift($node->attrGroups, $apiResourceAttributeGroup);
@@ -172,7 +152,7 @@ CODE_SAMPLE
     {
         foreach ($this->operationTypes as $type) {
             if (isset($values[$type])) {
-                $operations = $this->normalizeOperations($values[$type]);
+                $operations = $this->normalizeOperations($values[$type], $type);
                 foreach ($operations as $name => $arguments) {
                     $node->attrGroups[] = $this->createOperationAttributeGroup($type, $name, $arguments);
                 }

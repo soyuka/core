@@ -166,24 +166,6 @@ CODE_SAMPLE
                 $tagValue = clone $tag->value;
                 $this->resolveOperations($tagValue, $node);
 
-                // Transform "graphql" keys
-                if ($graphQlValue = $tagValue->getValue('graphql')) {
-                    foreach ($graphQlValue->values ?? [] as $operationName => $operationValue) {
-                        if(!\is_array($operationValue)){
-                            break;
-                        }
-
-                        foreach ($operationValue as $key => $value) {
-                            if (\in_array($key, ['"collection_query"', '"item_query"', '"mutation"'], true)) {
-                                $graphQlValue->values[$operationName]['"resolver"'] = $value;
-                                unset($graphQlValue->values[$operationName][$key]);
-                            }
-                        }
-                    }
-                    $tagValue->values['graphQlOperations'] = $graphQlValue;
-                    unset($tagValue->values['graphql']);
-                }
-
                 $camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
 
                 // Transform "attributes" keys
@@ -231,7 +213,7 @@ CODE_SAMPLE
 
         foreach ($this->operationTypes as $type) {
             if (isset($values[$type])) {
-                $operations = $this->normalizeOperations($values[$type]->getValuesWithExplicitSilentAndWithoutQuotes());
+                $operations = $this->normalizeOperations($values[$type]->getValuesWithExplicitSilentAndWithoutQuotes(), $type);
                 foreach ($operations as $name => $arguments) {
                     $node->attrGroups[] = $this->createOperationAttributeGroup($type, $name, $arguments);
                 }
