@@ -105,6 +105,32 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                                 [],
                                 new Node\Identifier('identifiers')
                             ),
+                            new Node\Arg(
+                                new Node\Scalar\LNumber(200),
+                                false,
+                                false,
+                                [],
+                                new Node\Identifier('status')
+                            ),
+                            new Node\Arg(
+                                new Node\Expr\ArrayItem(
+                                    new Node\Expr\Array_(
+                                        [
+                                            new Node\Expr\ArrayItem(
+                                                new Node\Scalar\LNumber(1),
+                                                new Node\Scalar\String_('legacy_subresource_behavior')
+                                            ),
+                                        ],
+                                        [
+                                            'kind' => Node\Expr\Array_::KIND_SHORT,
+                                        ]
+                                    )
+                                ),
+                                false,
+                                false,
+                                [],
+                                new Node\Identifier('extraProperties')
+                            ),
                         ]
                     ),
                 ]);
