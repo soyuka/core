@@ -215,10 +215,20 @@ CODE_SAMPLE
             if (isset($values[$type])) {
                 $operations = $this->normalizeOperations($values[$type]->getValuesWithExplicitSilentAndWithoutQuotes(), $type);
                 foreach ($operations as $name => $arguments) {
-                    $node->attrGroups[] = $this->createOperationAttributeGroup($type, $name, $arguments);
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $name, $arguments));
                 }
                 // Remove collectionOperations|itemOperations from Tag values
                 $tagValue->removeValue($type);
+            } else {
+                // Add default operations if not specified
+                if ('collectionOperations' === $type) {
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, 'post', []));
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, 'get', []));
+                } elseif ('itemOperations' === $type) {
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, 'delete', []));
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, 'put', []));
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, 'get', []));
+                }
             }
         }
     }

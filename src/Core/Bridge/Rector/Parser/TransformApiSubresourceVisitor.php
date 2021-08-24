@@ -65,15 +65,15 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                     new Node\Expr\Array_(
                         [
                             new Node\Expr\ArrayItem(
-                                new Node\Scalar\String_($resource[1])
-                            ),
-                            new Node\Expr\ArrayItem(
                                 new Node\Expr\ClassConstFetch(
                                     new Node\Name(
                                         ($resource[0] === $this->subresourceMetadata['resource_class']) ? 'self' : '\\'.$resource[0]
                                     ),
                                     'class'
                                 )
+                            ),
+                            new Node\Expr\ArrayItem(
+                                new Node\Scalar\String_($resource[1])
                             ),
                         ],
                         [

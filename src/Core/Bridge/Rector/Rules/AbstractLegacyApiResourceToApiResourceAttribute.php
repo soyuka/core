@@ -53,6 +53,8 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
                     $arguments[$camelizedKey] = $argument;
                     unset($arguments[$key]);
                 }
+                // Prevent wrong order of operations
+                unset($operations[$name]);
             }
 
             /*

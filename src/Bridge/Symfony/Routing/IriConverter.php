@@ -130,6 +130,7 @@ final class IriConverter implements IriConverterInterface
                 ($operation->getExtraProperties()['is_legacy_subresource'] ?? false) ||
                 ($operation->getExtraProperties()['user_defined_uri_template'] ?? false) ||
                 ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false) ||
+                ($operation->getExtraProperties()['legacy_subresource_behavior'] ?? false) ||
                 // When we want the Iri from an object, we don't want the collection uriTemplate, for this we use getIriFromResourceClass
                 $operation->isCollection()
             ) {
