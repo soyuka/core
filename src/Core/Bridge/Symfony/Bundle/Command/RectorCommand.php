@@ -15,6 +15,7 @@ namespace ApiPlatform\Core\Bridge\Symfony\Bundle\Command;
 
 use ApiPlatform\Core\Bridge\Rector\Parser\TransformApiSubresourceVisitor;
 use ApiPlatform\Core\Bridge\Rector\Set\ApiPlatformSetList;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use PhpParser\Lexer\Emulative;
@@ -44,15 +45,15 @@ final class RectorCommand extends Command
     protected static $defaultName = 'api:rector:upgrade';
 
     private $resourceNameCollectionFactory;
+    private $resourceMetadataFactory;
     private $subresourceOperationFactory;
-    private $metadataBackwardCompatibilityLayer;
     private $localCache = [];
 
-    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, SubresourceOperationFactoryInterface $subresourceOperationFactory, bool $metadataBackwardCompatibilityLayer)
+    public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceMetadataFactoryInterface $resourceMetadataFactory, SubresourceOperationFactoryInterface $subresourceOperationFactory)
     {
         $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->subresourceOperationFactory = $subresourceOperationFactory;
-        $this->metadataBackwardCompatibilityLayer = $metadataBackwardCompatibilityLayer;
 
         parent::__construct();
     }
@@ -211,6 +212,13 @@ final class RectorCommand extends Command
                 continue;
             }
 
+            $referenceType = null;
+            try {
+                $metadata = $this->resourceMetadataFactory->create($resourceClass);
+                $referenceType = $metadata->getAttribute('url_generation_strategy');
+            } catch (\Exception $e) {
+            }
+
             foreach ($linkedSubresourceMetadata as $subresourceMetadata) {
                 $lexer = new Emulative([
                     'usedAttributes' => [
@@ -222,7 +230,7 @@ final class RectorCommand extends Command
                 $parser = new Php7($lexer);
 
                 $traverser = new NodeTraverser();
-                $traverser->addVisitor(new TransformApiSubresourceVisitor($subresourceMetadata));
+                $traverser->addVisitor(new TransformApiSubresourceVisitor($subresourceMetadata, $referenceType));
                 $prettyPrinter = new Standard();
 
                 $oldStmts = $parser->parse(file_get_contents($fileName));

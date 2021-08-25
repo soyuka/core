@@ -13,18 +13,22 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Bridge\Rector\Parser;
 
+use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use ReflectionClass;
 
 final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
 {
     private $subresourceMetadata;
+    private $referenceType;
 
-    public function __construct($subresourceMetadata)
+    public function __construct($subresourceMetadata, $referenceType)
     {
         $this->subresourceMetadata = $subresourceMetadata;
+        $this->referenceType = $referenceType;
     }
 
     public function enterNode(Node $node)
@@ -86,52 +90,71 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
 
             $identifiersNode = new Node\Expr\Array_($identifiersNodeItems, ['kind' => Node\Expr\Array_::KIND_SHORT]);
 
+            $arguments = [
+                new Node\Arg(
+                    new Node\Scalar\String_(str_replace('.{_format}', '', $this->subresourceMetadata['path'])),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('uriTemplate')
+                ),
+                new Node\Arg(
+                    $identifiersNode,
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('identifiers')
+                ),
+                new Node\Arg(
+                    new Node\Scalar\LNumber(200),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('status')
+                ),
+                new Node\Arg(
+                    new Node\Expr\ArrayItem(
+                        new Node\Expr\Array_(
+                            [
+                                new Node\Expr\ArrayItem(
+                                    new Node\Expr\ConstFetch(new Node\Name('true')),
+                                    new Node\Scalar\String_('legacy_subresource_behavior')
+                                ),
+                            ],
+                            [
+                                'kind' => Node\Expr\Array_::KIND_SHORT,
+                            ]
+                        )
+                    ),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('extraProperties')
+                ),
+            ];
+
+            if (null !== $this->referenceType) {
+                $urlGeneratorInterface = new ReflectionClass(UrlGeneratorInterface::class);
+                $urlGeneratorConstants = array_flip($urlGeneratorInterface->getConstants());
+                $currentUrlGeneratorConstant = $urlGeneratorConstants[$this->referenceType];
+
+                $arguments[] = new Node\Arg(
+                    new Node\Expr\ClassConstFetch(
+                        new Node\Name('UrlGeneratorInterface'),
+                        $currentUrlGeneratorConstant
+                    ),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('urlGenerationStrategy')
+                );
+            }
+
             $apiResourceAttribute =
                 new Node\AttributeGroup([
                     new Node\Attribute(
                         new Node\Name('\\ApiPlatform\\Metadata\\ApiResource'),
-                        [
-                            new Node\Arg(
-                                new Node\Scalar\String_(str_replace('.{_format}', '', $this->subresourceMetadata['path'])),
-                                false,
-                                false,
-                                [],
-                                new Node\Identifier('uriTemplate')
-                            ),
-                            new Node\Arg(
-                                $identifiersNode,
-                                false,
-                                false,
-                                [],
-                                new Node\Identifier('identifiers')
-                            ),
-                            new Node\Arg(
-                                new Node\Scalar\LNumber(200),
-                                false,
-                                false,
-                                [],
-                                new Node\Identifier('status')
-                            ),
-                            new Node\Arg(
-                                new Node\Expr\ArrayItem(
-                                    new Node\Expr\Array_(
-                                        [
-                                            new Node\Expr\ArrayItem(
-                                                new Node\Scalar\LNumber(1),
-                                                new Node\Scalar\String_('legacy_subresource_behavior')
-                                            ),
-                                        ],
-                                        [
-                                            'kind' => Node\Expr\Array_::KIND_SHORT,
-                                        ]
-                                    )
-                                ),
-                                false,
-                                false,
-                                [],
-                                new Node\Identifier('extraProperties')
-                            ),
-                        ]
+                        $arguments
                     ),
                 ]);
 

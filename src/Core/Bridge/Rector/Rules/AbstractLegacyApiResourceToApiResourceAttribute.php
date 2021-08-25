@@ -34,7 +34,7 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
 
     protected function normalizeOperations(array $operations, string $type): array
     {
-        foreach ($operations as $name => $arguments) {
+        foreach (array_reverse($operations) as $name => $arguments) {
             /*
              * Case of custom action, ex:
              * itemOperations={
