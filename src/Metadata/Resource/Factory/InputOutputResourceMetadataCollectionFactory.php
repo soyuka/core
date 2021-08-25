@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
 /**
@@ -43,7 +44,7 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
             $resourceMetadata = $resourceMetadata->withOutput($this->transformInputOutput($resourceMetadata->getOutput()));
 
             if (\count($resourceMetadata->getOperations())) {
-                $resourceMetadata = $resourceMetadata->withOperations($this->getTransformedOperations(iterator_to_array($resourceMetadata->getOperations()), $resourceMetadata));
+                $resourceMetadata = $resourceMetadata->withOperations($this->getTransformedOperations($resourceMetadata->getOperations(), $resourceMetadata));
             }
 
             // TODO: GraphQL operations as an object?
@@ -57,9 +58,9 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
         return $resourceMetadataCollection;
     }
 
-    private function getTransformedOperations(array $operations, ApiResource $resourceMetadata): array
+    private function getTransformedOperations(Operations $operations, ApiResource $resourceMetadata): Operations
     {
-        foreach ($operations as $key => &$operation) {
+        foreach ($operations as $key => $operation) {
             $operation = $operation->withInput(null !== $operation->getInput() ? $this->transformInputOutput($operation->getInput()) : $resourceMetadata->getInput());
             $operation = $operation->withOutput(null !== $operation->getOutput() ? $this->transformInputOutput($operation->getOutput()) : $resourceMetadata->getOutput());
 
@@ -79,6 +80,8 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
             ) {
                 $operation = $operation->withStatus($operation->getStatus() ?? 204);
             }
+
+            $operations->add($key, $operation);
         }
 
         return $operations;

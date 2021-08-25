@@ -40,7 +40,7 @@
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory.uri_template.inner" />
         </service>
 
-        <!-- must run after uri template -->
+        <!-- must run after uri template, do not change uriTemplate neither the operation names in < 500 priorities -->
         <service id="api_platform.metadata.resource.metadata_collection_factory.operation_name" class="ApiPlatform\Metadata\Resource\Factory\OperationNameResourceMetadataCollectionFactory" decorates="api_platform.metadata.resource.metadata_collection_factory" decoration-priority="200" public="false">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory.operation_name.inner" />
         </service>

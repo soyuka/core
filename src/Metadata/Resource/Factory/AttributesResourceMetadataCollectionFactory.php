@@ -20,11 +20,13 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelationEmbedder;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -110,9 +112,8 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
 
             [$key, $operation] = $this->getOperationWithDefaults($resources[$index], $attribute->newInstance());
             $operation = $operation->withPriority(++$operationPriority);
-            $operations = iterator_to_array($resources[$index]->getOperations());
-            $operations[$key] = $operation;
-            $resources[$index] = $resources[$index]->withOperations($operations);
+            $operations = $resources[$index]->getOperations();
+            $resources[$index] = $resources[$index]->withOperations($operations->add($key, $operation)->sort());
         }
 
         // Loop again and set default operations if none where found
@@ -127,7 +128,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
                 $operations[$key] = $operation;
             }
 
-            $resources[$index] = $resources[$index]->withOperations($operations);
+            $resources[$index] = $resources[$index]->withOperations(new Operations($operations));
         }
 
         return $resources;
@@ -158,12 +159,18 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
                 continue;
             }
 
+            // Skip setting identifiers from the Resource on collections
+            if ('getIdentifiers' === $methodName && !$operation->getUriTemplate() && $operation->isCollection() && !$operation->getIdentifiers()) {
+                trigger_deprecation('api-platform', '2.7', 'Identifiers are declared on the default #[ApiResource] but you did not specify identifiers on the collection operation. In 3.0 the collection operations can have identifiers, you should specify identifiers on the operation not on the resource to avoid unwanted behavior.');
+                continue;
+            }
+
             $operation = $operation->{'with'.substr($methodName, 3)}($value);
         }
 
         // Check for name conflict
         if ($operation->getName()) {
-            if (!\in_array($operation->getName(), array_keys(iterator_to_array($resource->getOperations())), true)) {
+            if (!$resource->getOperations()->has($operation->getName())) {
                 return [$operation->getName(), $operation];
             }
 
@@ -181,8 +188,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
     {
         $resource = $resource
                         ->withShortName($shortName)
-                        ->withClass($resourceClass)
-                        ->withTypes([$shortName]);
+                        ->withClass($resourceClass);
 
         foreach ($this->defaults['attributes'] as $key => $value) {
             [$key, $value] = $this->getKeyValue($key, $value);
@@ -216,7 +222,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
     private function hasSameOperation(ApiResource $resource, string $operationClass, Operation $operation): bool
     {
         foreach ($resource->getOperations() as $o) {
-            if ($o instanceof $operationClass && $operation->getUriTemplate() === $o->getUriTemplate()) {
+            if ($o instanceof $operationClass && $operation->getUriTemplate() === $o->getUriTemplate() && $operation->getName() === $o->getName() && $operation->getRouteName() === $o->getRouteName()) {
                 return true;
             }
         }

@@ -109,7 +109,7 @@ final class LegacyDataProviderState implements ProviderInterface
                 continue;
             }
 
-            if ($type->getClassName() === $resourceClass || ($type->isCollection() && $type->getCollectionValueType()->getClassName() === $resourceClass)) {
+            if ($type->getClassName() === $resourceClass || ($type->isCollection() && ($collectionType = $type->getCollectionValueType()) && $collectionType->getClassName() === $resourceClass)) {
                 return $property;
             }
         }
