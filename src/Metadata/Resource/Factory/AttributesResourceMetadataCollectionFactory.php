@@ -25,6 +25,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Creates a resource metadata from {@see Resource} annotations.
@@ -37,11 +39,13 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
     use DeprecationMetadataTrait;
     private $defaults;
     private $decorated;
+    private $logger;
 
-    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated = null, array $defaults = [])
+    public function __construct(ResourceMetadataCollectionFactoryInterface $decorated = null, LoggerInterface $logger = null, array $defaults = [])
     {
         $this->defaults = ['attributes' => []] + $defaults;
         $this->decorated = $decorated;
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -88,6 +92,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         $shortName = (false !== $pos = strrpos($resourceClass, '\\')) ? substr($resourceClass, $pos + 1) : $resourceClass;
         $resources = [];
         $index = -1;
+        $operationPriority = 0;
 
         foreach ($attributes as $attribute) {
             if (ApiResource::class === $attribute->getName()) {
@@ -99,11 +104,12 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
                 continue;
             }
 
-            if (-1 === $index || $this->hasSameOperation($resources[$index], $attribute->getName())) {
+            if (-1 === $index || $this->hasSameOperation($resources[$index], $attribute->getName(), $attribute->newInstance())) {
                 $resources[++$index] = $this->getResourceWithDefaults($resourceClass, $shortName, new ApiResource());
             }
 
             [$key, $operation] = $this->getOperationWithDefaults($resources[$index], $attribute->newInstance());
+            $operation = $operation->withPriority(++$operationPriority);
             $operations = iterator_to_array($resources[$index]->getOperations());
             $operations[$key] = $operation;
             $resources[$index] = $resources[$index]->withOperations($operations);
@@ -155,9 +161,20 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
             $operation = $operation->{'with'.substr($methodName, 3)}($value);
         }
 
-        $key = sprintf('_api_%s_%s%s', $operation->getUriTemplate() ?: $operation->getShortName(), strtolower($operation->getMethod()), $operation instanceof GetCollection ? '_collection' : '');
+        // Check for name conflict
+        if ($operation->getName()) {
+            if (!\in_array($operation->getName(), array_keys(iterator_to_array($resource->getOperations())), true)) {
+                return [$operation->getName(), $operation];
+            }
 
-        return [$key, $operation];
+            $this->logger->warning(sprintf('The operation "%s" already exists on the resource "%s", pick a different name or leave it empty. In the meantime we will generate a unique name.', $operation->getName(), $resource->getClass()));
+            $operation = $operation->withName('');
+        }
+
+        return [
+            sprintf('_api_%s_%s%s', $operation->getUriTemplate() ?: $operation->getShortName(), strtolower($operation->getMethod()), $operation instanceof GetCollection ? '_collection' : ''),
+            $operation,
+        ];
     }
 
     private function getResourceWithDefaults(string $resourceClass, string $shortName, ApiResource $resource)
@@ -196,10 +213,10 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
      * #[Get(uriTemplate: '/alternate')]
      * class Example {}
      */
-    private function hasSameOperation(ApiResource $resource, string $operationClass): bool
+    private function hasSameOperation(ApiResource $resource, string $operationClass, Operation $operation): bool
     {
         foreach ($resource->getOperations() as $o) {
-            if ($o instanceof $operationClass) {
+            if ($o instanceof $operationClass && $operation->getUriTemplate() === $o->getUriTemplate()) {
                 return true;
             }
         }

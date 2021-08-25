@@ -45,6 +45,10 @@ final class OperationNameResourceMetadataCollectionFactory implements ResourceMe
             $operations = iterator_to_array($resource->getOperations());
 
             foreach ($resource->getOperations() as $operationName => $operation) {
+                if ($operation->getName()) {
+                    continue;
+                }
+
                 if ($operation->getRouteName()) {
                     $operations[$operationName] = $operation->withName($operation->getRouteName());
                     continue;

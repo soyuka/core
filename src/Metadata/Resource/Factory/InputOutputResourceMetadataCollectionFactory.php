@@ -60,16 +60,16 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
     private function getTransformedOperations(array $operations, ApiResource $resourceMetadata): array
     {
         foreach ($operations as $key => &$operation) {
-            $operation = $operation->withInput($operation->getInput() ? $this->transformInputOutput($operation->getInput()) : $resourceMetadata->getInput());
-            $operation = $operation->withOutput($operation->getOutput() ? $this->transformInputOutput($operation->getOutput()) : $resourceMetadata->getOutput());
+            $operation = $operation->withInput(null !== $operation->getInput() ? $this->transformInputOutput($operation->getInput()) : $resourceMetadata->getInput());
+            $operation = $operation->withOutput(null !== $operation->getOutput() ? $this->transformInputOutput($operation->getOutput()) : $resourceMetadata->getOutput());
 
             if (
                 $operation->getInput()
                 && \array_key_exists('class', $operation->getInput())
                 && null === $operation->getInput()['class']
             ) {
-                $operation = $operation->withDeserialize($operation->canDeserialize() ?: false);
-                $operation = $operation->withValidate($operation->canValidate() ?: false);
+                $operation = $operation->withDeserialize(false);
+                $operation = $operation->withValidate(false);
             }
 
             if (

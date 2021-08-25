@@ -192,7 +192,7 @@ final class IriConverter implements IriConverterInterface
                 trigger_deprecation('api-platform/core', '2.7', 'The IRI will change and match the first operation of the resource. Switch to an alternate resource when possible instead of using subresources.');
                 $operationName = $operation->getExtraProperties()['legacy_subresource_operation_name'];
                 $operation = null;
-            } elseif ($operation->getExtraProperties()['user_defined_uri_template'] ?? false) {
+            } elseif (!($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false) && ($operation->getExtraProperties()['user_defined_uri_template'] ?? false)) {
                 $operation = null;
                 $operationName = null;
             }

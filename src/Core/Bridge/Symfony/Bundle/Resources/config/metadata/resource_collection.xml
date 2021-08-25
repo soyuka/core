@@ -11,6 +11,7 @@
 
         <service id="api_platform.metadata.resource.metadata_collection_factory.attributes" class="ApiPlatform\Metadata\Resource\Factory\AttributesResourceMetadataCollectionFactory" public="false">
             <argument>null</argument>
+            <argument type="service" id="logger" on-invalid="null" />
             <argument>%api_platform.defaults%</argument>
         </service>
 
