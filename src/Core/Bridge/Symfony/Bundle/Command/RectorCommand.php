@@ -63,7 +63,7 @@ final class RectorCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Change legacy ApiResource annotation/attribute to new ApiResource attribute')
+            ->setDescription('Change "ApiPlatform\Core\Annotation\ApiResource" annotation/attribute to new "ApiPlatform\Metadata\ApiResource" attribute')
             ->addOption('dry-run', '-d', InputOption::VALUE_NONE, 'Rector will show you diff of files that it would change. To make the changes, drop --dry-run')
             ->addOption('silent', '-s', InputOption::VALUE_NONE, 'Run Rector silently')
             ->addArgument('src', InputArgument::REQUIRED, 'Path to folder/file to convert, forwarded to Rector');
@@ -157,7 +157,7 @@ final class RectorCommand extends Command
 
         $io->title('Run '.$command);
 
-        if ($operationKey === $operationKeys[3]) {
+        if ($operationKey === $operationKeys[3] && !$input->getOption('dry-run')) {
             $this->transformApiSubresource($input->getArgument('src'));
         }
 

@@ -28,19 +28,19 @@ class CustomActionDummy
 
 namespace ApiPlatform\Tests\Bridge\Rector\Rules\ApiResourceAnnotationToApiResourceAttributeRector\Fixture;
 
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ApiResource]
-#[GetCollection(name: 'get_custom', uriTemplate: 'custom_action_collection_dummies')]
-#[GetCollection(name: 'custom_denormalization', routeName: 'custom_denormalization')]
-#[GetCollection(name: 'short_custom_denormalization', routeName: 'short_custom_denormalization')]
-#[GetCollection]
+#[Get]
 #[Get(name: 'get_custom', uriTemplate: 'custom_action_collection_dummies/{id}')]
 #[Get(name: 'custom_normalization', routeName: 'custom_normalization')]
 #[Get(name: 'short_custom_normalization', routeName: 'short_custom_normalization')]
-#[Get]
+#[GetCollection]
+#[GetCollection(name: 'get_custom', uriTemplate: 'custom_action_collection_dummies')]
+#[GetCollection(name: 'custom_denormalization', routeName: 'custom_denormalization')]
+#[GetCollection(name: 'short_custom_denormalization', routeName: 'short_custom_denormalization')]
 class CustomActionDummy
 {
 }

@@ -15,7 +15,10 @@ namespace ApiPlatform\Core\Bridge\Rector\Rules;
 
 use ApiPlatform\Core\Bridge\Rector\Resolver\OperationClassResolver;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
+use PhpParser\Node;
 use PhpParser\Node\AttributeGroup;
+use PhpParser\Node\Stmt\Class_;
+use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\Core\Rector\AbstractRector;
 use Rector\PhpAttribute\Printer\PhpAttributeGroupFactory;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -30,7 +33,19 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
 
     protected PhpAttributeGroupFactory $phpAttributeGroupFactory;
 
-    protected array $operationTypes = ['collectionOperations', 'itemOperations', 'graphql'];
+    protected array $operationTypes = ['graphql', 'collectionOperations', 'itemOperations']; // operations will be added below #[ApiResource] in the reverse order : itemOperations, collectionOperations, then graphql
+    protected array $defaultOperationsByType = [
+        'itemOperations' => [
+            'get',
+            'put',
+            'patch',
+            'delete',
+        ],
+        'collectionOperations' => [
+            'get',
+            'post',
+        ],
+    ];
 
     protected function normalizeOperations(array $operations, string $type): array
     {
@@ -96,5 +111,37 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
         }
 
         return $this->phpAttributeGroupFactory->createFromClassWithItems($operationClass, $arguments);
+    }
+
+    /**
+     * @param Class_ $node
+     */
+    protected function resolveOperations($items, Node $node): array
+    {
+        $values = $items instanceof DoctrineAnnotationTagValueNode ? $items->getValues() : $items;
+
+        foreach ($this->operationTypes as $type) {
+            if (isset($values[$type])) {
+                $operations = $this->normalizeOperations($items instanceof DoctrineAnnotationTagValueNode ? $values[$type]->getValuesWithExplicitSilentAndWithoutQuotes() : $values[$type], $type);
+                foreach ($operations as $name => $arguments) {
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $name, $arguments));
+                }
+                if ($items instanceof DoctrineAnnotationTagValueNode) {
+                    // Remove collectionOperations|itemOperations from Tag values
+                    $items->removeValue($type);
+                } else {
+                    unset($values[$type]);
+                }
+            } else {
+                // Add default operations if not specified
+                if (\in_array($type, array_keys($this->defaultOperationsByType), true)) {
+                    foreach (array_reverse($this->defaultOperationsByType[$type]) as $operationName) {
+                        array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $operationName, []));
+                    }
+                }
+            }
+        }
+
+        return $values;
     }
 }

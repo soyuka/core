@@ -18,21 +18,21 @@ class DummyDtoNoInput
 
 namespace ApiPlatform\Tests\Bridge\Rector\Rules\LegacyApiResourceAttributeToApiResourceAttributeRector\Fixture;
 
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\Controller\DummyDtoNoInput\CreateItemAction;
 use ApiPlatform\Tests\Fixtures\TestBundle\Controller\DummyDtoNoInput\DoubleBatAction;
 use ApiPlatform\Tests\Fixtures\TestBundle\Dto\OutputDto;
 
 #[ApiResource(attributes: ['input' => false, 'output' => OutputDto::class])]
-#[Post(uriTemplate: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
-#[GetCollection]
-#[Post(name: 'post_double_bat', uriTemplate: '/dummy_dto_no_inputs/{id}/double_bat', controller: DoubleBatAction::class, status: 200)]
 #[Get]
 #[Delete]
+#[Post(name: 'post_double_bat', uriTemplate: '/dummy_dto_no_inputs/{id}/double_bat', controller: DoubleBatAction::class, status: 200)]
+#[Post(uriTemplate: '/dummy_dto_no_inputs', controller: CreateItemAction::class)]
+#[GetCollection]
 class DummyDtoNoInput
 {
 }

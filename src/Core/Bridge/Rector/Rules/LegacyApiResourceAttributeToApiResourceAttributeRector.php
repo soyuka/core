@@ -146,24 +146,6 @@ CODE_SAMPLE
     }
 
     /**
-     * @param Class_ $node
-     */
-    private function resolveOperations(array $values, Node $node): array
-    {
-        foreach ($this->operationTypes as $type) {
-            if (isset($values[$type])) {
-                $operations = $this->normalizeOperations($values[$type], $type);
-                foreach ($operations as $name => $arguments) {
-                    $node->attrGroups[] = $this->createOperationAttributeGroup($type, $name, $arguments);
-                }
-                unset($values[$type]);
-            }
-        }
-
-        return $values;
-    }
-
-    /**
      * Remove initial ApiResource attribute from node.
      *
      * @param Class_ $node

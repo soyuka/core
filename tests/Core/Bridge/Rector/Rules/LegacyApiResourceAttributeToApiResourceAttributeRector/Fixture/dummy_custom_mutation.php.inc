@@ -63,10 +63,22 @@ class DummyCustomMutation
 
 namespace ApiPlatform\Tests\Bridge\Rector\Rules\LegacyApiResourceAttributeToApiResourceAttributeRector\Fixture;
 
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ApiResource]
+#[Get]
+#[Put]
+#[Patch]
+#[Delete]
+#[GetCollection]
+#[Post]
 #[Mutation(name: 'sum', resolver: 'app.graphql.mutation_resolver.dummy_custom', normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
 #[Mutation(name: 'sumNotPersisted', resolver: 'app.graphql.mutation_resolver.dummy_custom_not_persisted', normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]
 #[Mutation(name: 'sumNoWriteCustomResult', resolver: 'app.graphql.mutation_resolver.dummy_custom_no_write_custom_result', write: false, normalizationContext: ['groups' => ['result']], denormalizationContext: ['groups' => ['sum']])]

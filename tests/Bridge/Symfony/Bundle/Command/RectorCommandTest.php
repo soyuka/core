@@ -46,9 +46,15 @@ class RectorCommandTest extends KernelTestCase
      */
     public function testExecuteOperations()
     {
-        $operations = ['annotation-to-legacy-api-resource', 'annotation-to-api-resource', 'attribute-to-api-resource', 'keep-attribute'];
+        $instantOperations = ['annotation-to-legacy-api-resource', 'transform-apisubresource'];
+        $operationsWithSubresourceConfirmation = ['annotation-to-api-resource', 'keep-attribute'];
+        $operations = $instantOperations + $operationsWithSubresourceConfirmation;
 
         foreach ($operations as $operation) {
+            if (\in_array($operation, $operationsWithSubresourceConfirmation, true)) {
+                $this->commandTester->setInputs(['no']);
+            }
+
             $this->commandTester->execute([
                 'src' => 'tests/Fixtures/TestBundle/Entity',
                 '--'.$operation => null,

@@ -16,14 +16,14 @@ class DisableItemOperation
 
 namespace ApiPlatform\Tests\Bridge\Rector\Rules\LegacyApiResourceAttributeToApiResourceAttributeRector\Fixture;
 
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Core\Action\NotFoundAction;
 use ApiPlatform\Metadata\ApiResource;
 
 #[ApiResource]
-#[GetCollection]
 #[Get(controller: NotFoundAction::class, read: false, output: false)]
+#[GetCollection]
 class DisableItemOperation
 {
 }
