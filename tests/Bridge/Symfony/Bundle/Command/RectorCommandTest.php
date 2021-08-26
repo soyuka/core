@@ -82,7 +82,7 @@ class RectorCommandTest extends KernelTestCase
     {
         $this->expectException(MissingInputException::class);
 
-        $this->commandTester->setInputs([5, 'yes']);
+        $this->commandTester->setInputs([4, 'yes']);
 
         $this->commandTester->execute([
             'src' => 'tests/Fixtures/TestBundle/Entity',

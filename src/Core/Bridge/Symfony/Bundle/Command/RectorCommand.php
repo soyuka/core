@@ -35,11 +35,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 final class RectorCommand extends Command
 {
     private const OPERATIONS = [
-        'annotation-to-legacy-api-resource' => '@ApiResource to legacy #[ApiResource]',
-        'annotation-to-api-resource' => '@ApiResource to new #[ApiResource]',
-        'attribute-to-api-resource' => '@ApiResource to legacy #[ApiResource] and new #[ApiResource]',
-        'keep-attribute' => 'Legacy #[ApiResource] to new #[ApiResource]',
-        'transform-apisubresource' => 'Transform @ApiSubresource',
+        'annotation-to-legacy-api-resource' => '@ApiResource to #[ApiPlatform\Core\Annotation\ApiResource] - deprecated since 2.7',
+        'annotation-to-api-resource' => '@ApiResource to #[ApiPlatform\Metadata\ApiResource]',
+        'keep-attribute' => '#[ApiPlatform\Core\Annotation\ApiResource] to #[ApiPlatform\Metadata\ApiResource]',
+        'transform-apisubresource' => 'Transform @ApiSubresource to alternate resources',
     ];
 
     protected static $defaultName = 'api:rector:upgrade';
@@ -107,22 +106,17 @@ final class RectorCommand extends Command
         }
 
         if (!$choice) {
-            $choice = $io->choice('Choose operation to perform', $choices);
+            $io->text([
+                'Welcome,',
+                'This tool allows you to transform Doctrine Annotations "@ApiResource" into Attributes "#[ApiPlatform\Core\Annotation\ApiResource]".',
+                'Note that since 2.7 there is a new Attribute at ApiPlatform\Metadata\ApiResource that allows you more control over resources. It\'s the new default in 3.0.',
+            ]);
+            $choice = $io->choice('Choose an operation to perform:', $choices);
         }
 
         $operationKey = $this->getOperationKeyByChoice($operations, $choice);
 
         $command = 'vendor/bin/rector process '.$input->getArgument('src');
-
-        if ($input->getOption('dry-run')) {
-            $command .= ' --dry-run';
-        } else {
-            if (!$io->confirm('Your files will be overridden. Do you want to continue ?')) {
-                $output->write('Migration aborted.');
-
-                return Command::FAILURE;
-            }
-        }
 
         if ($output->isDebug()) {
             $command .= ' --debug';
@@ -135,21 +129,37 @@ final class RectorCommand extends Command
                 $command .= ' --config='.ApiPlatformSetList::ANNOTATION_TO_LEGACY_API_RESOURCE_ATTRIBUTE;
                 break;
             case $operationKeys[1]:
+                if ($this->isThereSubresources($io, $output)) {
+                    return Command::FAILURE;
+                }
                 $command .= ' --config='.ApiPlatformSetList::ANNOTATION_TO_API_RESOURCE_ATTRIBUTE;
                 break;
             case $operationKeys[2]:
-                $command .= ' --config='.ApiPlatformSetList::ANNOTATION_TO_LEGACY_API_RESOURCE_AND_API_RESOURCE_ATTRIBUTE;
-                break;
-            case $operationKeys[3]:
+                if ($this->isThereSubresources($io, $output)) {
+                    return Command::FAILURE;
+                }
                 $command .= ' --config='.ApiPlatformSetList::ATTRIBUTE_TO_API_RESOURCE_ATTRIBUTE;
                 break;
-            case $operationKeys[4]:
-                $this->transformApiSubresource($input->getArgument('src'));
+            case $operationKeys[3]:
                 $command .= ' --config='.ApiPlatformSetList::TRANSFORM_API_SUBRESOURCE;
                 break;
         }
 
+        if ($input->getOption('dry-run')) {
+            $command .= ' --dry-run';
+        } else {
+            if (!$io->confirm('Your files will be overridden. Do you want to continue ?')) {
+                $output->write('Migration aborted.');
+
+                return Command::FAILURE;
+            }
+        }
+
         $io->title('Run '.$command);
+
+        if ($operationKey === $operationKeys[3]) {
+            $this->transformApiSubresource($input->getArgument('src'));
+        }
 
         if ($input->getOption('silent')) {
             exec($command);
@@ -243,5 +253,16 @@ final class RectorCommand extends Command
                 file_put_contents($fileName, $newCode);
             }
         }
+    }
+
+    private function isThereSubresources($io, $output): bool
+    {
+        if ($io->confirm('Do you have any @ApiSubresource or #[ApiSubresource] left in your code ?')) {
+            $output->write('You will not be able to convert them afterwards. Please run the command "Transform @ApiSubresource to alternate resources" first.');
+
+            return true;
+        }
+
+        return false;
     }
 }
