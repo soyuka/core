@@ -149,7 +149,7 @@ CODE_SAMPLE
                         $this->phpDocTagRemover->removeByName($phpDocInfo, $annotationToAttributeTag);
                     }
                     // 2. add attributes
-                    $node->attrGroups[] = $this->phpAttributeGroupFactory->createFromSimpleTag($annotationToAttribute);
+                    array_unshift($node->attrGroups, $this->phpAttributeGroupFactory->createFromSimpleTag($annotationToAttribute));
                     $hasNewAttrGroups = true;
                     continue 2;
                 }
@@ -164,25 +164,7 @@ CODE_SAMPLE
                 // 2. add attributes
                 /** @var DoctrineAnnotationTagValueNode $tagValue */
                 $tagValue = clone $tag->value;
-                $this->resolveOperations($tagValue, $node);
-
-                $camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
-
-                // Transform "attributes" keys
-                foreach ($tagValue->getValue('attributes')->values ?? [] as $attribute => $value) {
-                    $tagValue->values[$camelCaseToSnakeCaseNameConverter->denormalize($attribute)] = $value;
-                }
-
-                $tagValue->removeValue('attributes');
-
-                // Transform deprecated keys
-                foreach ($tagValue->values ?? [] as $attribute => $value) {
-                    [$updatedAttribute, $updatedValue] = $this->getKeyValue(str_replace('"', '', $camelCaseToSnakeCaseNameConverter->normalize($attribute)), $value);
-                    if ($attribute !== $updatedAttribute) {
-                        $tagValue->values[$updatedAttribute] = $updatedValue;
-                        unset($tagValue->values[$attribute]);
-                    }
-                }
+                $tagValue->values = $this->resolveOperations($tagValue, $node);
 
                 $resourceAttributeGroup = $this->phpAttributeGroupFactory->create($tagValue, $annotationToAttribute);
                 array_unshift($node->attrGroups, $resourceAttributeGroup);

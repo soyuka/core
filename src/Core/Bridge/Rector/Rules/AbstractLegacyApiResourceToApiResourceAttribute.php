@@ -129,6 +129,7 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
                 if ($items instanceof DoctrineAnnotationTagValueNode) {
                     // Remove collectionOperations|itemOperations from Tag values
                     $items->removeValue($type);
+                    $values = $items->getValues();
                 } else {
                     unset($values[$type]);
                 }
@@ -139,6 +140,27 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
                         array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $operationName, []));
                     }
                 }
+            }
+        }
+
+        $camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
+
+        // Transform "attributes" keys
+        if (isset($values['attributes'])) {
+            $attributes = \is_array($values['attributes']) ? $values['attributes'] : $values['attributes']->values;
+            foreach ($attributes as $attribute => $value) {
+                $values[$camelCaseToSnakeCaseNameConverter->denormalize($attribute)] = $value;
+            }
+
+            unset($values['attributes']);
+        }
+
+        // Transform deprecated keys
+        foreach ($values as $attribute => $value) {
+            [$updatedAttribute, $updatedValue] = $this->getKeyValue(str_replace('"', '', $camelCaseToSnakeCaseNameConverter->normalize($attribute)), $value);
+            if ($attribute !== $updatedAttribute) {
+                $values[$updatedAttribute] = $updatedValue;
+                unset($values[$attribute]);
             }
         }
 

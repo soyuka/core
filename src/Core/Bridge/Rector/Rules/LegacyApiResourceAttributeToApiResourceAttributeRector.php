@@ -17,6 +17,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
@@ -118,7 +119,7 @@ CODE_SAMPLE
     private function normalizeNodeValue($value)
     {
         if ($value instanceof ClassConstFetch) {
-            return sprintf('%s::%s', (string) $value->class, (string) $value->name);
+            return sprintf('%s::%s', (string) end($value->class->parts), (string) $value->name);
         }
         if ($value instanceof Array_) {
             return $this->normalizeNodeValue($value->items);
@@ -128,6 +129,9 @@ CODE_SAMPLE
         }
         if ($value instanceof Identifier) {
             return $value->name;
+        }
+        if ($value instanceof LNumber) {
+            return (int) $value->value;
         }
         if (\is_array($value)) {
             $items = [];
