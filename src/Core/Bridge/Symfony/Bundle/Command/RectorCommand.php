@@ -211,6 +211,11 @@ final class RectorCommand extends Command
                     $this->localCache[$subresourceMetadata['resource_class']] = [];
                 }
 
+                foreach ($this->localCache[$subresourceMetadata['resource_class']] as $currentSubresourceMetadata) {
+                    if ($currentSubresourceMetadata['path'] === $subresourceMetadata['path']) {
+                        continue 2;
+                    }
+                }
                 $this->localCache[$subresourceMetadata['resource_class']][] = $subresourceMetadata;
             }
         }

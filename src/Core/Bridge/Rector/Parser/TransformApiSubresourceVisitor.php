@@ -150,6 +150,27 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                 );
             }
 
+            if ($this->subresourceMetadata['legacy_filters'] ?? false) {
+                $arguments[] = new Node\Arg(
+                    new Node\Expr\ArrayItem(
+                        new Node\Expr\Array_(
+                            array_map(function ($filter) {
+                                return new Node\Expr\ArrayItem(
+                                    new Node\Scalar\String_($filter)
+                                );
+                            }, $this->subresourceMetadata['legacy_filters']),
+                            [
+                                'kind' => Node\Expr\Array_::KIND_SHORT,
+                            ]
+                        )
+                    ),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('filters')
+                );
+            }
+
             $apiResourceAttribute =
                 new Node\AttributeGroup([
                     new Node\Attribute(

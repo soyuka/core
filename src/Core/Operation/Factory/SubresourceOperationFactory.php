@@ -110,6 +110,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
                 'collection' => $subresource->isCollection(),
                 'resource_class' => $subresourceClass,
                 'shortNames' => [$subresourceMetadata->getShortName()],
+                'legacy_filters' => $subresourceMetadata->getAttribute('filters', []),
             ];
 
             if (null === $parentOperation) {
