@@ -63,7 +63,7 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
      *
      * @return Operations|array
      */
-    private function getTransformedOperations($operations, ApiResource $resourceMetadata) 
+    private function getTransformedOperations($operations, ApiResource $resourceMetadata)
     {
         foreach ($operations as $key => $operation) {
             $operation = $operation->withInput(null !== $operation->getInput() ? $this->transformInputOutput($operation->getInput()) : $resourceMetadata->getInput());

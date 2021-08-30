@@ -31,9 +31,6 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyProduct;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Foo;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelationEmbedder;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -77,7 +74,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
 
         if (\PHP_VERSION_ID >= 80000 && $this->hasResourceAttributes($reflectionClass)) {
             foreach ($this->buildResourceOperations($reflectionClass->getAttributes(), $resourceClass) as $i => $resource) {
-                if ($i === 0 && $this->graphQlEnabled && null === $resource->getGraphQlOperations()) {
+                if (0 === $i && $this->graphQlEnabled && null === $resource->getGraphQlOperations()) {
                     $resource = $this->addDefaultGraphQlOperations($resource);
                 }
 
@@ -268,13 +265,13 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
     private function addDefaultGraphQlOperations(ApiResource $resource)
     {
         $graphQlOperations = [];
-        foreach ([new QueryCollection, new Query, (new Mutation)->withName('update'), (new Mutation)->withName('delete'), (new Mutation)->withName('create')] as $i => $operation) {
+        foreach ([new QueryCollection(), new Query(), (new Mutation())->withName('update'), (new Mutation())->withName('delete'), (new Mutation())->withName('create')] as $i => $operation) {
             [$key, $operation] = $this->getOperationWithDefaults($resource, $operation);
             $graphQlOperations[$key] = $operation;
         }
 
         if ($resource->getMercure()) {
-            [$key, $operation] = $this->getOperationWithDefaults($resource, (new Subscription)->withDescription("Subscribes to the update event of a {$operation->getShortName()}."));
+            [$key, $operation] = $this->getOperationWithDefaults($resource, (new Subscription())->withDescription("Subscribes to the update event of a {$operation->getShortName()}."));
             $graphQlOperations[$key] = $operation;
         }
 

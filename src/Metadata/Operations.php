@@ -49,11 +49,13 @@ final class Operations implements \IteratorAggregate, \Countable
         foreach ($this->operations as $i => [$operationName, $operation]) {
             if ($operationName === $key) {
                 $this->operations[$i] = [$key, $value];
+
                 return $this;
             }
         }
 
         $this->operations[] = [$key, $value];
+
         return $this;
     }
 
@@ -62,6 +64,7 @@ final class Operations implements \IteratorAggregate, \Countable
         foreach ($this->operations as $i => [$operationName, $operation]) {
             if ($operationName === $key) {
                 unset($this->operations[$i]);
+
                 return $this;
             }
         }

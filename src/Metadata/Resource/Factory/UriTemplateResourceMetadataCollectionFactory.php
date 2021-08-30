@@ -14,11 +14,8 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelationEmbedder;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -56,8 +53,8 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
             foreach ($resource->getOperations() as $key => $operation) {
                 if ($operation->getUriTemplate()) {
                     $route = (new Route($operation->getUriTemplate()))->compile();
-                    $variables = array_filter($route->getPathVariables(), function($v) {
-                        return $v !== '_format';
+                    $variables = array_filter($route->getPathVariables(), function ($v) {
+                        return '_format' !== $v;
                     });
 
                     // TODO: remove in 3.0, guess identifiers
@@ -70,7 +67,7 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
 
                         $operation = $operation->withIdentifiers($identifiers);
                     }
-                    
+
                     $operation = $operation->withExtraProperties($operation->getExtraProperties() + ['user_defined_uri_template' => true]);
                     $operations->add($key, $operation);
                     continue;

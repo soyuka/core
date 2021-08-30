@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata\Resource\Factory;
 
-use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\SlugParentDummy;
 
 /**
  * Helps creating metadata on the Resource based on the properties of this same resource. Computes "identifiers".
@@ -59,7 +57,7 @@ final class IdentifierResourceMetadataCollectionFactory implements ResourceMetad
             // Copy identifiers to operations if not defined
             foreach ($operations as $key => $operation) {
                 if ($identifiers && !$operation->getIdentifiers() && !$operation->isCollection()) {
-                    if ($i === 0 && 1 < \count($identifiers) && null === $operation->getCompositeIdentifier()) {
+                    if (0 === $i && 1 < \count($identifiers) && null === $operation->getCompositeIdentifier()) {
                         trigger_deprecation('api-platform/core', '2.7', sprintf('You have multiple identifiers on the resource "%s" but did not specify the "compositeIdentifier" property, we will set this to "true". Not specifying this attribute in 3.0 will break.', $resourceClass));
                         $operation = $operation->withCompositeIdentifier(true);
                     }

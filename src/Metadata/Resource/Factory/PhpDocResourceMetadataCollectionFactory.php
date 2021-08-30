@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyProduct;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use phpDocumentor\Reflection\Types\ContextFactory;
@@ -55,7 +54,7 @@ final class PhpDocResourceMetadataCollectionFactory implements ResourceMetadataC
             try {
                 $docBlock = $this->docBlockFactory->create($reflectionClass, $this->contextFactory->createFromReflector($reflectionClass));
                 $resourceMetadataCollection[$key] = $resourceMetadata->withDescription($docBlock->getSummary());
-    
+
                 $operations = $resourceMetadata->getOperations();
                 foreach ($operations as $operationName => $operation) {
                     if (null !== $operation->getDescription()) {

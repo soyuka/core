@@ -51,9 +51,8 @@ class RectorCommandTest extends KernelTestCase
         $operations = $instantOperations + $operationsWithSubresourceConfirmation;
 
         foreach ($operations as $operation) {
-            if (\in_array($operation, $operationsWithSubresourceConfirmation, true)) {
-                $this->commandTester->setInputs(['no']);
-            }
+            // Answer no to the subresource question
+            $this->commandTester->setInputs(['no']);
 
             $this->commandTester->execute([
                 'src' => 'tests/Fixtures/TestBundle/Entity',

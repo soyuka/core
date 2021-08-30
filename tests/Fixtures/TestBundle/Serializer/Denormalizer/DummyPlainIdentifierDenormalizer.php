@@ -50,14 +50,14 @@ class DummyPlainIdentifierDenormalizer implements ContextAwareDenormalizerInterf
         $relatedDummyClass = DummyEntity::class === $class ? RelatedDummyEntity::class : RelatedDummyDocument::class;
         if (!empty($data['relatedDummy'])) {
             $data['relatedDummy'] = $this->iriConverter->getIriFromResourceClass($relatedDummyClass, null, UrlGeneratorInterface::ABS_PATH, ['identifiers_values' => [
-                'id' => $data['relatedDummy']
+                'id' => $data['relatedDummy'],
             ]] + $iriConverterContext);
         }
 
         if (!empty($data['relatedDummies'])) {
             foreach ($data['relatedDummies'] as $k => $v) {
                 $data['relatedDummies'][$k] = $this->iriConverter->getIriFromResourceClass($relatedDummyClass, null, UrlGeneratorInterface::ABS_PATH, ['identifiers_values' => [
-                    'id' => $v
+                    'id' => $v,
                 ]] + $iriConverterContext);
             }
         }
