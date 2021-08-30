@@ -13,6 +13,7 @@
             <argument>null</argument>
             <argument type="service" id="logger" on-invalid="null" />
             <argument>%api_platform.defaults%</argument>
+            <argument>%api_platform.graphql.enabled%</argument>
         </service>
 
         <!-- compute legacy resources first -->

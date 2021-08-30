@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
@@ -47,10 +48,9 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
                 $resourceMetadata = $resourceMetadata->withOperations($this->getTransformedOperations($resourceMetadata->getOperations(), $resourceMetadata));
             }
 
-            // TODO: GraphQL operations as an object?
-            // if ($graphQlAttributes = $resourceMetadata->graphQl) {
-            //     $resourceMetadata->graphQl = $this->getTransformedOperations($resourceMetadata->graphQl, $resourceMetadata);
-            // }
+            if ($resourceMetadata->getGraphQlOperations()) {
+                $resourceMetadata = $resourceMetadata->withGraphQlOperations($this->getTransformedOperations($resourceMetadata->getGraphQlOperations(), $resourceMetadata));
+            }
 
             $resourceMetadataCollection[$key] = $resourceMetadata;
         }
@@ -58,7 +58,12 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
         return $resourceMetadataCollection;
     }
 
-    private function getTransformedOperations(Operations $operations, ApiResource $resourceMetadata): Operations
+    /**
+     * @param Operations|array $operations
+     *
+     * @return Operations|array
+     */
+    private function getTransformedOperations($operations, ApiResource $resourceMetadata) 
     {
         foreach ($operations as $key => $operation) {
             $operation = $operation->withInput(null !== $operation->getInput() ? $this->transformInputOutput($operation->getInput()) : $resourceMetadata->getInput());
@@ -74,14 +79,15 @@ final class InputOutputResourceMetadataCollectionFactory implements ResourceMeta
             }
 
             if (
-                $operation->getOutput()
+                $operation instanceof Operation
+                && $operation->getOutput()
                 && \array_key_exists('class', $operation->getOutput())
                 && null === $operation->getOutput()['class']
             ) {
                 $operation = $operation->withStatus($operation->getStatus() ?? 204);
             }
 
-            $operations->add($key, $operation);
+            $operations instanceof Operations ? $operations->add($key, $operation) : $operations[$key] = $operation;
         }
 
         return $operations;

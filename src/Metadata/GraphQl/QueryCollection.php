@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata\GraphQl;
 
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-final class QueryCollection extends Operation
+final class QueryCollection extends Query
 {
     /**
      * {@inheritdoc}
@@ -67,5 +67,6 @@ final class QueryCollection extends Operation
     ) {
         parent::__construct(...\func_get_args());
         $this->collection = true;
+        $this->name = $name ?: 'collection_query';
     }
 }
