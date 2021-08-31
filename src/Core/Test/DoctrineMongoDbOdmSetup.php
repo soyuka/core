@@ -63,7 +63,7 @@ class DoctrineMongoDbOdmSetup
 
         $config = new Configuration();
         if (method_exists($config, 'setMetadataCache')) {
-            $config->setMetadataCache($cache);
+            $config->setMetadataCache($cache); // @phpstan-ignore-line
         } else {
             $config->setMetadataCacheImpl($cache);
         }

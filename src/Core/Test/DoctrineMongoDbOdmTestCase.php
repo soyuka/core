@@ -40,7 +40,7 @@ class DoctrineMongoDbOdmTestCase extends TestCase
         $config->setHydratorNamespace('SymfonyTests\Doctrine');
         $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader(), $paths));
         if (method_exists($config, 'setMetadataCache')) {
-            $config->setMetadataCache(new ArrayCache());
+            $config->setMetadataCache(new ArrayCache()); //@phpstan-ignore-line
         } else {
             $config->setMetadataCacheImpl(new ArrayCache());
         }
