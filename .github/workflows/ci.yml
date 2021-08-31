@@ -807,10 +807,10 @@ jobs:
         run: rm -Rf tests/Fixtures/app/var/cache/*
       - name: Convert annotations to attributes
         run: |
-          tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Document --annotation-to-api-resource
           tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Document --transform-apisubresource
-          tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Entity --annotation-to-api-resource
+          tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Document --annotation-to-api-resource
           tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Entity --transform-apisubresource
+          tests/Fixtures/app/console api:rector:upgrade tests/Fixtures/TestBundle/Entity --annotation-to-api-resource
       - name: Run Behat tests
         run: |
           mkdir -p build/logs/behat

@@ -91,6 +91,7 @@ final class RectorCommand extends Command
 
         $choice = null;
         $operationCount = 0;
+        $askForSubresources = true;
 
         foreach ($operations as $operationKey => $operationDescription) {
             if ($input->getOption($operationKey)) {
@@ -112,6 +113,8 @@ final class RectorCommand extends Command
                 'Note that since 2.7 there is a new Attribute at ApiPlatform\Metadata\ApiResource that allows you more control over resources. It\'s the new default in 3.0.',
             ]);
             $choice = $io->choice('Choose an operation to perform:', $choices);
+        } else {
+            $askForSubresources = false;
         }
 
         $operationKey = $this->getOperationKeyByChoice($operations, $choice);
@@ -129,13 +132,13 @@ final class RectorCommand extends Command
                 $command .= ' --config='.ApiPlatformSetList::ANNOTATION_TO_LEGACY_API_RESOURCE_ATTRIBUTE;
                 break;
             case $operationKeys[1]:
-                if ($this->isThereSubresources($io, $output)) {
+                if ($askForSubresources && $this->isThereSubresources($io, $output)) {
                     return Command::FAILURE;
                 }
                 $command .= ' --config='.ApiPlatformSetList::ANNOTATION_TO_API_RESOURCE_ATTRIBUTE;
                 break;
             case $operationKeys[2]:
-                if ($this->isThereSubresources($io, $output)) {
+                if ($askForSubresources && $this->isThereSubresources($io, $output)) {
                     return Command::FAILURE;
                 }
                 $command .= ' --config='.ApiPlatformSetList::ATTRIBUTE_TO_API_RESOURCE_ATTRIBUTE;
