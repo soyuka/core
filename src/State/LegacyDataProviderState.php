@@ -18,7 +18,6 @@ use ApiPlatform\Core\DataProvider\ContextAwareCollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
-use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 
@@ -49,24 +48,7 @@ final class LegacyDataProviderState implements ProviderInterface
             ($operation->getExtraProperties()['is_legacy_subresource'] ?? false) ||
             ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
         )) {
-            $subresourceContext = ['filters' => $context['filters'] ?? []] + $context;
-            $legacySubresourceIdentifiers = $operation->getExtraProperties()['legacy_subresource_identifiers'] ?? null;
-
-            // TODO: 3.0 rewrite the subresource data provider to make this work without all the hassle
-            if (!$legacySubresourceIdentifiers) {
-                $legacySubresourceIdentifiers = [];
-                $lastIdentifier = array_key_last($operation->getIdentifiers());
-                foreach ($operation->getIdentifiers() as $parameterName => [$class, $property]) {
-                    $legacySubresourceIdentifiers[$parameterName] = [$class, $property, $lastIdentifier === $parameterName ? $operation->isCollection() : false];
-
-                    if ($class !== $resourceClass && !isset($operation->getExtraProperties()['legacy_subresource_property']) && !isset($subresourceContext['property'])) {
-                        $subresourceContext['property'] = $this->getSubresourceProperty($class, $resourceClass);
-                        $subresourceContext['collection'] = $operation->isCollection();
-                    }
-                }
-            }
-
-            $subresourceContext['identifiers'] = $legacySubresourceIdentifiers;
+            $subresourceContext = ['filters' => $context['filters'] ?? [], 'identifiers' => $operation->getExtraProperties()['legacy_subresource_identifiers'] ?? [], 'property' => $operation->getExtraProperties()['legacy_subresource_property'] ?? null, 'collection' => $operation->isCollection()] + $context;
             $subresourceIdentifiers = [];
             foreach ($operation->getIdentifiers() as $parameterName => [$class, $property]) {
                 $subresourceIdentifiers[$parameterName] = [$property => $identifiers[$parameterName]];
@@ -97,23 +79,5 @@ final class LegacyDataProviderState implements ProviderInterface
         }
 
         return false;
-    }
-
-    private function getSubresourceProperty(string $class, string $resourceClass): string
-    {
-        foreach ($this->propertyNameCollectionFactory->create($class) as $property) {
-            $propertyMetadata = $this->propertyMetadataFactory->create($class, $property);
-            $type = $propertyMetadata->getType();
-
-            if (!$type) {
-                continue;
-            }
-
-            if ($type->getClassName() === $resourceClass || ($type->isCollection() && ($collectionType = $type->getCollectionValueType()) && $collectionType->getClassName() === $resourceClass)) {
-                return $property;
-            }
-        }
-
-        throw new RuntimeException('Subresource property not found.');
     }
 }

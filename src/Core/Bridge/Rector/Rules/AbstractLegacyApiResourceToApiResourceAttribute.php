@@ -47,6 +47,9 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
         ],
     ];
 
+    private array $operations = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+    private array $graphQlOperations = ['item_query', 'collection_query', 'mutation'];
+
     protected function normalizeOperations(array $operations, string $type): array
     {
         foreach (array_reverse($operations) as $name => $arguments) {
@@ -84,7 +87,7 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
                 $arguments = ('graphql' !== $type) ? [] : ['name' => $arguments];
             }
 
-            if (isset($arguments['name']) && \in_array(strtolower($arguments['name']), ('graphql' !== $type) ? ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'] : ['item_query', 'collection_query', 'mutation'], true)) {
+            if (isset($arguments['name']) && \in_array(strtolower($arguments['name']), 'graphql' !== $type ? $this->operations : $this->graphQlOperations, true)) {
                 unset($arguments['name']);
             }
 
@@ -126,19 +129,27 @@ abstract class AbstractLegacyApiResourceToApiResourceAttribute extends AbstractR
                 foreach ($operations as $name => $arguments) {
                     array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $name, $arguments));
                 }
+
+                if ('graphql' === $type && [] === $operations) {
+                    $values['graphQlOperations'] = [];
+                    continue;
+                }
+
                 if ($items instanceof DoctrineAnnotationTagValueNode) {
                     // Remove collectionOperations|itemOperations from Tag values
                     $items->removeValue($type);
                     $values = $items->getValues();
-                } else {
-                    unset($values[$type]);
+                    continue;
                 }
-            } else {
-                // Add default operations if not specified
-                if (\in_array($type, array_keys($this->defaultOperationsByType), true)) {
-                    foreach (array_reverse($this->defaultOperationsByType[$type]) as $operationName) {
-                        array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $operationName, []));
-                    }
+
+                unset($values[$type]);
+                continue;
+            }
+
+            // Add default operations if not specified
+            if (\in_array($type, array_keys($this->defaultOperationsByType), true)) {
+                foreach (array_reverse($this->defaultOperationsByType[$type]) as $operationName) {
+                    array_unshift($node->attrGroups, $this->createOperationAttributeGroup($type, $operationName, []));
                 }
             }
         }

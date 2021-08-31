@@ -196,7 +196,9 @@ final class RectorCommand extends Command
 
             foreach ($this->subresourceOperationFactory->create($resourceClass) as $subresourceMetadata) {
                 $identifiers = [];
-                // Removing the third tuple element
+                // Keep a copy
+                $subresourceMetadata['legacy_identifiers'] = $subresourceMetadata['identifiers'];
+                // Create the new identifiers
                 foreach ($subresourceMetadata['identifiers'] as $parameterName => [$property, $class, $isPresent]) {
                     if (!$isPresent) {
                         continue;

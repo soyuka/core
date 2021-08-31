@@ -142,6 +142,7 @@ CODE_SAMPLE
         foreach ($tags as $tag) {
             foreach ($this->annotationsToAttributes as $annotationToAttribute) {
                 $annotationToAttributeTag = $annotationToAttribute->getTag();
+
                 if ($phpDocInfo->hasByName($annotationToAttributeTag)) {
                     if (true === $this->removeTag) {
                         // 1. remove php-doc tag

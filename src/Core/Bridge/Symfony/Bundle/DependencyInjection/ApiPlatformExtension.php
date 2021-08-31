@@ -38,6 +38,7 @@ use ApiPlatform\GraphQl\Resolver\MutationResolverInterface;
 use ApiPlatform\GraphQl\Resolver\QueryCollectionResolverInterface;
 use ApiPlatform\GraphQl\Resolver\QueryItemResolverInterface;
 use ApiPlatform\GraphQl\Type\Definition\TypeInterface as GraphQlTypeInterface;
+use ApiPlatform\State\ProviderInterface;
 use Doctrine\Common\Annotations\Annotation;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use Ramsey\Uuid\Uuid;
@@ -142,6 +143,8 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             ->addTag('api_platform.subresource_data_provider');
         $container->registerForAutoconfiguration(FilterInterface::class)
             ->addTag('api_platform.filter');
+        $container->registerForAutoconfiguration(ProviderInterface::class)
+            ->addTag('api_platform.state_provider');
     }
 
     private function registerCommonConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader, array $formats, array $patchFormats, array $errorFormats): void

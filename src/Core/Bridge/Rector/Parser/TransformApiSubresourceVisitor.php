@@ -120,6 +120,34 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                                     new Node\Expr\ConstFetch(new Node\Name('true')),
                                     new Node\Scalar\String_('legacy_subresource_behavior')
                                 ),
+                                new Node\Expr\ArrayItem(
+                                    new Node\Scalar\String_($this->subresourceMetadata['property']),
+                                    new Node\Scalar\String_('legacy_subresource_property')
+                                ),
+                                new Node\Expr\ArrayItem(
+                                    new Node\Expr\Array_(
+                                        array_map(function ($key, $value) {
+                                            return new Node\Expr\ArrayItem(
+                                                new Node\Expr\Array_(
+                                                    [
+                                                        new Node\Expr\ClassConstFetch(
+                                                            new Node\Name(
+                                                                ($value[0] === $this->subresourceMetadata['resource_class']) ? 'self' : '\\'.$value[0]
+                                                            ),
+                                                            'class'
+                                                        ),
+                                                        new Node\Scalar\String_($value[1]),
+                                                        new Node\Expr\ConstFetch(new Node\Name($value[2] ? 'true' : 'false')),
+                                                    ],
+                                                    ['kind' => Node\Expr\Array_::KIND_SHORT]
+                                                ),
+                                                new Node\Scalar\String_($key)
+                                            );
+                                        }, array_keys($this->subresourceMetadata['legacy_identifiers']), array_values($this->subresourceMetadata['legacy_identifiers'])),
+                                        ['kind' => Node\Expr\Array_::KIND_SHORT]
+                                    ),
+                                    new Node\Scalar\String_('legacy_subresource_identifiers')
+                                ),
                             ],
                             [
                                 'kind' => Node\Expr\Array_::KIND_SHORT,
@@ -150,6 +178,27 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                 );
             }
 
+            if ($this->subresourceMetadata['legacy_type'] ?? false) {
+                $arguments[] = new Node\Arg(
+                    new Node\Expr\ArrayItem(
+                        new Node\Expr\Array_(
+                            [
+                                new Node\Expr\ArrayItem(
+                                    new Node\Scalar\String_($this->subresourceMetadata['legacy_type'])
+                                ),
+                            ],
+                            [
+                                'kind' => Node\Expr\Array_::KIND_SHORT,
+                            ]
+                        )
+                    ),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('types')
+                );
+            }
+
             if ($this->subresourceMetadata['legacy_filters'] ?? false) {
                 $arguments[] = new Node\Arg(
                     new Node\Expr\ArrayItem(
@@ -168,6 +217,28 @@ final class TransformApiSubresourceVisitor extends NodeVisitorAbstract
                     false,
                     [],
                     new Node\Identifier('filters')
+                );
+            }
+
+            if ($this->subresourceMetadata['legacy_normalization_context']['groups'] ?? false) {
+                $arguments[] = new Node\Arg(
+                    new Node\Expr\ArrayItem(
+                        new Node\Expr\Array_([
+                            new Node\Expr\ArrayItem(
+                                new Node\Expr\Array_(
+                                    array_map(function ($group) {
+                                        return new Node\Expr\ArrayItem(new Node\Scalar\String_($group));
+                                    }, $this->subresourceMetadata['legacy_normalization_context']['groups']),
+                                    ['kind' => Node\Expr\Array_::KIND_SHORT]
+                                ),
+                                new Node\Scalar\String_('groups')
+                            ),
+                        ], ['kind' => Node\Expr\Array_::KIND_SHORT])
+                    ),
+                    false,
+                    false,
+                    [],
+                    new Node\Identifier('normalizationContext')
                 );
             }
 
