@@ -81,6 +81,10 @@ final class CollectionProvider implements ProviderInterface
             return false;
         }
 
+        if (isset($context['provider'])) {
+            return $context['provider'] === 'collection';
+        }
+
         $operation = $context['operation'] ?? $this->resourceMetadataCollectionFactory->create($resourceClass)->getOperation($operationName);
 
         if ($operation instanceof GraphQlOperation) {
