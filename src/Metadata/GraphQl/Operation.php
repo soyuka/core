@@ -157,6 +157,7 @@ class Operation
         ?bool $validate = null,
         ?bool $write = null,
         ?bool $serialize = null,
+        ?bool $delete = null,
         ?bool $fetchPartial = null,
         ?bool $forceEager = null,
         ?int $priority = null,
