@@ -1,19 +1,28 @@
 <?php
-declare(strict_types=1);
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
 
 namespace ApiPlatform\Doctrine\MongoDbOdm\State;
 
-
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\State\LinksHandlerTrait;
+use ApiPlatform\Exception\OperationNotFoundException;
 use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\ProviderInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 class ItemProvider implements ProviderInterface
@@ -27,7 +36,7 @@ class ItemProvider implements ProviderInterface
     /**
      * @param AggregationItemExtensionInterface[] $itemExtensions
      */
-    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataCollectionFactory, ManagerRegistry $managerRegistry, iterable $itemExtensions = [])
+    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, ManagerRegistry $managerRegistry, iterable $itemExtensions = [])
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->managerRegistry = $managerRegistry;
@@ -35,7 +44,8 @@ class ItemProvider implements ProviderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
+     *
      * @throws \ApiPlatform\Exception\ResourceClassNotFoundException
      */
     public function provide(string $resourceClass, array $identifiers = [], ?string $operationName = null, array $context = [])
@@ -81,10 +91,16 @@ class ItemProvider implements ProviderInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function supports(string $resourceClass, array $identifiers = [], ?string $operationName = null, array $context = []): bool
     {
-        // TODO: Implement supports() method.
+        if (!$this->managerRegistry->getManagerForClass($resourceClass) instanceof EntityManagerInterface) {
+            return false;
+        }
+
+        $operation = $context['operation'] ?? $this->resourceMetadataCollectionFactory->create($resourceClass)->getOperation($operationName);
+
+        return !($operation->isCollection() ?? false);
     }
 }
