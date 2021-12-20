@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\MongoDbOdm\State;
 
 
-use ApiPlatform\Core\Identifier\IdentifierConverterInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationResultItemExtensionInterface;
-use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\State\LinksHandlerTrait;
 use ApiPlatform\Exception\RuntimeException;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\State\ProviderInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
@@ -28,9 +25,9 @@ class ItemProvider implements ProviderInterface
     private $itemExtensions;
 
     /**
-     * @param QueryItemExtensionInterface[] $itemExtensions
+     * @param AggregationItemExtensionInterface[] $itemExtensions
      */
-    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, ManagerRegistry $managerRegistry, iterable $itemExtensions = [])
+    public function __construct(ResourceMetadataFactoryInterface $resourceMetadataCollectionFactory, ManagerRegistry $managerRegistry, iterable $itemExtensions = [])
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->managerRegistry = $managerRegistry;
@@ -39,6 +36,7 @@ class ItemProvider implements ProviderInterface
 
     /**
      * @inheritDoc
+     * @throws \ApiPlatform\Exception\ResourceClassNotFoundException
      */
     public function provide(string $resourceClass, array $identifiers = [], ?string $operationName = null, array $context = [])
     {
@@ -69,14 +67,14 @@ class ItemProvider implements ProviderInterface
             }
         }
 
-        $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+        $resourceMetadata = $this->resourceMetadataCollectionFactory->create($resourceClass);
 
-        if ($resourceMetadata instanceof ResourceMetadataCollection) {
-            $attribute = $resourceMetadata->getOperation()->getExtraProperties()['doctrine_mongodb'] ?? [];
-        } else {
-            $attribute = $resourceMetadata->getItemOperationAttribute($operationName, 'doctrine_mongodb', [], true);
+        try {
+            $operation = $context['operation'] ?? $resourceMetadata->getOperation($operationName);
+            $attribute = $operation->getExtraProperties()['doctrine_mongodb'] ?? [];
+        } catch (OperationNotFoundException $e) {
+            $attribute = $resourceMetadata->getOperation(null, true)->getExtraProperties()['doctrine_mongodb'] ?? [];
         }
-
         $executeOptions = $attribute['execute_options'] ?? [];
 
         return $aggregationBuilder->hydrate($resourceClass)->execute($executeOptions)->current() ?: null;
