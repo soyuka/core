@@ -363,6 +363,8 @@ spl_autoload_register(function ($className) {
         ApiPlatform\Core\OpenApi\Model\OAuthFlows::class => ApiPlatform\OpenApi\Model\OAuthFlows::class,
         ApiPlatform\Core\OpenApi\Model\Parameter::class => ApiPlatform\OpenApi\Model\Parameter::class,
         ApiPlatform\Core\OpenApi\Model\Paths::class => ApiPlatform\OpenApi\Model\Paths::class,
+        ApiPlatform\Core\OpenApi\Model\PathItem::class => ApiPlatform\OpenApi\Model\PathItem::class,
+        ApiPlatform\Core\OpenApi\Model\Operation::class => ApiPlatform\OpenApi\Model\Operation::class,
         ApiPlatform\Core\OpenApi\Model\RequestBody::class => ApiPlatform\OpenApi\Model\RequestBody::class,
         ApiPlatform\Core\OpenApi\Model\Response::class => ApiPlatform\OpenApi\Model\Response::class,
         ApiPlatform\Core\OpenApi\Model\Schema::class => ApiPlatform\OpenApi\Model\Schema::class,
@@ -480,7 +482,7 @@ spl_autoload_register(function ($className) {
     }
 
     // We try to use the new interface but it isn't aliased yet
-    if (in_array($className, $deprecatedInterfaces, true) && !class_exists($className)) {
+    if (in_array($className, (array) $deprecatedInterfaces, true) && !class_exists($className)) {
         $oldClassName = array_search($className, $deprecatedInterfaces, true);
         class_alias($oldClassName, $className);
     }
