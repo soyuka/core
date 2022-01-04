@@ -26,6 +26,7 @@ use ApiPlatform\Core\Bridge\Elasticsearch\Api\IdentifierExtractorInterface;
 use ApiPlatform\Core\DataPersister\DataPersisterInterface;
 use ApiPlatform\Core\DataProvider\CollectionDataProviderInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
+use ApiPlatform\Core\DataProvider\Pagination as LegacyPagination;
 use ApiPlatform\Core\DataProvider\SubresourceDataProviderInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface as LegacyPropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface as LegacyPropertyNameCollectionFactoryInterface;
@@ -1133,7 +1134,8 @@ class ApiPlatformExtensionTest extends TestCase
             'api_platform.operation_path_resolver.generator',
             'api_platform.operation_path_resolver.router',
             'api_platform.operation_path_resolver.underscore',
-            'api_platform.pagination',
+            'api_platform.pagination.legacy',
+            'api_platform.pagination.next',
             'api_platform.pagination_options',
             'api_platform.path_segment_name_generator.dash',
             'api_platform.path_segment_name_generator.underscore',
@@ -1199,6 +1201,7 @@ class ApiPlatformExtensionTest extends TestCase
             'api_platform.metadata.resource.name_collection_factory' => 'api_platform.metadata.resource.name_collection_factory.xml',
             'api_platform.operation_path_resolver' => 'api_platform.operation_path_resolver.router',
             'api_platform.operation_path_resolver.default' => 'api_platform.operation_path_resolver.underscore',
+            'api_platform.pagination' => 'api_platform.pagination.next',
             'api_platform.path_segment_name_generator' => 'api_platform.path_segment_name_generator.underscore',
             'api_platform.property_accessor' => 'property_accessor',
             'api_platform.property_info' => 'property_info',
@@ -1215,7 +1218,8 @@ class ApiPlatformExtensionTest extends TestCase
             LegacyPropertyNameCollectionFactoryInterface::class => 'api_platform.metadata.property.name_collection_factory',
             NotFoundAction::class => 'api_platform.action.not_found',
             OperationAwareFormatsProviderInterface::class => 'api_platform.formats_provider',
-            Pagination::class => 'api_platform.pagination',
+            LegacyPagination::class => 'api_platform.pagination.legacy',
+            Pagination::class => 'api_platform.pagination.next',
             PaginationOptions::class => 'api_platform.pagination_options',
             ProcessorInterface::class => 'api_platform.state_processor',
             PropertyFilter::class => 'api_platform.serializer.property_filter',
