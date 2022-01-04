@@ -861,6 +861,19 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $container->getDefinition('api_platform.metadata.resource_extractor.yaml')->setClass(YamlExtractor::class);
             $container->getDefinition('api_platform.metadata.property_extractor.yaml')->setClass(YamlExtractor::class);
         }
+
+        // avoid using namespaces to keep out of deprecation warnings
+        $remapDefinitionClasses = [
+            'api_platform.metadata.property.metadata_factory.cached' => 'ApiPlatform\Core\Metadata\Property\Factory\CachedPropertyMetadataFactory',
+            'api_platform.metadata.property.metadata_factory.default_property' => 'ApiPlatform\Core\Metadata\Property\Factory\DefaultPropertyMetadataFactory',
+            'api_platform.metadata.property.metadata_factory.serializer' => 'ApiPlatform\Core\Metadata\Property\Factory\SerializerPropertyMetadataFactory',
+            'api_platform.metadata.property.metadata_factory.xml' => 'ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory',
+            'api_platform.metadata.property.metadata_factory.yaml' => 'ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory'
+        ];
+
+        foreach($remapDefinitionClasses as $id => $class) {
+            $container->getDefinition($id)->setClass($class);
+        }
     }
 
     private function registerRectorConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
