@@ -40,6 +40,6 @@ final class PropertySchemaGreaterThanOrEqualRestriction implements PropertySchem
      */
     public function supports(Constraint $constraint, PropertyMetadata $propertyMetadata): bool
     {
-        return $constraint instanceof GreaterThanOrEqual && is_numeric($constraint->value) && ($type = $propertyMetadata->getType() ?? null) && \in_array($type->getBuiltinType(), [Type::BUILTIN_TYPE_INT, Type::BUILTIN_TYPE_FLOAT], true);
+        return $constraint instanceof GreaterThanOrEqual && is_numeric($constraint->value) && ($type = $propertyMetadata->getBuiltinTypes()[0] ?? null) && \in_array($type->getBuiltinType(), [Type::BUILTIN_TYPE_INT, Type::BUILTIN_TYPE_FLOAT], true);
     }
 }

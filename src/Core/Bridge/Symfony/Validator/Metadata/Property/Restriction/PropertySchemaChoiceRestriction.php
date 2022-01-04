@@ -52,7 +52,7 @@ final class PropertySchemaChoiceRestriction implements PropertySchemaRestriction
 
         $restriction['type'] = 'array';
 
-        $type = $propertyMetadata->getType() ?? null;
+        $type = $propertyMetadata->getBuiltinTypes()[0] ?? null;
         if ($type) {
             $restriction['items'] = ['type' => Type::BUILTIN_TYPE_STRING === $type->getBuiltinType() ? 'string' : 'number', 'enum' => $choices];
         }
@@ -73,6 +73,6 @@ final class PropertySchemaChoiceRestriction implements PropertySchemaRestriction
      */
     public function supports(Constraint $constraint, PropertyMetadata $propertyMetadata): bool
     {
-        return $constraint instanceof Choice && null !== ($type = $propertyMetadata->getType() ?? null) && \in_array($type->getBuiltinType(), [Type::BUILTIN_TYPE_STRING, Type::BUILTIN_TYPE_INT, Type::BUILTIN_TYPE_FLOAT], true);
+        return $constraint instanceof Choice && null !== ($type = $propertyMetadata->getBuiltinTypes()[0] ?? null) && \in_array($type->getBuiltinType(), [Type::BUILTIN_TYPE_STRING, Type::BUILTIN_TYPE_INT, Type::BUILTIN_TYPE_FLOAT], true);
     }
 }
