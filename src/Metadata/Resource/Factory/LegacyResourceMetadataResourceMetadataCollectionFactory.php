@@ -15,7 +15,7 @@ namespace ApiPlatform\Metadata\Resource\Factory;
 
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Bridge\Symfony\Routing\RouteNameGenerator;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
+use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
