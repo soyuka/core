@@ -28,7 +28,7 @@ trait JsonLdContextTrait
     /**
      * Updates the given JSON-LD document to add its @context key.
      */
-    private function addJsonLdContext(ContextBuilderInterface $contextBuilder, string $resourceClass, array &$context, array $data = []): array
+    private function addJsonLdContext(ContextBuilderInterface $contextBuilder, string $resourceClass, array & $context, array $data = []): array
     {
         if (isset($context['jsonld_has_context'])) {
             return $data;
@@ -47,7 +47,7 @@ trait JsonLdContextTrait
         return $data;
     }
 
-    private function createJsonLdContext(AnonymousContextBuilderInterface $contextBuilder, $object, array &$context, array $data = []): array
+    private function createJsonLdContext(AnonymousContextBuilderInterface $contextBuilder, $object, array & $context, array $data = []): array
     {
         // We're in a collection, don't add the @context part
         if (isset($context['jsonld_has_context'])) {

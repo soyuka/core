@@ -63,7 +63,7 @@ final class OrderFilter extends AbstractFilter implements OrderFilterInterface
     /**
      * {@inheritdoc}
      */
-    public function apply(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    public function apply(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         if (isset($context['filters']) && !isset($context['filters'][$this->orderParameterName])) {
             return;
@@ -83,7 +83,7 @@ final class OrderFilter extends AbstractFilter implements OrderFilterInterface
     /**
      * {@inheritdoc}
      */
-    protected function filterProperty(string $property, $direction, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    protected function filterProperty(string $property, $direction, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         if (!$this->isPropertyEnabled($property, $resourceClass) || !$this->isPropertyMapped($property, $resourceClass)) {
             return;

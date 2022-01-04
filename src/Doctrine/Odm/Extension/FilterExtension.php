@@ -54,7 +54,7 @@ final class FilterExtension implements AggregationCollectionExtensionInterface
     /**
      * {@inheritdoc}
      */
-    public function applyToCollection(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    public function applyToCollection(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
         try {

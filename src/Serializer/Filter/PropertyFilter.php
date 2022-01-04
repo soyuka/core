@@ -40,7 +40,7 @@ final class PropertyFilter implements FilterInterface
     /**
      * {@inheritdoc}
      */
-    public function apply(Request $request, bool $normalization, array $attributes, array &$context)
+    public function apply(Request $request, bool $normalization, array $attributes, array & $context)
     {
         if (null !== $propertyAttribute = $request->attributes->get('_api_filter_property')) {
             $properties = $propertyAttribute;

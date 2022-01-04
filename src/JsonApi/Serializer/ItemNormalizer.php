@@ -424,7 +424,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
     /**
      * Add data to included array if it's not already included.
      */
-    private function addIncluded(array $data, array &$included, array &$context): void
+    private function addIncluded(array $data, array & $included, array & $context): void
     {
         if (isset($data['id']) && !\in_array($data['id'], $context['api_included_resources'], true)) {
             $included[] = $data;

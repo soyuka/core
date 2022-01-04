@@ -32,7 +32,7 @@ final class RangeFilter extends AbstractFilter implements RangeFilterInterface
     /**
      * {@inheritdoc}
      */
-    protected function filterProperty(string $property, $values, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    protected function filterProperty(string $property, $values, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         if (
             !\is_array($values) ||

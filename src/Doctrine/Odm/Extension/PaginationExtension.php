@@ -56,7 +56,7 @@ final class PaginationExtension implements AggregationResultCollectionExtensionI
      *
      * @throws RuntimeException
      */
-    public function applyToCollection(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    public function applyToCollection(Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         if (!$this->pagination->isEnabled($resourceClass, $operationName, $context)) {
             return;

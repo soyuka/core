@@ -18,7 +18,6 @@ use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface as LegacyPropertyMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface as LegacyPropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\DataTransformer\DataTransformerInitializerInterface;
@@ -64,7 +63,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
     public const IS_TRANSFORMED_TO_SAME_CLASS = 'is_transformed_to_same_class';
 
     /**
-     * @var LegacyPropertyNameCollectionFactoryInterface|PropertyNameCollectionFactoryInterface
+     * @var PropertyNameCollectionFactoryInterface
      */
     protected $propertyNameCollectionFactory;
     /**
@@ -297,8 +296,8 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
                 if (null !== $previousObject) {
                     $this->setValue($object, $attribute, $this->propertyAccessor->getValue($previousObject, $attribute));
                 } else {
-                    $propertyMetaData = $this->propertyMetadataFactory->create($resourceClass, $attribute, $this->getFactoryOptions($context));
-                    $this->setValue($object, $attribute, $propertyMetaData->getDefault());
+                    $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $attribute, $this->getFactoryOptions($context));
+                    $this->setValue($object, $attribute, $propertyMetadata->getDefault());
                 }
             }
         }
@@ -316,7 +315,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      *
      * @return object
      */
-    protected function instantiateObject(array &$data, $class, array &$context, \ReflectionClass $reflectionClass, $allowedAttributes, string $format = null)
+    protected function instantiateObject(array & $data, $class, array & $context, \ReflectionClass $reflectionClass, $allowedAttributes, string $format = null)
     {
         if (null !== $object = $this->extractObjectToPopulate($class, $context, static::OBJECT_TO_POPULATE)) {
             unset($context[static::OBJECT_TO_POPULATE]);
@@ -370,7 +369,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
         return new $class();
     }
 
-    protected function getClassDiscriminatorResolvedClass(array &$data, string $class): string
+    protected function getClassDiscriminatorResolvedClass(array & $data, string $class): string
     {
         if (null === $this->classDiscriminatorResolver || (null === $mapping = $this->classDiscriminatorResolver->getMappingForClass($class))) {
             return $class;
@@ -391,7 +390,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function createConstructorArgument($parameterData, string $key, \ReflectionParameter $constructorParameter, array &$context, string $format = null)
+    protected function createConstructorArgument($parameterData, string $key, \ReflectionParameter $constructorParameter, array & $context, string $format = null)
     {
         return $this->createAttributeValue($constructorParameter->name, $parameterData, $format, $context);
     }

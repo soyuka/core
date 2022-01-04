@@ -4,3 +4,10 @@ services:
         decorates: 'api_platform.graphql.type_converter'
         arguments: ['@app.graphql.type_converter.inner']
         public: false
+
+    app.serializer.normalizer.override_documentation:
+        class: ApiPlatform\Tests\Fixtures\TestBundle\Serializer\Normalizer\OverrideDocumentationNormalizer
+        decorates: api_platform.swagger.normalizer.documentation
+        public: false
+        arguments: ['@app.serializer.normalizer.override_documentation.inner']
+

@@ -44,7 +44,7 @@ final class BooleanFilter extends AbstractFilter
     /**
      * {@inheritdoc}
      */
-    protected function filterProperty(string $property, $value, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array &$context = [])
+    protected function filterProperty(string $property, $value, Builder $aggregationBuilder, string $resourceClass, string $operationName = null, array & $context = [])
     {
         if (
             !$this->isPropertyEnabled($property, $resourceClass) ||

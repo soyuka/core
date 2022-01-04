@@ -18,8 +18,8 @@ use ApiPlatform\Core\Bridge\Symfony\Routing\RouteNameGenerator;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Operation\PathSegmentNameGeneratorInterface;
 
 /**
  * @internal
@@ -69,7 +69,7 @@ final class SubresourceOperationFactory implements SubresourceOperationFactoryIn
      * @param int    $depth             the number of visited
      * @param int    $maxDepth
      */
-    private function computeSubresourceOperations(string $resourceClass, array &$tree, string $rootResourceClass = null, array $parentOperation = null, array $visited = [], int $depth = 0, int $maxDepth = null): void
+    private function computeSubresourceOperations(string $resourceClass, array & $tree, string $rootResourceClass = null, array $parentOperation = null, array $visited = [], int $depth = 0, int $maxDepth = null): void
     {
         if (null === $rootResourceClass) {
             $rootResourceClass = $resourceClass;

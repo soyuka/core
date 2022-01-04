@@ -136,7 +136,7 @@ final class RequestDataCollector extends DataCollector
         }
     }
 
-    private function setFilters(ApiResource $resourceMetadata, int $index, array &$filters, array &$counters): void
+    private function setFilters(ApiResource $resourceMetadata, int $index, array & $filters, array & $counters): void
     {
         foreach ($resourceMetadata->getFilters() ?? [] as $id) {
             if ($this->filterLocator->has($id)) {

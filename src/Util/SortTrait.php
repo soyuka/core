@@ -22,7 +22,7 @@ namespace ApiPlatform\Util;
  */
 trait SortTrait
 {
-    private function arrayRecursiveSort(array &$array, callable $sortFunction): void
+    private function arrayRecursiveSort(array & $array, callable $sortFunction): void
     {
         foreach ($array as &$value) {
             if (\is_array($value)) {

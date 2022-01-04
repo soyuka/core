@@ -251,7 +251,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
      *
      * @param AttributeMetadataInterface[] $attributesMetadata
      */
-    private function isMaxDepthReached(array $attributesMetadata, string $class, string $attribute, array &$context): bool
+    private function isMaxDepthReached(array $attributesMetadata, string $class, string $attribute, array & $context): bool
     {
         if (
             !($context[self::ENABLE_MAX_DEPTH] ?? false) ||

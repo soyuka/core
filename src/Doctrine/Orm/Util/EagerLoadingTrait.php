@@ -83,7 +83,7 @@ trait EagerLoadingTrait
      *
      * @param array $checked array cache of tested metadata classes
      */
-    private function hasFetchEagerAssociation(EntityManagerInterface $em, ClassMetadataInfo $classMetadata, array &$checked = []): bool
+    private function hasFetchEagerAssociation(EntityManagerInterface $em, ClassMetadataInfo $classMetadata, array & $checked = []): bool
     {
         $checked[] = $classMetadata->name;
 
