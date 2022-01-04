@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Metadata\Resource\Factory;
+namespace ApiPlatform\Metadata\Resource\Factory;
 
-use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\Extractor\ResourceExtractorInterface;
+use ApiPlatform\Metadata\Resource\ResourceNameCollection;
 
 /**
  * Creates a resource name collection from {@see ApiResource} configuration files.

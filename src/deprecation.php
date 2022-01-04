@@ -28,8 +28,8 @@ spl_autoload_register(function ($className) {
         ApiPlatform\Core\Annotation\ApiResource::class => ApiPlatform\Metadata\ApiResource::class,
         ApiPlatform\Core\Annotation\ApiProperty::class => ApiPlatform\Metadata\ApiProperty::class,
         ApiPlatform\Core\Annotation\ApiFilter::class => ApiPlatform\Metadata\ApiFilter::class,
-        ApiPlatform\Core\Metadata\Property\Factory\SerializerPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\SerializerPropertyMetadataFactory::class,
 
+        ApiPlatform\Core\Metadata\Property\Factory\SerializerPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\SerializerPropertyMetadataFactory::class,
         ApiPlatform\Core\Metadata\Property\Factory\CachedPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\CachedPropertyMetadataFactory::class,
         ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\ExtractorPropertyMetadataFactory::class,
         ApiPlatform\Core\Metadata\Property\Factory\DefaultPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\DefaultPropertyMetadataFactory::class,
@@ -41,6 +41,8 @@ spl_autoload_register(function ($className) {
         ApiPlatform\Core\Metadata\Extractor\YamlExtractor::class => ApiPlatform\Metadata\Extractor\YamlResourceExtractor::class,
 
         ApiPlatform\Core\Metadata\Property\PropertyNameCollection::class => ApiPlatform\Metadata\Property\PropertyNameCollection::class,
+
+        ApiPlatform\Core\Metadata\Resource\ResourceNameCollectionFactoryInterface::class => ApiPlatform\Metadata\Resource\ResourceNameCollectionFactoryInterface::class,
 
         // Exceptions
         ApiPlatform\Core\Exception\DeserializationException::class => ApiPlatform\Exception\DeserializationException::class,

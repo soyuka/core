@@ -16,7 +16,7 @@
         </service>
 
         <service id="api_platform.metadata.resource.name_collection_factory" alias="api_platform.metadata.resource.name_collection_factory.xml" />
-        <service id="api_platform.metadata.resource.name_collection_factory.xml" class="ApiPlatform\Core\Metadata\Resource\Factory\ExtractorResourceNameCollectionFactory" public="false">
+        <service id="api_platform.metadata.resource.name_collection_factory.xml" class="ApiPlatform\Metadata\Resource\Factory\ExtractorResourceNameCollectionFactory" public="false">
             <argument type="service" id="api_platform.metadata.resource_extractor.xml" />
         </service>
 

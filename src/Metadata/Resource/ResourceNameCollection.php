@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Metadata\Resource;
+namespace ApiPlatform\Metadata\Resource;
 
 /**
  * A collection of resource class names.

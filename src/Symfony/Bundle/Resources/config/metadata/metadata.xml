@@ -7,11 +7,11 @@
     <services>
         <!-- Resource name collection -->
 
-        <service id="api_platform.metadata.resource.name_collection_factory.cached" class="ApiPlatform\Core\Metadata\Resource\Factory\CachedResourceNameCollectionFactory" decorates="api_platform.metadata.resource.name_collection_factory" decoration-priority="-10" public="false">
+        <service id="api_platform.metadata.resource.name_collection_factory.cached" class="ApiPlatform\Metadata\Resource\Factory\CachedResourceNameCollectionFactory" decorates="api_platform.metadata.resource.name_collection_factory" decoration-priority="-10" public="false">
             <argument type="service" id="api_platform.cache.metadata.resource" />
             <argument type="service" id="api_platform.metadata.resource.name_collection_factory.cached.inner" />
         </service>
-        <service id="ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface" alias="api_platform.metadata.resource.name_collection_factory" />
+        <service id="ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface" alias="api_platform.metadata.resource.name_collection_factory" />
 
         <!-- Resource metadata -->
 
