@@ -15,12 +15,12 @@ namespace ApiPlatform\Core\Tests\Api;
 
 use ApiPlatform\Api\ResourceClassResolverInterface;
 use ApiPlatform\Core\Api\IdentifiersExtractor;
+use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
 use ApiPlatform\Core\Tests\ProphecyTrait;
 use ApiPlatform\Exception\RuntimeException;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Tests\Fixtures\TestBundle\Doctrine\Generator\Uuid;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelatedDummy;
@@ -223,8 +223,8 @@ class IdentifiersExtractorTest extends TestCase
         $propertyNameCollectionFactoryProphecy->create(ResourceInterface::class)->willReturn(new PropertyNameCollection(['foo', 'fooz']));
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
-        $propertyMetadataFactoryProphecy->create(ResourceInterface::class, 'foo')->willReturn((new ApiProperty())->withIdentifier(true));
-        $propertyMetadataFactoryProphecy->create(ResourceInterface::class, 'fooz')->willReturn(new ApiProperty());
+        $propertyMetadataFactoryProphecy->create(ResourceInterface::class, 'foo')->willReturn((new PropertyMetadata())->withIdentifier(true));
+        $propertyMetadataFactoryProphecy->create(ResourceInterface::class, 'fooz')->willReturn(new PropertyMetadata());
 
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $resourceClassResolverProphecy->getResourceClass($item)->willReturn(ResourceInterface::class);
@@ -247,7 +247,7 @@ class IdentifiersExtractorTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class)->willReturn(new PropertyNameCollection(['foo']));
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
-        $propertyMetadataFactoryProphecy->create(Dummy::class, 'foo')->willReturn(new ApiProperty());
+        $propertyMetadataFactoryProphecy->create(Dummy::class, 'foo')->willReturn(new PropertyMetadata());
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $identifiersExtractor = new IdentifiersExtractor($propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), null, $resourceClassResolverProphecy->reveal());
 
@@ -284,7 +284,7 @@ class IdentifiersExtractorTest extends TestCase
         $propertyNameCollectionFactoryProphecy->create($class)->willReturn(new PropertyNameCollection($properties));
 
         foreach ($properties as $prop) {
-            $metadata = new ApiProperty();
+            $metadata = new PropertyMetadata();
             $propertyMetadataFactoryProphecy->create($class, $prop)->willReturn($metadata->withIdentifier(\in_array($prop, $identifiers, true)));
         }
 
@@ -300,7 +300,7 @@ class IdentifiersExtractorTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class)->willReturn(new PropertyNameCollection(['id']));
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
-        $propertyMetadataFactoryProphecy->create(Dummy::class, 'id')->willReturn(new ApiProperty());
+        $propertyMetadataFactoryProphecy->create(Dummy::class, 'id')->willReturn(new PropertyMetadata());
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $identifiersExtractor = new IdentifiersExtractor($propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), null, $resourceClassResolverProphecy->reveal());
 

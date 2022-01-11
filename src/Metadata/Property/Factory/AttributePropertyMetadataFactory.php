@@ -35,7 +35,7 @@ final class AttributePropertyMetadataFactory implements PropertyMetadataFactoryI
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass, string $property, array $options = [])
+    public function create(string $resourceClass, string $property, array $options = []): ApiProperty
     {
         $parentPropertyMetadata = null;
         if ($this->decorated) {

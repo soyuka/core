@@ -868,12 +868,16 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             'api_platform.metadata.property.metadata_factory.default_property' => 'ApiPlatform\Core\Metadata\Property\Factory\DefaultPropertyMetadataFactory',
             'api_platform.metadata.property.metadata_factory.serializer' => 'ApiPlatform\Core\Metadata\Property\Factory\SerializerPropertyMetadataFactory',
             'api_platform.metadata.property.metadata_factory.xml' => 'ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory',
-            'api_platform.metadata.property.metadata_factory.yaml' => 'ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory'
+            'api_platform.metadata.property.metadata_factory.yaml' => 'ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyMetadataFactory',
+            'api_platform.metadata.property.metadata_factory.property_info' => 'ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyMetadataFactory',
+            'api_platform.doctrine.orm.metadata.property.metadata_factory' => 'ApiPlatform\Core\Bridge\Doctrine\Orm\Metadata\Property\DoctrineOrmPropertyMetadataFactory'
         ];
 
-        foreach($remapDefinitionClasses as $id => $class) {
+        foreach ($remapDefinitionClasses as $id => $class) {
             $container->getDefinition($id)->setClass($class);
         }
+
+        $container->setAlias('api_platform.metadata.property.metadata_factory', 'api_platform.metadata.property.metadata_factory.legacy');
     }
 
     private function registerRectorConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void

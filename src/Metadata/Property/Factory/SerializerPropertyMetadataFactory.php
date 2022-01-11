@@ -52,7 +52,7 @@ final class SerializerPropertyMetadataFactory implements PropertyMetadataFactory
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass, string $property, array $options = [])
+    public function create(string $resourceClass, string $property, array $options = []): ApiProperty
     {
         /** @var PropertyMetadata|ApiProperty */
         $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
