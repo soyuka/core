@@ -874,9 +874,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         ];
 
         foreach ($remapDefinitionClasses as $id => $class) {
-            $container->getDefinition($id)->setClass($class);
+            $container->getDefinition($id)->setClass($class)->setDecoratedService('api_platform.metadata.property.metadata_factory.legacy');
         }
 
+        $container->removeAlias('api_platform.property.metadata_factory');
         $container->setAlias('api_platform.metadata.property.metadata_factory', 'api_platform.metadata.property.metadata_factory.legacy');
     }
 
