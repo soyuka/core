@@ -247,9 +247,9 @@ spl_autoload_register(function ($className) {
         ApiPlatform\Core\Bridge\Symfony\Messenger\DataTransformer::class => ApiPlatform\Symfony\Messenger\DataTransformer::class,
         ApiPlatform\Core\Bridge\Symfony\Messenger\RemoveStamp::class => ApiPlatform\Symfony\Messenger\RemoveStamp::class,
 
-        // Bridge\Symfony\PropertyInfo\Metadata\Property => Metadata\Property
-        ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\PropertyInfoPropertyMetadataFactory::class,
-        ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyNameCollectionFactory::class => ApiPlatform\Metadata\Property\PropertyInfoPropertyNameCollectionFactory::class,
+        // Bridge\Symfony\PropertyInfo\Metadata\Property => Metadata\Property\Factory
+        ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyMetadataFactory::class => ApiPlatform\Metadata\Property\Factory\PropertyInfoPropertyMetadataFactory::class,
+        ApiPlatform\Core\Bridge\Symfony\PropertyInfo\Metadata\Property\PropertyInfoPropertyNameCollectionFactory::class => ApiPlatform\Metadata\Property\Factory\PropertyInfoPropertyNameCollectionFactory::class,
 
         // Bridge\Symfony\Routing
         ApiPlatform\Core\Bridge\Symfony\Routing\ApiLoader::class => ApiPlatform\Symfony\Routing\ApiLoader::class,

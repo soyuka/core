@@ -11,11 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Metadata\Property\Factory;
+namespace ApiPlatform\Core\Metadata\Property\Factory;
 
 use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Exception\PropertyNotFoundException;
-use ApiPlatform\Metadata\ApiProperty;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 
 /**
@@ -37,20 +36,19 @@ final class PropertyInfoPropertyMetadataFactory implements PropertyMetadataFacto
     /**
      * {@inheritdoc}
      */
-    public function create(string $resourceClass, string $property, array $options = []): ApiProperty
+    public function create(string $resourceClass, string $property, array $options = []): PropertyMetadata
     {
         if (null === $this->decorated) {
-            $propertyMetadata = new ApiProperty();
+            $propertyMetadata = new PropertyMetadata();
         } else {
             try {
-                /** @var ApiProperty|PropertyMetadata */
                 $propertyMetadata = $this->decorated->create($resourceClass, $property, $options);
             } catch (PropertyNotFoundException $propertyNotFoundException) {
-                $propertyMetadata = new ApiProperty();
+                $propertyMetadata = new PropertyMetadata();
             }
         }
 
-        if ($propertyMetadata instanceof ApiProperty) {
+        if ($propertyMetadata instanceof PropertyMetadata) {
             if (!$propertyMetadata->getBuiltinTypes()) {
                 $propertyMetadata = $propertyMetadata->withBuiltinTypes($this->propertyInfo->getTypes($resourceClass, $property, $options) ?? []);
             }
