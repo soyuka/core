@@ -20,13 +20,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ApiResource(
  *     collectionOperations={
- *         "post"={
+ *         "user-reset-password"={
  *             "method"="POST",
  *             "path"="/user-reset-password",
  *             "input"=UserResetPasswordDto::class
  *         }
- *     },
- *     itemOperations={}
+ *     }
  * )
  */
 final class UserResource
@@ -34,5 +33,5 @@ final class UserResource
     /**
      * @Assert\NotBlank
      */
-    public $username;
+    public string $username;
 }
