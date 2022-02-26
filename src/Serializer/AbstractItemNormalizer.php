@@ -260,8 +260,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
                 return $dataTransformer->transform($denormalizedInput, $resourceClass, $dataTransformerContext);
             }
 
-            $resourceClass = $inputClass;
-            $context['resource_class'] = $inputClass;
+            if ($context['operation'] ?? false) {
+                $resourceClass = $inputClass;
+                $context['resource_class'] = $inputClass;
+            }
         }
 
         $supportsPlainIdentifiers = $this->supportsPlainIdentifiers();
@@ -295,6 +297,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
 
         $previousObject = null !== $objectToPopulate ? clone $objectToPopulate : null;
         $object = parent::denormalize($data, $resourceClass, $format, $context);
+
+        if (!$this->resourceClassResolver->isResourceClass($context['resource_class'])) {
+            return $object;
+        }
 
         // Revert attributes that aren't allowed to be changed after a post-denormalize check
         foreach (array_keys($data) as $attribute) {
@@ -420,6 +426,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      */
     protected function getAllowedAttributes($classOrObject, array $context, $attributesAsString = false)
     {
+        if (!$this->resourceClassResolver->isResourceClass($context['resource_class'])) {
+            return parent::getAllowedAttributes($classOrObject, $context, $attributesAsString);
+        }
+
         $options = $this->getFactoryOptions($context);
         $propertyNames = $this->propertyNameCollectionFactory->create($context['resource_class'], $options);
 
@@ -462,6 +472,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      */
     protected function canAccessAttribute($object, string $attribute, array $context = []): bool
     {
+        if (!$this->resourceClassResolver->isResourceClass($context['resource_class'])) {
+            return true;
+        }
+
         $options = $this->getFactoryOptions($context);
         /** @var PropertyMetadata|ApiProperty */
         $propertyMetadata = $this->propertyMetadataFactory->create($context['resource_class'], $attribute, $options);
@@ -863,6 +877,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
 
     private function createAttributeValue($attribute, $value, $format = null, array $context = [])
     {
+        if (!$this->resourceClassResolver->isResourceClass($context['resource_class'])) {
+            return $value;
+        }
+
         /** @var ApiProperty|PropertyMetadata */
         $propertyMetadata = $this->propertyMetadataFactory->create($context['resource_class'], $attribute, $this->getFactoryOptions($context));
         $type = $propertyMetadata instanceof PropertyMetadata ? $propertyMetadata->getType() : ($propertyMetadata->getBuiltinTypes()[0] ?? null);

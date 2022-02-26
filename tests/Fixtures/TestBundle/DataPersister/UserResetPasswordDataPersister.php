@@ -38,4 +38,3 @@ final class UserResetPasswordDataPersister implements DataPersisterInterface
         return $data instanceof UserResetPasswordDto;
     }
 }
-
