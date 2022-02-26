@@ -260,8 +260,10 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
                 return $dataTransformer->transform($denormalizedInput, $resourceClass, $dataTransformerContext);
             }
 
-            $resourceClass = $inputClass;
-            $context['resource_class'] = $inputClass;
+            if ($context['operation'] ?? false) {
+                $resourceClass = $inputClass;
+                $context['resource_class'] = $inputClass;
+            }
         }
 
         $supportsPlainIdentifiers = $this->supportsPlainIdentifiers();
