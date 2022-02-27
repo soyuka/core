@@ -143,7 +143,10 @@ jobs:
         if: (!startsWith(matrix.php, '7.1'))
         run: composer update --no-interaction --no-progress --ansi
       - name: Update project dependencies (7.1)
-        if: (startsWith(matrix.php, '7.1') || startsWith(matrix.php, '7.2'))
+        if: (startsWith(matrix.php, '7.1'))
+        run: composer update --no-interaction --no-progress --ansi --ignore-platform-reqs
+      - name: Update project dependencies (7.2)
+        if: (startsWith(matrix.php, '7.2'))
         run: composer update --no-interaction --no-progress --ansi --ignore-platform-reqs
       - name: Require Symfony components
         if: (!startsWith(matrix.php, '7.1'))
@@ -235,7 +238,10 @@ jobs:
         if: (!startsWith(matrix.php, '7.1'))
         run: composer update --no-interaction --no-progress --ansi
       - name: Update project dependencies (7.1)
-        if: (startsWith(matrix.php, '7.1') || startsWith(matrix.php, '7.2'))
+        if: (startsWith(matrix.php, '7.1'))
+        run: composer update --no-interaction --no-progress --ansi --ignore-platform-reqs
+      - name: Update project dependencies (7.2)
+        if: (startsWith(matrix.php, '7.2'))
         run: composer update --no-interaction --no-progress --ansi --ignore-platform-reqs
       - name: Require Symfony components
         if: (!startsWith(matrix.php, '7.1'))

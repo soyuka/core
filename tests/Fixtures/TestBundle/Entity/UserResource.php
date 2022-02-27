@@ -25,7 +25,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *             "path"="/user-reset-password",
  *             "input"=UserResetPasswordDto::class
  *         }
- *     }
+ *     },
+ *     itemOperations={}
  * )
  */
 final class UserResource
