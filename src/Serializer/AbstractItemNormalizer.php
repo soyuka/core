@@ -260,7 +260,8 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
                 return $dataTransformer->transform($denormalizedInput, $resourceClass, $dataTransformerContext);
             }
 
-            if ($context['operation'] ?? false) {
+            // Are we in a Request context?
+            if ($context['operation'] ?? $context['operation_type'] ?? false) {
                 $resourceClass = $inputClass;
                 $context['resource_class'] = $inputClass;
             }
