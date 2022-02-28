@@ -20,7 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * @ApiResource(
  *     collectionOperations={
- *         "user-reset-password"={
+ *         "post"={
  *             "method"="POST",
  *             "path"="/user-reset-password",
  *             "input"=UserResetPasswordDto::class
