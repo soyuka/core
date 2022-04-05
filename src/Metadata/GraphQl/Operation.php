@@ -119,7 +119,7 @@ class Operation
     public function __construct(
         ?bool $delete = null,
         ?string $resolver = null,
-        bool $collection = false,
+        ?bool $collection = null,
         ?array $args = null,
         ?string $shortName = null,
         ?string $class = null,
