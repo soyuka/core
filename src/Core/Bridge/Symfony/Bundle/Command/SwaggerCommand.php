@@ -33,8 +33,6 @@ use Symfony\Component\Yaml\Yaml;
  */
 final class SwaggerCommand extends Command
 {
-    protected static $defaultName = 'api:swagger:export';
-
     private $normalizer;
     private $resourceNameCollectionFactory;
     private $apiTitle;
@@ -62,7 +60,7 @@ final class SwaggerCommand extends Command
             @trigger_error(sprintf('Passing a 6th parameter to the constructor of "%s" is deprecated since API Platform 2.5', __CLASS__), \E_USER_DEPRECATED);
         }
 
-        parent::__construct();
+        parent::__construct('api:swagger:export');
     }
 
     /**

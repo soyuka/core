@@ -23,10 +23,12 @@ use ApiPlatform\Tests\Fixtures\DummyEntityFilterAnnotated;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyCar;
 use ApiPlatform\Tests\Fixtures\TestBundle\Util\AnnotationFilterExtractor;
 use Doctrine\Common\Annotations\AnnotationReader;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AnnotationFilterExtractorTraitTest extends KernelTestCase
 {
+    use ExpectDeprecationTrait;
     private $extractor;
 
     protected function setUp(): void
@@ -35,8 +37,12 @@ class AnnotationFilterExtractorTraitTest extends KernelTestCase
         $this->extractor = new AnnotationFilterExtractor(new AnnotationReader());
     }
 
+    /**
+     * @group legacy
+     */
     public function testReadAnnotations()
     {
+        $this->expectDeprecation('Since api-platform/core 2.7: The Doctrine annotation ApiPlatform\Core\Annotation\ApiFilter is deprecated, use the PHP attribute ApiPlatform\Metadata\ApiFilter instead.');
         $reflectionClass = new \ReflectionClass(DummyCar::class);
         $this->assertEquals($this->extractor->getFilters($reflectionClass), [
             'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_doctrine_orm_filter_date_filter' => [

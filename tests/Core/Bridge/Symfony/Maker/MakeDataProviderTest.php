@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Question;
+use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
@@ -20,15 +21,21 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class MakeDataProviderTest extends KernelTestCase
 {
+    use ExpectDeprecationTrait;
+
     protected function tearDown(): void
     {
         (new Filesystem())->remove(self::tempDir());
         parent::tearDown();
     }
 
-    /** @dataProvider dataProviderProvider */
+    /**
+     * @dataProvider dataProviderProvider
+     * @group legacy
+     */
     public function testMakeDataProvider(array $commandInputs, array $userInputs, string $expected)
     {
+        $this->expectDeprecation('Since api-platform/core 2.7: The DataTransformer pattern is deprecated, use a Provider or a Processor and either use your input or return a new output there.');
         $this->assertFileDoesNotExist(self::tempFile('src/DataProvider/CustomDataProvider.php'));
 
         $tester = new CommandTester((new Application(self::bootKernel()))->find('make:data-provider'));
@@ -311,8 +318,12 @@ EOF;
         ];
     }
 
+    /**
+     * @group legacy
+     */
     public function testMakeDataProviderThrows()
     {
+        $this->expectDeprecation('Since api-platform/core 2.7: The DataTransformer pattern is deprecated, use a Provider or a Processor and either use your input or return a new output there.');
         $tester = new CommandTester((new Application(self::bootKernel()))->find('make:data-provider'));
         $this->expectException(RuntimeCommandException::class);
         $this->expectExceptionMessage('You should at least generate an item or a collection data provider');

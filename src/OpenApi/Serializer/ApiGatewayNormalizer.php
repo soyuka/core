@@ -120,9 +120,9 @@ final class ApiGatewayNormalizer implements NormalizerInterface, CacheableSuppor
     /**
      * {@inheritdoc}
      */
-    public function supportsNormalization($data, $format = null): bool
+    public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        return $this->documentationNormalizer->supportsNormalization($data, $format);
+        return $this->documentationNormalizer->supportsNormalization($data, $format, $context);
     }
 
     /**

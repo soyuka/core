@@ -36,8 +36,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class UpgradeApiResourceCommand extends Command
 {
-    protected static $defaultName = 'api:upgrade-resource';
-
     private $resourceNameCollectionFactory;
     private $resourceMetadataFactory;
     private $subresourceOperationFactory;
@@ -55,7 +53,7 @@ final class UpgradeApiResourceCommand extends Command
         $this->identifiersExtractor = $identifiersExtractor;
         $this->reader = $reader;
 
-        parent::__construct();
+        parent::__construct('api:upgrade-resource');
     }
 
     /**

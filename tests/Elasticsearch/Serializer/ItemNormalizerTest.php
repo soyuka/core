@@ -17,6 +17,7 @@ use ApiPlatform\Core\Tests\ProphecyTrait;
 use ApiPlatform\Elasticsearch\Serializer\DocumentNormalizer;
 use ApiPlatform\Elasticsearch\Serializer\ItemNormalizer;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Symfony\Component\Serializer\Exception\LogicException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -68,8 +69,8 @@ final class ItemNormalizerTest extends TestCase
 
     public function testSupportsDenormalization(): void
     {
-        $this->normalizerProphecy->supportsDenormalization('foo', 'string', 'json')->willReturn(true)->shouldBeCalledOnce();
-        $this->normalizerProphecy->supportsDenormalization('foo', 'string', DocumentNormalizer::FORMAT)->shouldNotBeCalled();
+        $this->normalizerProphecy->supportsDenormalization('foo', 'string', 'json', Argument::type('array'))->willReturn(true)->shouldBeCalledOnce();
+        $this->normalizerProphecy->supportsDenormalization('foo', 'string', DocumentNormalizer::FORMAT, Argument::type('array'))->shouldNotBeCalled();
 
         self::assertTrue($this->itemNormalizer->supportsDenormalization('foo', 'string', 'json'));
         self::assertFalse($this->itemNormalizer->supportsDenormalization('foo', 'string', DocumentNormalizer::FORMAT));
@@ -84,8 +85,8 @@ final class ItemNormalizerTest extends TestCase
 
     public function testSupportsNormalization(): void
     {
-        $this->normalizerProphecy->supportsNormalization($object = (object) ['foo'], 'json')->willReturn(true)->shouldBeCalledOnce();
-        $this->normalizerProphecy->supportsNormalization($object, DocumentNormalizer::FORMAT)->shouldNotBeCalled();
+        $this->normalizerProphecy->supportsNormalization($object = (object) ['foo'], 'json', Argument::type('array'))->willReturn(true)->shouldBeCalledOnce();
+        $this->normalizerProphecy->supportsNormalization($object, DocumentNormalizer::FORMAT, Argument::type('array'))->shouldNotBeCalled();
 
         self::assertTrue($this->itemNormalizer->supportsNormalization($object, 'json'));
         self::assertFalse($this->itemNormalizer->supportsNormalization($object, DocumentNormalizer::FORMAT));

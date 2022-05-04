@@ -20,6 +20,7 @@ use ApiPlatform\Metadata\Resource\ResourceNameCollection;
 use ApiPlatform\OpenApi\Serializer\ApiGatewayNormalizer;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -31,7 +32,7 @@ final class ApiGatewayNormalizerTest extends TestCase
     {
         $documentationNormalizerProphecy = $this->prophesize(NormalizerInterface::class);
         $documentationNormalizerProphecy->willImplement(CacheableSupportsMethodInterface::class);
-        $documentationNormalizerProphecy->supportsNormalization(DocumentationNormalizer::FORMAT, Documentation::class)->willReturn(true);
+        $documentationNormalizerProphecy->supportsNormalization(DocumentationNormalizer::FORMAT, Documentation::class, Argument::type('array'))->willReturn(true);
         $documentationNormalizerProphecy->hasCacheableSupportsMethod()->willReturn(true);
 
         $normalizer = new ApiGatewayNormalizer($documentationNormalizerProphecy->reveal());
