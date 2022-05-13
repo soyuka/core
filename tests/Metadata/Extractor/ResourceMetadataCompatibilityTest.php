@@ -30,7 +30,6 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ExtractorResourceMetadataCollectionFactory;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Metadata\Resource\SanitizeMetadataTrait;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Comment;
 use ApiPlatform\Tests\Metadata\Extractor\Adapter\ResourceAdapterInterface;
 use ApiPlatform\Tests\Metadata\Extractor\Adapter\XmlResourceAdapter;
@@ -46,8 +45,6 @@ use PHPUnit\Framework\TestCase;
  */
 final class ResourceMetadataCompatibilityTest extends TestCase
 {
-    use SanitizeMetadataTrait;
-
     private const RESOURCE_CLASS = Comment::class;
     private const SHORT_NAME = 'Comment';
     private const FIXTURES = [

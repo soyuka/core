@@ -33,9 +33,9 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
-use ApiPlatform\Metadata\Resource\SanitizeMetadataTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 /**
  * Creates a resource metadata from {@see ApiResource} annotations.
@@ -45,12 +45,11 @@ use Psr\Log\NullLogger;
  */
 final class AttributesResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    use SanitizeMetadataTrait;
-
     private $defaults;
     private $decorated;
     private $logger;
     private $graphQlEnabled;
+    private $camelCaseToSnakeCaseNameConverter;
 
     public function __construct(ResourceMetadataCollectionFactoryInterface $decorated = null, LoggerInterface $logger = null, array $defaults = [], bool $graphQlEnabled = false)
     {
@@ -58,6 +57,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
         $this->decorated = $decorated;
         $this->logger = $logger ?? new NullLogger();
         $this->graphQlEnabled = $graphQlEnabled;
+        $this->camelCaseToSnakeCaseNameConverter = new CamelCaseToSnakeCaseNameConverter();
     }
 
     /**
@@ -235,8 +235,7 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
     private function addGlobalDefaults($operation)
     {
         foreach ($this->defaults['attributes'] as $key => $value) {
-            [$key, $value] = $this->getKeyValue($key, $value);
-            $upperKey = ucfirst($key);
+            $upperKey = ucfirst($this->camelCaseToSnakeCaseNameConverter->denormalize($key));
             $getter = 'get'.$upperKey;
             if (method_exists($operation, $getter) && null === $operation->{$getter}()) {
                 $operation = $operation->{'with'.$upperKey}($value);
