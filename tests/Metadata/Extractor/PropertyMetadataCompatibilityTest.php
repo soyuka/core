@@ -17,7 +17,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\Extractor\XmlPropertyExtractor;
 use ApiPlatform\Metadata\Extractor\YamlPropertyExtractor;
 use ApiPlatform\Metadata\Property\Factory\ExtractorPropertyMetadataFactory;
-use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
+use ApiPlatform\Metadata\Resource\SanitizeMetadataTrait;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Comment;
 use ApiPlatform\Tests\Metadata\Extractor\Adapter\PropertyAdapterInterface;
 use ApiPlatform\Tests\Metadata\Extractor\Adapter\XmlPropertyAdapter;
@@ -34,7 +34,7 @@ use Symfony\Component\PropertyInfo\Type;
  */
 final class PropertyMetadataCompatibilityTest extends TestCase
 {
-    use DeprecationMetadataTrait;
+    use SanitizeMetadataTrait;
 
     private const RESOURCE_CLASS = Comment::class;
     private const PROPERTY = 'comment';

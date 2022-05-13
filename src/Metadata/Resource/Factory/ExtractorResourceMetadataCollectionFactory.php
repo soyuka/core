@@ -24,8 +24,8 @@ use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource\DeprecationMetadataTrait;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\Metadata\Resource\SanitizeMetadataTrait;
 
 /**
  * Creates a resource metadata from {@see Resource} extractors (XML, YAML).
@@ -35,7 +35,7 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
  */
 final class ExtractorResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    use DeprecationMetadataTrait;
+    use SanitizeMetadataTrait;
     private $extractor;
     private $decorated;
     private $defaults;
