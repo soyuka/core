@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\Pagination\PaginatorInterface;
 use ApiPlatform\State\Pagination\PartialPaginatorInterface;
@@ -44,11 +43,11 @@ abstract class AbstractCollectionNormalizer implements NormalizerInterface, Norm
     protected $pageParameterName;
 
     /**
-     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface
+     * @var ResourceMetadataCollectionFactoryInterface
      */
     protected $resourceMetadataFactory;
 
-    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, $resourceMetadataFactory = null)
+    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null)
     {
         $this->resourceClassResolver = $resourceClassResolver;
         $this->pageParameterName = $pageParameterName;
