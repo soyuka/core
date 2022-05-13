@@ -37,19 +37,6 @@ final class AttributesExtractor
             $result['subresource_context'] = $subresourceContext;
         }
 
-        // // Normalizing identifiers tuples
-        // // TODO: 3.0 remove
-        // $identifiers = [];
-        // foreach (($attributes['_api_identifiers'] ?? ['id']) as $parameterName => $identifiedBy) {
-        //     if (\is_string($identifiedBy)) {
-        //         $identifiers[$identifiedBy] = [$result['resource_class'], $identifiedBy];
-        //     } else {
-        //         $identifiers[$parameterName] = $identifiedBy;
-        //     }
-        // }
-        //
-        // $result['identifiers'] = $identifiers;
-
         if (null === $result['resource_class']) {
             return [];
         }
