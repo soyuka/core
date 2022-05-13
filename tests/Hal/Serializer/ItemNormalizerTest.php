@@ -24,7 +24,6 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\MaxDepthDummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelatedDummy;
 use ApiPlatform\Tests\ProphecyTrait;
-use Doctrine\Common\Annotations\AnnotationReader;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Symfony\Component\PropertyInfo\Type;
@@ -287,7 +286,7 @@ class ItemNormalizerTest extends TestCase
             $resourceClassResolverProphecy->reveal(),
             null,
             null,
-            new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()))
+            new ClassMetadataFactory(new AnnotationLoader())
         );
         $serializer = new Serializer([$normalizer]);
         $normalizer->setSerializer($serializer);

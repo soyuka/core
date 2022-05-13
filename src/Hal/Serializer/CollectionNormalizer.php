@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace ApiPlatform\Hal\Serializer;
 
 use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Serializer\AbstractCollectionNormalizer;
 use ApiPlatform\Util\IriHelper;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
