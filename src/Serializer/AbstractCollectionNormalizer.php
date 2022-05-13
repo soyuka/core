@@ -42,9 +42,6 @@ abstract class AbstractCollectionNormalizer implements NormalizerInterface, Norm
     protected $resourceClassResolver;
     protected $pageParameterName;
 
-    /**
-     * @var ResourceMetadataCollectionFactoryInterface
-     */
     protected $resourceMetadataFactory;
 
     public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null)

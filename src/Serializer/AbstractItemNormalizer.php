@@ -59,13 +59,7 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
      * @var PropertyNameCollectionFactoryInterface
      */
     protected $propertyNameCollectionFactory;
-    /**
-     * @var PropertyMetadataFactoryInterface
-     */
     protected $propertyMetadataFactory;
-    /**
-     * @var IriConverterInterface
-     */
     protected $iriConverter;
     protected $resourceClassResolver;
     protected $resourceAccessChecker;

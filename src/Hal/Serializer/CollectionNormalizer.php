@@ -42,7 +42,6 @@ final class CollectionNormalizer extends AbstractCollectionNormalizer
         [$paginator, $paginated, $currentPage, $itemsPerPage, $lastPage, $pageTotalItems, $totalItems] = $this->getPaginationConfig($object, $context);
         $parsed = IriHelper::parseIri($context['uri'] ?? '/', $this->pageParameterName);
 
-        /** @var ResourceMetadataCollection */
         $metadata = $this->resourceMetadataFactory->create($context['resource_class'] ?? '');
         $operation = $metadata->getOperation($context['operation_name'] ?? null);
         $urlGenerationStrategy = $operation->getUrlGenerationStrategy();
