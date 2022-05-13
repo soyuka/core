@@ -52,7 +52,6 @@ final class EntrypointNormalizer implements NormalizerInterface, CacheableSuppor
         $entrypoint = ['_links' => ['self' => ['href' => $this->urlGenerator->generate('api_entrypoint')]]];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
-            /** @var ResourceMetadataCollection */
             $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
             foreach ($resourceMetadata as $resource) {
