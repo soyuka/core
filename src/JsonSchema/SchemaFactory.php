@@ -14,19 +14,12 @@ declare(strict_types=1);
 namespace ApiPlatform\JsonSchema;
 
 use ApiPlatform\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\Api\OperationType;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface as LegacyPropertyMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface as LegacyPropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Swagger\Serializer\DocumentationNormalizer;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\OpenApi\Factory\OpenApiFactory;
 use ApiPlatform\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyInfo\Type;
@@ -45,23 +38,14 @@ final class SchemaFactory implements SchemaFactoryInterface
     use ResourceClassInfoTrait;
 
     private $typeFactory;
-    /**
-     * @var LegacyPropertyNameCollectionFactoryInterface|PropertyNameCollectionFactoryInterface
-     */
     private $propertyNameCollectionFactory;
-    /**
-     * @var LegacyPropertyMetadataFactoryInterface|PropertyMetadataFactoryInterface
-     */
     private $propertyMetadataFactory;
     private $nameConverter;
     private $distinctFormats = [];
 
-    public function __construct(TypeFactoryInterface $typeFactory, $resourceMetadataFactory, $propertyNameCollectionFactory, $propertyMetadataFactory, NameConverterInterface $nameConverter = null, ResourceClassResolverInterface $resourceClassResolver = null)
+    public function __construct(TypeFactoryInterface $typeFactory, ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, NameConverterInterface $nameConverter = null, ResourceClassResolverInterface $resourceClassResolver = null)
     {
         $this->typeFactory = $typeFactory;
-        if (!$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
-            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
-        }
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
         $this->propertyMetadataFactory = $propertyMetadataFactory;
@@ -95,16 +79,14 @@ final class SchemaFactory implements SchemaFactoryInterface
             throw new \LogicException('The $operationType and $operationName arguments must be null for non-resource class.');
         }
 
-        $operation = $resourceMetadata instanceof ResourceMetadataCollection ? $resourceMetadata->getOperation($operationName, OperationType::COLLECTION === $operationType) : null;
+        $operation = $resourceMetadata ? $resourceMetadata->getOperation($operationName, 'collection' === $operationType) : null;
 
         $version = $schema->getVersion();
-        $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata : $operation, $serializerContext);
+        $definitionName = $this->buildDefinitionName($className, $format, $inputOrOutputClass, $operation, $serializerContext);
 
         $method = $operation instanceof HttpOperation ? $operation->getMethod() : 'GET';
         if (!$operation && (null === $operationType || null === $operationName)) {
             $method = Schema::TYPE_INPUT === $type ? 'POST' : 'GET';
-        } elseif ($resourceMetadata instanceof ResourceMetadata) {
-            $method = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'method', 'GET');
         }
 
         if (Schema::TYPE_OUTPUT !== $type && !\in_array($method, ['POST', 'PATCH', 'PUT'], true)) {
@@ -114,7 +96,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         if (!isset($schema['$ref']) && !isset($schema['type'])) {
             $ref = Schema::VERSION_OPENAPI === $version ? '#/components/schemas/'.$definitionName : '#/definitions/'.$definitionName;
 
-            if ($forceCollection || (OperationType::COLLECTION === $operationType && 'POST' !== $method)) {
+            if ($forceCollection || ('collection' === $operationType && 'POST' !== $method)) {
                 $schema['type'] = 'array';
                 $schema['items'] = ['$ref' => $ref];
             } else {
@@ -131,12 +113,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         /** @var \ArrayObject<string, mixed> $definition */
         $definition = new \ArrayObject(['type' => 'object']);
         $definitions[$definitionName] = $definition;
-
-        if ($resourceMetadata instanceof ResourceMetadata) {
-            $definition['description'] = $resourceMetadata->getDescription() ?? '';
-        } else {
-            $definition['description'] = $operation ? ($operation->getDescription() ?? '') : '';
-        }
+        $definition['description'] = $operation ? ($operation->getDescription() ?? '') : '';
 
         // additionalProperties are allowed by default, so it does not need to be set explicitly, unless allow_extra_attributes is false
         // See https://json-schema.org/understanding-json-schema/reference/object.html#properties
@@ -145,27 +122,16 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         // see https://github.com/json-schema-org/json-schema-spec/pull/737
-        if (
-            Schema::VERSION_SWAGGER !== $version
-        ) {
-            if (($resourceMetadata instanceof ResourceMetadata &&
-                    ($operationType && $operationName ? $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', null, true) : $resourceMetadata->getAttribute('deprecation_reason', null))
-                ) || ($operation && $operation->getDeprecationReason())
-            ) {
-                $definition['deprecated'] = true;
-            }
-        }
+        $definition['deprecated'] = Schema::VERSION_SWAGGER !== $version && $operation && $operation->getDeprecationReason();
 
         // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
         // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-        if ($resourceMetadata instanceof ResourceMetadata && $resourceMetadata->getIri()) {
-            $definition['externalDocs'] = ['url' => $resourceMetadata->getIri()];
-        } elseif ($operation instanceof HttpOperation && ($operation->getTypes()[0] ?? null)) {
+        if ($operation instanceof HttpOperation && ($operation->getTypes()[0] ?? null)) {
             $definition['externalDocs'] = ['url' => $operation->getTypes()[0]];
         }
 
         // TODO: getFactoryOptions should be refactored because Item & Collection Operations don't exist anymore (API Platform 3.0)
-        $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationType, $operationName, $operation instanceof HttpOperation ? $operation : null);
+        $options = $this->getFactoryOptions($serializerContext, $validationGroups, $operationName, $operation instanceof HttpOperation ? $operation : null);
         foreach ($this->propertyNameCollectionFactory->create($inputOrOutputClass, $options) as $propertyName) {
             $propertyMetadata = $this->propertyMetadataFactory->create($inputOrOutputClass, $propertyName, $options);
             if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
@@ -183,32 +149,18 @@ final class SchemaFactory implements SchemaFactoryInterface
         return $schema;
     }
 
-    private function buildPropertySchema(Schema $schema, string $definitionName, string $normalizedPropertyName, $propertyMetadata, array $serializerContext, string $format): void
+    private function buildPropertySchema(Schema $schema, string $definitionName, string $normalizedPropertyName, ApiProperty $propertyMetadata, array $serializerContext, string $format): void
     {
         $version = $schema->getVersion();
         $swagger = Schema::VERSION_SWAGGER === $version;
-        $propertySchema = $propertyMetadata->getSchema() ?? [];
-
-        if ($propertyMetadata instanceof ApiProperty) {
-            $additionalPropertySchema = $propertyMetadata->getOpenapiContext() ?? [];
-        } else {
-            switch ($version) {
-                case Schema::VERSION_SWAGGER:
-                    $basePropertySchemaAttribute = 'swagger_context';
-                    break;
-                case Schema::VERSION_OPENAPI:
-                    $basePropertySchemaAttribute = 'openapi_context';
-                    break;
-                default:
-                    $basePropertySchemaAttribute = 'json_schema_context';
-            }
-
-            $additionalPropertySchema = $propertyMetadata->getAttributes()[$basePropertySchemaAttribute] ?? [];
-        }
+        $additionalPropertySchema = match ($version) {
+            Schema::VERSION_SWAGGER, Schema::VERSION_OPENAPI => $propertyMetadata->getOpenapiContext(),
+                default => $propertyMetadata->getJsonSchemaContext()
+        };
 
         $propertySchema = array_merge(
-            $propertySchema,
-            $additionalPropertySchema
+            $propertyMetadata->getSchema() ?? [],
+            $additionalPropertySchema ?? []
         );
 
         if (false === $propertyMetadata->isWritable() && !$propertyMetadata->isInitializable()) {
@@ -221,7 +173,7 @@ final class SchemaFactory implements SchemaFactoryInterface
             $propertySchema['description'] = $description;
         }
 
-        $deprecationReason = $propertyMetadata instanceof PropertyMetadata ? $propertyMetadata->getAttribute('deprecation_reason') : $propertyMetadata->getDeprecationReason();
+        $deprecationReason = $propertyMetadata->getDeprecationReason();
 
         // see https://github.com/json-schema-org/json-schema-spec/pull/737
         if (!$swagger && null !== $deprecationReason) {
@@ -229,7 +181,7 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
         // externalDocs is an OpenAPI specific extension, but JSON Schema allows additional keys, so we always add it
         // See https://json-schema.org/latest/json-schema-core.html#rfc.section.6.4
-        $iri = $propertyMetadata instanceof PropertyMetadata ? $propertyMetadata->getIri() : $propertyMetadata->getTypes()[0] ?? null;
+        $iri = $propertyMetadata->getTypes()[0] ?? null;
         if (null !== $iri) {
             $propertySchema['externalDocs'] = ['url' => $iri];
         }
@@ -247,8 +199,8 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         $valueSchema = [];
-        // TODO: 3.0 support multiple types, default value of types will be [] instead of null
-        $type = $propertyMetadata instanceof PropertyMetadata ? $propertyMetadata->getType() : $propertyMetadata->getBuiltinTypes()[0] ?? null;
+        // TODO: 3.0 support multiple types
+        $type = $propertyMetadata->getBuiltinTypes()[0] ?? null;
         if (null !== $type) {
             if ($isCollection = $type->isCollection()) {
                 $keyType = method_exists(Type::class, 'getCollectionKeyTypes') ? ($type->getCollectionKeyTypes()[0] ?? null) : $type->getCollectionKeyType();
@@ -280,7 +232,7 @@ final class SchemaFactory implements SchemaFactoryInterface
     private function buildDefinitionName(string $className, string $format = 'json', ?string $inputOrOutputClass = null, $resourceMetadata = null, ?array $serializerContext = null): string
     {
         if ($resourceMetadata) {
-            $prefix = $resourceMetadata instanceof ResourceMetadata ? $resourceMetadata->getShortName() : $resourceMetadata->getShortName();
+            $prefix = $resourceMetadata->getShortName();
         }
 
         if (!isset($prefix)) {
@@ -298,7 +250,7 @@ final class SchemaFactory implements SchemaFactoryInterface
             $prefix .= '.'.$format;
         }
 
-        $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? $serializerContext[DocumentationNormalizer::SWAGGER_DEFINITION_NAME] ?? null;
+        $definitionName = $serializerContext[OpenApiFactory::OPENAPI_DEFINITION_NAME] ?? null;
         if ($definitionName) {
             $name = sprintf('%s-%s', $prefix, $definitionName);
         } else {
@@ -325,22 +277,10 @@ final class SchemaFactory implements SchemaFactoryInterface
             ];
         }
 
-        /** @var ResourceMetadata|ResourceMetadataCollection $resourceMetadata */
         $resourceMetadata = $this->resourceMetadataFactory->create($className);
         $attribute = Schema::TYPE_OUTPUT === $type ? 'output' : 'input';
-        $operation = ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) ? null : $resourceMetadata->getOperation($operationName);
-
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface) {
-            if (null === $operationType || null === $operationName) {
-                $inputOrOutput = $resourceMetadata->getAttribute($attribute, ['class' => $className]);
-            } else {
-                $inputOrOutput = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, ['class' => $className], true);
-            }
-        } elseif ($operation) {
-            $inputOrOutput = (Schema::TYPE_OUTPUT === $type ? $operation->getOutput() : $operation->getInput()) ?? ['class' => $className];
-        } else {
-            $inputOrOutput = ['class' => $className];
-        }
+        $operation = $resourceMetadata->getOperation($operationName);
+        $inputOrOutput = (Schema::TYPE_OUTPUT === $type ? $operation->getOutput() : $operation->getInput()) ?? ['class' => $className];
 
         if (null === ($inputOrOutput['class'] ?? $inputOrOutput->class ?? null)) {
             // input or output disabled
@@ -350,50 +290,21 @@ final class SchemaFactory implements SchemaFactoryInterface
         return [
             $resourceMetadata,
             $serializerContext ?? $this->getSerializerContext($resourceMetadata, $type, $operationType, $operationName),
-            $this->getValidationGroups($this->resourceMetadataFactory instanceof ResourceMetadataFactoryInterface ? $resourceMetadata : $operation, $operationType, $operationName),
+            $this->getValidationGroups($operation),
             $inputOrOutput['class'] ?? $inputOrOutput->class,
         ];
     }
 
     private function getSerializerContext($resourceMetadata, string $type = Schema::TYPE_OUTPUT, ?string $operationType = null, ?string $operationName = null): array
     {
-        if ($resourceMetadata instanceof ResourceMetadata) {
-            $attribute = Schema::TYPE_OUTPUT === $type ? 'normalization_context' : 'denormalization_context';
-        } else {
-            $operation = $resourceMetadata->getOperation($operationName);
-        }
-
-        if (null === $operationType || null === $operationName) {
-            if ($resourceMetadata instanceof ResourceMetadata) {
-                return $resourceMetadata->getAttribute($attribute, []);
-            }
-
-            return Schema::TYPE_OUTPUT === $type ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
-        }
-
-        if ($resourceMetadata instanceof ResourceMetadata) {
-            return $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true);
-        }
+        $operation = $resourceMetadata->getOperation($operationName);
 
         return Schema::TYPE_OUTPUT === $type ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
     }
 
-    /**
-     * @param HttpOperation|ResourceMetadata|null $resourceMetadata
-     */
-    private function getValidationGroups($resourceMetadata, ?string $operationType, ?string $operationName): array
+    private function getValidationGroups(Operation $operation): array
     {
-        if ($resourceMetadata instanceof ResourceMetadata) {
-            $attribute = 'validation_groups';
-
-            if (null === $operationType || null === $operationName) {
-                return \is_array($validationGroups = $resourceMetadata->getAttribute($attribute, [])) ? $validationGroups : [];
-            }
-
-            return \is_array($validationGroups = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, $attribute, [], true)) ? $validationGroups : [];
-        }
-
-        $groups = $resourceMetadata ? ($resourceMetadata->getValidationContext()['groups'] ?? []) : [];
+        $groups = $operation->getValidationContext()['groups'] ?? [];
 
         return \is_array($groups) ? $groups : [$groups];
     }
@@ -401,7 +312,7 @@ final class SchemaFactory implements SchemaFactoryInterface
     /**
      * Gets the options for the property name collection / property metadata factories.
      */
-    private function getFactoryOptions(array $serializerContext, array $validationGroups, ?string $operationType, ?string $operationName, ?HttpOperation $operation = null): array
+    private function getFactoryOptions(array $serializerContext, array $validationGroups, ?string $operationName, ?HttpOperation $operation = null): array
     {
         $options = [
             /* @see https://github.com/symfony/symfony/blob/v5.1.0/src/Symfony/Component/PropertyInfo/Extractor/ReflectionExtractor.php */
@@ -413,22 +324,13 @@ final class SchemaFactory implements SchemaFactoryInterface
             $options['serializer_groups'] = (array) $serializerContext[AbstractNormalizer::GROUPS];
         }
 
-        if ($this->resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface && $operation) {
+        if ($operation) {
             $options['normalization_groups'] = $operation->getNormalizationContext()['groups'] ?? null;
             $options['denormalization_groups'] = $operation->getDenormalizationContext()['groups'] ?? null;
         }
 
-        if (null !== $operationType && null !== $operationName) {
-            switch ($operationType) {
-                case OperationType::COLLECTION:
-                    $options['collection_operation_name'] = $operationName;
-                    break;
-                case OperationType::ITEM:
-                    $options['item_operation_name'] = $operationName;
-                    break;
-                default:
-                    break;
-            }
+        if ($operationName) {
+            $options['operation_name'] = $operationName;
         }
 
         if ($validationGroups) {
