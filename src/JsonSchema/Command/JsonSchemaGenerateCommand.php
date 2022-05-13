@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\JsonSchema\Command;
 
-use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\JsonSchema\Schema;
 use ApiPlatform\JsonSchema\SchemaFactoryInterface;
+use ApiPlatform\Metadata\HttpOperation;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -52,8 +52,7 @@ final class JsonSchemaGenerateCommand extends Command
         $this
             ->setDescription('Generates the JSON Schema for a resource operation.')
             ->addArgument('resource', InputArgument::REQUIRED, 'The Fully Qualified Class Name (FQCN) of the resource')
-            ->addOption('itemOperation', null, InputOption::VALUE_REQUIRED, 'The item operation')
-            ->addOption('collectionOperation', null, InputOption::VALUE_REQUIRED, 'The collection operation')
+            ->addOption('operation', null, InputOption::VALUE_REQUIRED, 'The operation name')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The response format', (string) $this->formats[0])
             ->addOption('type', null, InputOption::VALUE_REQUIRED, sprintf('The type of schema to generate (%s or %s)', Schema::TYPE_INPUT, Schema::TYPE_OUTPUT), Schema::TYPE_INPUT);
     }
@@ -67,10 +66,7 @@ final class JsonSchemaGenerateCommand extends Command
 
         /** @var string $resource */
         $resource = $input->getArgument('resource');
-        /** @var ?string $itemOperation */
-        $itemOperation = $input->getOption('itemOperation');
-        /** @var ?string $collectionOperation */
-        $collectionOperation = $input->getOption('collectionOperation');
+        $operation = $input->getOption('operation');
         /** @var string $format */
         $format = $input->getOption('format');
         /** @var string $type */
@@ -86,26 +82,10 @@ final class JsonSchemaGenerateCommand extends Command
             throw new InvalidOptionException(sprintf('The response format "%s" is not supported. Supported formats are : %s.', $format, implode(', ', $this->formats)));
         }
 
-        /** @var ?string $operationType */
-        $operationType = null;
-        /** @var ?string $operationName */
-        $operationName = null;
+        $schema = $this->schemaFactory->buildSchema($resource, $format, $type, $operation ? (new class() extends HttpOperation {})->withName($operation) : null);
 
-        if ($itemOperation && $collectionOperation) {
-            $io->error('You can only use one of "--itemOperation" and "--collectionOperation" options at the same time.');
-
-            return 1;
-        }
-
-        if (null !== $itemOperation || null !== $collectionOperation) {
-            $operationType = $itemOperation ? OperationType::ITEM : OperationType::COLLECTION;
-            $operationName = $itemOperation ?? $collectionOperation;
-        }
-
-        $schema = $this->schemaFactory->buildSchema($resource, $format, $type, $operationType, $operationName);
-
-        if (null !== $operationType && null !== $operationName && !$schema->isDefined()) {
-            $io->error(sprintf('There is no %s defined for the operation "%s" of the resource "%s".', $type, $operationName, $resource));
+        if (!$schema->isDefined()) {
+            $io->error(sprintf('There is no %s defined for the operation "%s" of the resource "%s".', $type, $operation, $resource));
 
             return 1;
         }

@@ -33,9 +33,6 @@ use Prophecy\Argument;
 use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
-/**
- * @group legacy
- */
 class SchemaFactoryTest extends TestCase
 {
     use ProphecyTrait;
@@ -106,21 +103,22 @@ class SchemaFactoryTest extends TestCase
 
         $shortName = (new \ReflectionClass(OverriddenOperationDummy::class))->getShortName();
         $resourceMetadataFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
+        $operation = new Put(
+            name: 'put',
+            normalizationContext: [
+                'groups' => 'overridden_operation_dummy_put',
+                AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
+            ],
+            shortName: $shortName,
+            validationContext: [
+                'groups' => ['validation_groups_dummy_put'],
+            ]
+        );
         $resourceMetadataFactoryProphecy->create(OverriddenOperationDummy::class)
                                         ->willReturn(
                                             new ResourceMetadataCollection(OverriddenOperationDummy::class, [
                                                 new ApiResource(operations: [
-                                                    'put' => new Put(
-                                                        name: 'get',
-                                                        normalizationContext: [
-                                                            'groups' => 'overridden_operation_dummy_put',
-                                                            AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
-                                                        ],
-                                                        shortName: $shortName,
-                                                        validationContext: [
-                                                            'groups' => ['validation_groups_dummy_put'],
-                                                        ]
-                                                    ),
+                                                    'put' => $operation,
                                                 ]),
                                             ])
                                         );
@@ -148,7 +146,7 @@ class SchemaFactoryTest extends TestCase
         $resourceClassResolverProphecy->isResourceClass(OverriddenOperationDummy::class)->willReturn(true);
 
         $schemaFactory = new SchemaFactory($typeFactoryProphecy->reveal(), $resourceMetadataFactoryProphecy->reveal(), $propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), null, $resourceClassResolverProphecy->reveal());
-        $resultSchema = $schemaFactory->buildSchema(OverriddenOperationDummy::class, 'json', Schema::TYPE_OUTPUT, null, 'put');
+        $resultSchema = $schemaFactory->buildSchema(OverriddenOperationDummy::class, 'json', Schema::TYPE_OUTPUT);
 
         $rootDefinitionKey = $resultSchema->getRootDefinitionKey();
         $definitions = $resultSchema->getDefinitions();
