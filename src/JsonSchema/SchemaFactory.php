@@ -146,10 +146,11 @@ final class SchemaFactory implements SchemaFactoryInterface
     {
         $version = $schema->getVersion();
         $swagger = Schema::VERSION_SWAGGER === $version;
-        $additionalPropertySchema = match ($version) {
-            Schema::VERSION_SWAGGER, Schema::VERSION_OPENAPI => $propertyMetadata->getOpenapiContext(),
-                default => $propertyMetadata->getJsonSchemaContext()
-        };
+        if (Schema::VERSION_SWAGGER === $version || Schema::VERSION_OPENAPI === $version) {
+            $additionalPropertySchema = $propertyMetadata->getOpenapiContext();
+        } else {
+            $additionalPropertySchema = $propertyMetadata->getJsonSchemaContext();
+        }
 
         $propertySchema = array_merge(
             $propertyMetadata->getSchema() ?? [],
