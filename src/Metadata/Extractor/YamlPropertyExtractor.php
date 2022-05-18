@@ -84,6 +84,7 @@ final class YamlPropertyExtractor extends AbstractPropertyExtractor
                     'initializable' => $this->phpize($propertyValues, 'initializable', 'bool'),
                     'jsonldContext' => $this->buildAttribute($propertyValues, 'jsonldContext'),
                     'openapiContext' => $this->buildAttribute($propertyValues, 'openapiContext'),
+                    'jsonSchemaContext' => $this->buildAttribute($propertyValues, 'jsonSchemaContext'),
                     'types' => $this->buildAttribute($propertyValues, 'types'),
                     'extraProperties' => $this->buildAttribute($propertyValues, 'extraProperties'),
                     'default' => $propertyValues['default'] ?? null,
