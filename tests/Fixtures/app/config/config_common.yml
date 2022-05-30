@@ -63,8 +63,6 @@ api_platform:
             enabled: true
             xkey: 
                 glue: ' '
-    openapi:
-        backward_compatibility_layer: false
     defaults:
         pagination_client_enabled:            true
         pagination_client_items_per_page:     true
