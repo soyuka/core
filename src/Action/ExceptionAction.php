@@ -38,13 +38,12 @@ final class ExceptionAction
     private $serializer;
     private $errorFormats;
     private $exceptionToStatus;
-    private $resourceMetadataCollectionFactory;
 
     /**
      * @param array $errorFormats      A list of enabled error formats
      * @param array $exceptionToStatus A list of exceptions mapped to their HTTP status code
      */
-    public function __construct(SerializerInterface $serializer, ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, array $errorFormats, array $exceptionToStatus = [])
+    public function __construct(SerializerInterface $serializer, array $errorFormats, array $exceptionToStatus = [], ?ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory = null)
     {
         $this->serializer = $serializer;
         $this->errorFormats = $errorFormats;
