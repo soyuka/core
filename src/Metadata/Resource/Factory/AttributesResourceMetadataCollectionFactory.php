@@ -249,6 +249,10 @@ final class AttributesResourceMetadataCollectionFactory implements ResourceMetad
             }
         }
 
+        if (!isset($extraProperties)) {
+            return $operation;
+        }
+
         return $operation->withExtraProperties($extraProperties);
     }
 
