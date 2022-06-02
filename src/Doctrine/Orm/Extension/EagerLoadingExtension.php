@@ -45,6 +45,8 @@ final class EagerLoadingExtension implements QueryCollectionExtensionInterface, 
     private PropertyMetadataFactoryInterface $propertyMetadataFactory;
     private ?ClassMetadataFactoryInterface $classMetadataFactory;
     private int $maxJoins;
+    private bool $forceEager;
+    private bool $fetchPartial;
 
     public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, int $maxJoins = 30, bool $forceEager = true, bool $fetchPartial = false, ClassMetadataFactoryInterface $classMetadataFactory = null)
     {

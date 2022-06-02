@@ -69,7 +69,7 @@ class DummyCar
      * @var mixed Something else
      */
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    #[ORM\ManyToMany(targetEntity: 'UuidIdentifierDummy', indexBy: 'uuid')]
+    #[ORM\ManyToMany(targetEntity: UuidIdentifierDummy::class, indexBy: 'uuid', mappedBy: 'uuid')]
     #[Serializer\Groups(['colors'])]
     private mixed $uuid = null;
     #[ApiFilter(SearchFilter::class, strategy: 'partial')]
