@@ -567,14 +567,6 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer
             $options['operation_name'] = $context['operation_name'];
         }
 
-        if (isset($context['collection_operation_name'])) {
-            $options['collection_operation_name'] = $context['collection_operation_name'];
-        }
-
-        if (isset($context['item_operation_name'])) {
-            $options['item_operation_name'] = $context['item_operation_name'];
-        }
-
         return $options;
     }
 

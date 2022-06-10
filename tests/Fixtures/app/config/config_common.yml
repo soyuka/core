@@ -64,6 +64,8 @@ api_platform:
             xkey: 
                 glue: ' '
     defaults:
+        normalization_context: 
+            skip_null_values: false
         pagination_client_enabled:            true
         pagination_client_items_per_page:     true
         pagination_client_partial:            true
