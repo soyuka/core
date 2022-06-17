@@ -28,7 +28,7 @@ class Relation2
     #[ORM\Id]
     #[ORM\GeneratedValue]
     public $id;
-    #[ORM\OneToMany(targetEntity: 'Relation1', mappedBy: 'relation2')]
+    #[ORM\OneToMany(targetEntity: Relation1::class, mappedBy: 'relation2')]
     public $relation1s;
 
     public function __construct()

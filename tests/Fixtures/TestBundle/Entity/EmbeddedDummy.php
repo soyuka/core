@@ -54,13 +54,13 @@ class EmbeddedDummy
     /**
      * @var EmbeddableDummy
      */
-    #[ORM\Embedded(class: 'EmbeddableDummy')]
+    #[ORM\Embedded(class: EmbeddableDummy::class)]
     #[Groups(['embed'])]
     public $embeddedDummy;
     /**
      * @var RelatedDummy|null A related dummy
      */
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class)]
     public $relatedDummy;
 
     public static function staticMethod()

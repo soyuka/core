@@ -31,10 +31,10 @@ class CircularReference
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     public $id;
-    #[ORM\ManyToOne(targetEntity: 'CircularReference', inversedBy: 'children')]
+    #[ORM\ManyToOne(targetEntity: CircularReference::class, inversedBy: 'children')]
     #[Groups(['circular'])]
     public $parent;
-    #[ORM\OneToMany(targetEntity: 'CircularReference', mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: CircularReference::class, mappedBy: 'parent')]
     #[Groups(['circular'])]
     public $children;
 

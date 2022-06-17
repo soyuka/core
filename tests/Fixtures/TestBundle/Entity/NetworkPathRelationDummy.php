@@ -26,7 +26,7 @@ class NetworkPathRelationDummy
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private $id;
-    #[ORM\OneToMany(targetEntity: 'NetworkPathDummy', mappedBy: 'networkPathRelationDummy')]
+    #[ORM\OneToMany(targetEntity: NetworkPathDummy::class, mappedBy: 'networkPathRelationDummy')]
     public $networkPathDummies;
 
     public function __construct()

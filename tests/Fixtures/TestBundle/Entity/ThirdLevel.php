@@ -45,7 +45,7 @@ class ThirdLevel
     private int $level = 3;
     #[ORM\Column(type: 'boolean')]
     private bool $test = true;
-    #[ORM\ManyToOne(targetEntity: 'FourthLevel', cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: FourthLevel::class, cascade: ['persist'])]
     #[Groups(['barcelona', 'chicago', 'friends'])]
     public $fourthLevel;
     #[ORM\ManyToOne(targetEntity: FourthLevel::class, cascade: ['persist'])]

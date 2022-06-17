@@ -31,7 +31,7 @@ class Question
     private $id;
     #[ORM\Column(nullable: true)]
     private $content;
-    #[ORM\OneToOne(targetEntity: 'Answer', inversedBy: 'question')]
+    #[ORM\OneToOne(targetEntity: Answer::class, inversedBy: 'question')]
     #[ORM\JoinColumn(name: 'answer_id', referencedColumnName: 'id', unique: true)]
     private $answer;
 

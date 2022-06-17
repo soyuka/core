@@ -42,8 +42,8 @@ class DummyProduct
     /**
      * @var \Collection<int,\DummyAggregateOffer>
      */
-    #[ORM\OneToMany(targetEntity: 'DummyAggregateOffer', mappedBy: 'product', cascade: ['persist'])]
-    private \Collection $offers;
+    #[ORM\OneToMany(targetEntity: DummyAggregateOffer::class, mappedBy: 'product', cascade: ['persist'])]
+    private Collection $offers;
     /**
      * @var string The tour name
      */
@@ -52,8 +52,8 @@ class DummyProduct
     /**
      * @var \Collection<int,\DummyProduct>
      */
-    #[ORM\OneToMany(targetEntity: 'DummyProduct', mappedBy: 'parent')]
-    private \Collection $relatedProducts;
+    #[ORM\OneToMany(targetEntity: DummyProduct::class, mappedBy: 'parent')]
+    private Collection $relatedProducts;
     #[ORM\ManyToOne(targetEntity: 'DummyProduct', inversedBy: 'relatedProducts')]
     private $parent;
 

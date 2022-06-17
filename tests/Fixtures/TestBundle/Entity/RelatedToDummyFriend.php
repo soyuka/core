@@ -48,13 +48,13 @@ class RelatedToDummyFriend
     #[Groups(['fakemanytomany', 'friends'])]
     private ?string $description = null;
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'DummyFriend')]
+    #[ORM\ManyToOne(targetEntity: DummyFriend::class)]
     #[ORM\JoinColumn(name: 'dummyfriend_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['fakemanytomany', 'friends'])]
     #[Assert\NotNull]
     private $dummyFriend;
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy', inversedBy: 'relatedToDummyFriend')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class, inversedBy: 'relatedToDummyFriend')]
     #[ORM\JoinColumn(name: 'relateddummy_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private $relatedDummy;

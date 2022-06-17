@@ -29,10 +29,10 @@ class Greeting
     private $id;
     #[ORM\Column]
     public $message = '';
-    #[ORM\ManyToOne(targetEntity: 'Person', inversedBy: 'sentGreetings')]
+    #[ORM\ManyToOne(targetEntity: Person::class, inversedBy: 'sentGreetings')]
     #[ORM\JoinColumn(name: 'sender_id')]
     public $sender;
-    #[ORM\ManyToOne(targetEntity: 'Person')]
+    #[ORM\ManyToOne(targetEntity: Person::class)]
     #[ORM\JoinColumn(name: 'recipient_id', nullable: true)]
     public $recipient;
 

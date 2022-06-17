@@ -28,7 +28,7 @@ class NetworkPathDummy
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private $id;
-    #[ORM\ManyToOne(targetEntity: 'NetworkPathRelationDummy', inversedBy: 'networkPathDummies')]
+    #[ORM\ManyToOne(targetEntity: NetworkPathRelationDummy::class, inversedBy: 'networkPathDummies')]
     public $networkPathRelationDummy;
 
     public function getId()

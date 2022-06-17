@@ -31,7 +31,7 @@ class DummyCarColor
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-    #[ORM\ManyToOne(targetEntity: 'DummyCar', inversedBy: 'colors')]
+    #[ORM\ManyToOne(targetEntity: DummyCar::class, inversedBy: 'colors')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', referencedColumnName: 'id_id')]
     #[Assert\NotBlank]
     private ?\ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyCar $car = null;

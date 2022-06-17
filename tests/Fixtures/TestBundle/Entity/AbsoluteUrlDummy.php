@@ -28,7 +28,7 @@ class AbsoluteUrlDummy
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private $id;
-    #[ORM\ManyToOne(targetEntity: 'AbsoluteUrlRelationDummy', inversedBy: 'absoluteUrlDummies')]
+    #[ORM\ManyToOne(targetEntity: AbsoluteUrlRelationDummy::class, inversedBy: 'absoluteUrlDummies')]
     public $absoluteUrlRelationDummy;
 
     public function getId()

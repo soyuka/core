@@ -31,6 +31,6 @@ class DummyMercure
     public $name;
     #[ORM\Column]
     public $description;
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class)]
     public $relatedDummy;
 }

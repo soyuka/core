@@ -129,13 +129,13 @@ class Dummy
     /**
      * @var RelatedOwnedDummy|null
      */
-    #[ORM\OneToOne(targetEntity: 'RelatedOwnedDummy', cascade: ['persist'], mappedBy: 'owningDummy')]
+    #[ORM\OneToOne(targetEntity: RelatedOwnedDummy::class, cascade: ['persist'], mappedBy: 'owningDummy')]
     public $relatedOwnedDummy;
 
     /**
      * @var RelatedOwningDummy|null
      */
-    #[ORM\OneToOne(targetEntity: 'RelatedOwningDummy', cascade: ['persist'], inversedBy: 'ownedDummy')]
+    #[ORM\OneToOne(targetEntity: RelatedOwningDummy::class, cascade: ['persist'], inversedBy: 'ownedDummy')]
     public $relatedOwningDummy;
 
     public static function staticMethod()

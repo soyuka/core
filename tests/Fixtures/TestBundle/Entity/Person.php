@@ -38,10 +38,10 @@ class Person
     /**
      * @var Collection<int, PersonToPet>
      */
-    #[ORM\OneToMany(targetEntity: 'PersonToPet', mappedBy: 'person')]
+    #[ORM\OneToMany(targetEntity: PersonToPet::class, mappedBy: 'person')]
     #[Groups(['people.pets'])]
     public $pets;
-    #[ORM\OneToMany(targetEntity: 'Greeting', mappedBy: 'sender')]
+    #[ORM\OneToMany(targetEntity: Greeting::class, mappedBy: 'sender')]
     public $sentGreetings;
 
     public function __construct()

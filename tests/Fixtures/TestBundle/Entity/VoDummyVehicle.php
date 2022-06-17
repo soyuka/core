@@ -25,13 +25,13 @@ abstract class VoDummyVehicle
     /**
      * @var VoDummyDriver[]|Collection
      */
-    #[ORM\ManyToMany(targetEntity: 'VoDummyDriver', cascade: ['persist'])]
+    #[ORM\ManyToMany(targetEntity: VoDummyDriver::class, cascade: ['persist'])]
     #[Groups(['car_read', 'car_write'])]
-    private readonly array|\Doctrine\Common\Collections\Collection $drivers;
+    private \Doctrine\Common\Collections\Collection $drivers;
 
     public function __construct(
         #[ORM\Column] #[Groups(['car_read', 'car_write'])] private readonly string $make,
-        #[ORM\ManyToOne(targetEntity: 'VoDummyInsuranceCompany', cascade: ['persist'])] #[Groups(['car_read', 'car_write'])] private readonly ?VoDummyInsuranceCompany $insuranceCompany,
+        #[ORM\ManyToOne(targetEntity: VoDummyInsuranceCompany::class, cascade: ['persist'])] #[Groups(['car_read', 'car_write'])] private readonly ?VoDummyInsuranceCompany $insuranceCompany,
         array $drivers
     ) {
         $this->drivers = new ArrayCollection($drivers);

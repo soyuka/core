@@ -42,13 +42,13 @@ class Answer
     #[ORM\Column(nullable: false)]
     #[Serializer\Groups(['foobar'])]
     private $content;
-    #[ORM\OneToOne(targetEntity: 'Question', mappedBy: 'answer')]
+    #[ORM\OneToOne(targetEntity: Question::class, mappedBy: 'answer')]
     #[Serializer\Groups(['foobar'])]
     private $question;
     /**
      * @var \Collection<int,\Question>
      */
-    #[ORM\OneToMany(targetEntity: 'Question', mappedBy: 'answer')]
+    #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'answer')]
     #[Serializer\Groups(['foobar'])]
     private readonly \Collection $relatedQuestions;
 

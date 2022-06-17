@@ -81,7 +81,7 @@ class SecuredDummy
      * @var Collection<RelatedDummy> Several dummies
      */
     #[ApiProperty(security: "is_granted('ROLE_ADMIN')")]
-    #[ORM\ManyToMany(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToMany(targetEntity: RelatedDummy::class)]
     #[ORM\JoinTable(name: 'secured_dummy_related_dummy')]
     public $relatedDummies;
 
@@ -91,7 +91,7 @@ class SecuredDummy
      * @var RelatedDummy|null
      */
     #[ApiProperty(security: "is_granted('ROLE_ADMIN')")]
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class)]
     #[ORM\JoinColumn(name: 'related_dummy_id')]
     protected $relatedDummy;
 
@@ -101,7 +101,7 @@ class SecuredDummy
      * @var Collection<RelatedSecuredDummy> Several dummies
      */
     #[ApiProperty(security: "is_granted('ROLE_USER')")]
-    #[ORM\ManyToMany(targetEntity: 'RelatedSecuredDummy')]
+    #[ORM\ManyToMany(targetEntity: RelatedSecuredDummy::class)]
     #[ORM\JoinTable(name: 'secured_dummy_related_secured_dummy')]
     public $relatedSecuredDummies;
 
@@ -111,7 +111,7 @@ class SecuredDummy
      * @var RelatedSecuredDummy|null
      */
     #[ApiProperty(security: "is_granted('ROLE_USER')")]
-    #[ORM\ManyToOne(targetEntity: 'RelatedSecuredDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedSecuredDummy::class)]
     #[ORM\JoinColumn(name: 'related_secured_dummy_id')]
     protected $relatedSecuredDummy;
 
@@ -120,7 +120,7 @@ class SecuredDummy
      *
      * @var Collection<RelatedSecuredDummy> Several dummies
      */
-    #[ORM\ManyToMany(targetEntity: 'RelatedSecuredDummy')]
+    #[ORM\ManyToMany(targetEntity: RelatedSecuredDummy::class)]
     #[ORM\JoinTable(name: 'secured_dummy_public_related_secured_dummy')]
     public $publicRelatedSecuredDummies;
 
@@ -129,7 +129,7 @@ class SecuredDummy
      *
      * @var RelatedSecuredDummy|null
      */
-    #[ORM\ManyToOne(targetEntity: 'RelatedSecuredDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedSecuredDummy::class)]
     #[ORM\JoinColumn(name: 'public_related_secured_dummy_id')]
     protected $publicRelatedSecuredDummy;
 

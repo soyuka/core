@@ -53,6 +53,6 @@ class DummyDtoInputOutput
     /**
      * @var Collection<RelatedDummy>
      */
-    #[ORM\ManyToMany(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToMany(targetEntity: RelatedDummy::class)]
     public $relatedDummies;
 }

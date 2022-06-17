@@ -29,8 +29,8 @@ class Relation3
     /**
      * @var Collection<int, Relation2>
      */
-    #[ORM\ManyToMany(targetEntity: 'Relation2', orphanRemoval: true)]
-    private readonly \Doctrine\Common\Collections\Collection $relation2s;
+    #[ORM\ManyToMany(targetEntity: Relation2::class, orphanRemoval: true)]
+    private \Doctrine\Common\Collections\Collection $relation2s;
 
     public function __construct()
     {

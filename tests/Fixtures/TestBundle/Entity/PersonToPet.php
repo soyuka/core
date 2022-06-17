@@ -28,7 +28,7 @@ class PersonToPet
      * @var Pet
      */
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'Pet')]
+    #[ORM\ManyToOne(targetEntity: Pet::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id')]
     #[Groups(['people.pets'])]
     public $pet;
@@ -36,7 +36,7 @@ class PersonToPet
      * @var Person
      */
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'Person')]
+    #[ORM\ManyToOne(targetEntity: Person::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id')]
     public $person;
 }

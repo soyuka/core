@@ -41,10 +41,10 @@ class RelationEmbedder
     #[ORM\Column]
     #[Groups(['barcelona', 'chicago'])]
     public $krondstadt = 'Krondstadt';
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy', cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class, cascade: ['persist'])]
     #[Groups(['chicago', 'barcelona'])]
     public $anotherRelated;
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class)]
     #[Groups(['barcelona', 'chicago'])]
     protected $related;
 

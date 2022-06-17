@@ -38,7 +38,7 @@ class Pet
     /**
      * @var Collection<int, PersonToPet>
      */
-    #[ORM\OneToMany(targetEntity: 'PersonToPet', mappedBy: 'pet')]
+    #[ORM\OneToMany(targetEntity: PersonToPet::class, mappedBy: 'pet')]
     public $people;
 
     public function __construct()

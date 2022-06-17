@@ -42,12 +42,12 @@ class DummyAggregateOffer
     /**
      * @var \Collection<int,\DummyOffer>
      */
-    #[ORM\OneToMany(targetEntity: 'DummyOffer', mappedBy: 'aggregate', cascade: ['persist'])]
+    #[ORM\OneToMany(targetEntity: DummyOffer::class, mappedBy: 'aggregate', cascade: ['persist'])]
     private \Collection $offers;
     /**
      * @var DummyProduct|null The dummy product
      */
-    #[ORM\ManyToOne(targetEntity: 'DummyProduct', inversedBy: 'offers')]
+    #[ORM\ManyToOne(targetEntity: DummyProduct::class, inversedBy: 'offers')]
     private ?\ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyProduct $product = null;
     /**
      * @var int The dummy aggregate offer value

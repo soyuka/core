@@ -68,11 +68,11 @@ class RelatedDummy extends ParentDummy
     #[Groups(['friends'])]
     public $dummyDate;
 
-    #[ORM\ManyToOne(targetEntity: 'ThirdLevel', cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: ThirdLevel::class, cascade: ['persist'])]
     #[Groups(['barcelona', 'chicago', 'friends'])]
     public $thirdLevel;
 
-    #[ORM\OneToMany(targetEntity: 'RelatedToDummyFriend', cascade: ['persist'], mappedBy: 'relatedDummy')]
+    #[ORM\OneToMany(targetEntity: RelatedToDummyFriend::class, cascade: ['persist'], mappedBy: 'relatedDummy')]
     #[Groups(['fakemanytomany', 'friends'])]
     public $relatedToDummyFriend;
 

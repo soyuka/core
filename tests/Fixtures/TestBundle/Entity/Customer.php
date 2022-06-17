@@ -30,7 +30,7 @@ class Customer
     #[ORM\Column(type: 'string')]
     #[Groups(['order_read'])]
     public $name;
-    #[ORM\ManyToMany(targetEntity: 'Address')]
+    #[ORM\ManyToMany(targetEntity: Address::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['order_read'])]
     public $addresses;

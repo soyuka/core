@@ -38,7 +38,7 @@ class RelatedOwningDummy
     /**
      * @var \Dummy|null
      */
-    #[ORM\OneToOne(targetEntity: 'Dummy', cascade: ['persist'], mappedBy: 'relatedOwningDummy')]
+    #[ORM\OneToOne(targetEntity: Dummy::class, cascade: ['persist'], mappedBy: 'relatedOwningDummy')]
     public $ownedDummy;
 
     public function getId()

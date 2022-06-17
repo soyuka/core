@@ -26,7 +26,18 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * DummyDtoCustom.
  */
-#[ApiResource(operations: [new Get(), new Get(output: CustomOutputDto::class, uriTemplate: 'dummy_dto_custom_output/{id}'), new Put(), new Delete(), new Post(input: CustomInputDto::class), new GetCollection(), new GetCollection(output: CustomOutputDto::class, uriTemplate: 'dummy_dto_custom_output'), new Post(output: false, uriTemplate: 'dummy_dto_custom_post_without_output')])]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Get(output: CustomOutputDto::class, uriTemplate: 'dummy_dto_custom_output/{id}'),
+        new Put(), 
+        new Delete(), 
+        new Post(input: CustomInputDto::class), 
+        new GetCollection(), 
+        new GetCollection(output: CustomOutputDto::class, uriTemplate: 'dummy_dto_custom_output'),
+        new Post(output: false, uriTemplate: 'dummy_dto_custom_post_without_output')
+    ]
+)]
 #[ORM\Entity]
 class DummyDtoCustom
 {

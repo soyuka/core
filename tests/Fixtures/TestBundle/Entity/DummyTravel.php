@@ -24,12 +24,12 @@ class DummyTravel
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private $id;
-    #[ORM\ManyToOne(targetEntity: 'DummyCar')]
+    #[ORM\ManyToOne(targetEntity: DummyCar::class)]
     #[ORM\JoinColumn(name: 'car_id', referencedColumnName: 'id_id')]
     public $car;
     #[ORM\Column(type: 'boolean')]
     public $confirmed;
-    #[ORM\ManyToOne(targetEntity: 'DummyPassenger')]
+    #[ORM\ManyToOne(targetEntity: DummyPassenger::class)]
     #[ORM\JoinColumn(name: 'passenger_id', referencedColumnName: 'id')]
     public $passenger;
 

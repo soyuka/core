@@ -28,7 +28,7 @@ class Site
     private $title;
     #[ORM\Column]
     private $description;
-    #[ORM\OneToOne(targetEntity: 'AbstractUser', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: AbstractUser::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private $owner;
 

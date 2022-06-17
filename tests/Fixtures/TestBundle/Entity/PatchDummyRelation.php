@@ -32,7 +32,7 @@ class PatchDummyRelation
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     public $id;
-    #[ORM\ManyToOne(targetEntity: 'RelatedDummy')]
+    #[ORM\ManyToOne(targetEntity: RelatedDummy::class)]
     #[Groups(['chicago'])]
     protected $related;
 

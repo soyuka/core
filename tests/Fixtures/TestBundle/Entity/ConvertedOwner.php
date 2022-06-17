@@ -30,7 +30,7 @@ class ConvertedOwner
     /**
      * @var ConvertedRelated|null
      */
-    #[ORM\ManyToOne(targetEntity: 'ConvertedRelated')]
+    #[ORM\ManyToOne(targetEntity: ConvertedRelated::class)]
     public $nameConverted;
 
     public function getId()

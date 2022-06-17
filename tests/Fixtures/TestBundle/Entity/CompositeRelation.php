@@ -28,12 +28,12 @@ class CompositeRelation
     #[Groups(['default'])]
     private $value;
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'CompositeItem', inversedBy: 'compositeValues')]
+    #[ORM\ManyToOne(targetEntity: CompositeItem::class, inversedBy: 'compositeValues')]
     #[ORM\JoinColumn(name: 'composite_item_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['default'])]
     private $compositeItem;
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: 'CompositeLabel')]
+    #[ORM\ManyToOne(targetEntity: CompositeLabel::class)]
     #[ORM\JoinColumn(name: 'composite_label_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['default'])]
     private $compositeLabel;

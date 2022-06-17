@@ -26,7 +26,7 @@ class VoDummyCar extends VoDummyVehicle
     /**
      * @var VoDummyInspection[]|Collection
      */
-    #[ORM\OneToMany(targetEntity: 'VoDummyInspection', mappedBy: 'car', cascade: ['persist'])]
+    #[ORM\OneToMany(targetEntity: VoDummyInspection::class, mappedBy: 'car', cascade: ['persist'])]
     #[Groups(['car_read', 'car_write'])]
     private readonly array|\Doctrine\Common\Collections\Collection $inspections;
 

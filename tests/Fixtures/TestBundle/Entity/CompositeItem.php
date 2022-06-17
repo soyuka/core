@@ -32,7 +32,7 @@ class CompositeItem implements \Stringable
     #[ORM\Column(type: 'string', nullable: true)]
     #[Groups(['default'])]
     private $field1;
-    #[ORM\OneToMany(targetEntity: 'CompositeRelation', mappedBy: 'compositeItem', fetch: 'EAGER')]
+    #[ORM\OneToMany(targetEntity: CompositeRelation::class, mappedBy: 'compositeItem', fetch: 'EAGER')]
     #[Groups(['default'])]
     private $compositeValues;
 

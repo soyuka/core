@@ -27,6 +27,6 @@ class Relation1
     #[ORM\Id]
     #[ORM\GeneratedValue]
     public $id;
-    #[ORM\ManyToOne(targetEntity: 'Relation2', inversedBy: 'relation1s')]
+    #[ORM\ManyToOne(targetEntity: Relation2::class, inversedBy: 'relation1s')]
     public $relation2;
 }

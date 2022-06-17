@@ -38,7 +38,7 @@ class DummyTableInheritance
     #[ORM\Column]
     #[Groups(['default'])]
     private ?string $name = null;
-    #[ORM\ManyToOne(targetEntity: 'DummyTableInheritanceRelated', inversedBy: 'children')]
+    #[ORM\ManyToOne(targetEntity: DummyTableInheritanceRelated::class, inversedBy: 'children')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?\ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyTableInheritanceRelated $parent = null;
 

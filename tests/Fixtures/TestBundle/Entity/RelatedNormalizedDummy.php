@@ -50,7 +50,7 @@ class RelatedNormalizedDummy
     /**
      * @var Collection<int, CustomNormalizedDummy> Several Normalized dummies
      */
-    #[ORM\ManyToMany(targetEntity: 'CustomNormalizedDummy')]
+    #[ORM\ManyToMany(targetEntity: CustomNormalizedDummy::class)]
     #[Groups(['related_output', 'related_input'])]
     public $customNormalizedDummy;
 

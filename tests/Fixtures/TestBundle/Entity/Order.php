@@ -28,11 +28,11 @@ class Order
     #[ORM\GeneratedValue(strategy: 'AUTO')]
     #[Groups(['order_read'])]
     private ?int $id = null;
-    #[ORM\ManyToOne(targetEntity: 'Customer')]
+    #[ORM\ManyToOne(targetEntity: Customer::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['order_read'])]
     public $customer;
-    #[ORM\ManyToOne(targetEntity: 'Customer')]
+    #[ORM\ManyToOne(targetEntity: Customer::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull]
     #[Groups(['order_read'])]

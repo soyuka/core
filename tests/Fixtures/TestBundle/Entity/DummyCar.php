@@ -42,27 +42,27 @@ class DummyCar
      * @var DummyCarIdentifier The entity Id
      */
     #[ORM\Id]
-    #[ORM\OneToOne(targetEntity: 'DummyCarIdentifier', cascade: ['persist'])]
+    #[ORM\OneToOne(targetEntity: DummyCarIdentifier::class, cascade: ['persist'])]
     private readonly \ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyCarIdentifier $id;
     /**
      * @var mixed Something else
      */
     #[ApiFilter(SearchFilter::class, properties: ['colors.prop' => 'ipartial', 'colors' => 'exact'])]
-    #[ORM\OneToMany(targetEntity: 'DummyCarColor', mappedBy: 'car')]
+    #[ORM\OneToMany(targetEntity: DummyCarColor::class, mappedBy: 'car')]
     #[Serializer\Groups(['colors'])]
     private $colors;
     /**
      * @var mixed Something else
      */
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    #[ORM\OneToMany(targetEntity: 'DummyCarColor', mappedBy: 'car')]
+    #[ORM\OneToMany(targetEntity: DummyCarColor::class, mappedBy: 'car')]
     #[Serializer\Groups(['colors'])]
     private mixed $secondColors = null;
     /**
      * @var mixed Something else
      */
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    #[ORM\OneToMany(targetEntity: 'DummyCarColor', mappedBy: 'car')]
+    #[ORM\OneToMany(targetEntity: DummyCarColor::class, mappedBy: 'car')]
     #[Serializer\Groups(['colors'])]
     private mixed $thirdColors = null;
     /**

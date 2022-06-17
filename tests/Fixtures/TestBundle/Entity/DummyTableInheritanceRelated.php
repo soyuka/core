@@ -34,7 +34,7 @@ class DummyTableInheritanceRelated
     /**
      * @var Collection<int, DummyTableInheritance> Related children
      */
-    #[ORM\OneToMany(targetEntity: 'DummyTableInheritance', mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: DummyTableInheritance::class, mappedBy: 'parent')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     #[Groups(['default'])]
     private \Doctrine\Common\Collections\Collection $children;
