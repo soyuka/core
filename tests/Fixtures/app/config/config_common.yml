@@ -321,6 +321,13 @@ services:
         tags:
             - name: 'api_platform.state_provider'
 
+    ApiPlatform\Tests\Fixtures\TestBundle\State\DummyDtoNoInputsProvider: 
+        arguments:
+            $itemProvider: '@ApiPlatform\Doctrine\Orm\State\ItemProvider'
+            $collectionProvider: '@ApiPlatform\Doctrine\Orm\State\CollectionProvider'
+        tags:
+            - name: 'api_platform.state_provider'
+
     ApiPlatform\Tests\Fixtures\TestBundle\State\RecoverPasswordProcessor: 
         tags:
             - name: 'api_platform.state_processor'
