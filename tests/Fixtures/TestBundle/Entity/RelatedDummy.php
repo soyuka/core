@@ -53,7 +53,7 @@ class RelatedDummy extends ParentDummy
      * @var string|null A name
      */
     #[ORM\Column(nullable: true)]
-    #[Groups(['friends'])]
+    #[Groups(['friends', 'chicago'])]
     public $name;
 
     #[ORM\Column]

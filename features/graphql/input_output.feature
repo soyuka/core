@@ -27,14 +27,12 @@ Feature: GraphQL DTO input and output
         "bat": "OutputDto/bat",
         "relatedDummies": "OutputDto/relatedDummies"
       },
-      "@type": "DummyDtoInputOutput",
-      "@id": "/dummy_dto_input_outputs/1",
+      "@type": "OutputDto",
       "id": 1,
       "baz": 1,
       "bat": "test",
       "relatedDummies": [
         {
-          "@context": "/contexts/RelatedDummy",
           "@id": "/related_dummies/1",
           "@type": "https://schema.org/Product",
           "name": "RelatedDummy with friends",
@@ -150,7 +148,7 @@ Feature: GraphQL DTO input and output
     {
       "errors": [
         {
-          "message": "Cannot query field \"id\" on type \"DummyDtoNoOutput\".",
+          "message": "Cannot query field \"id\" on type \"createDummyDtoNoOutputPayloadData\".",
           "extensions": {
             "category": "graphql"
           },
