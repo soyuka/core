@@ -46,7 +46,7 @@ final class DummyDtoInputOutputProcessor implements ProcessorInterface
 
         $entity->str = $data->foo;
         $entity->num = $data->bar;
-        $entity->relatedDummies = new ArrayCollection($data->relatedDummies ?? []);
+        $entity->relatedDummies = new ArrayCollection($data->relatedDummies);
 
         $manager->persist($entity);
         $manager->flush();
