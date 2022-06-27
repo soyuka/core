@@ -101,6 +101,10 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
         $uriTemplate = sprintf('/%s', $this->pathSegmentNameGenerator->getSegmentName($operation->getShortName()));
         $uriVariables = $operation->getUriVariables() ?? [];
 
+        if (!\is_array($uriVariables)) {
+            dd($operation);
+        }
+
         if ($parameters = array_keys($uriVariables)) {
             if (($operation->getExtraProperties()['is_legacy_resource_metadata'] ?? false) && 1 < \count($uriVariables[$parameters[0]]->getIdentifiers() ?? [])) {
                 $parameters[0] = 'id';
@@ -126,7 +130,11 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
             [] === $operation->getUriVariables() ||
             ($operation instanceof CollectionOperationInterface && null === $operation->getUriTemplate())
         )) {
-            return $operation;
+            if (null === $operation->getUriVariables()) {
+                return $operation;
+            }
+
+            return $this->normalizeUriVariables($operation);
         }
 
         if (!$operation->getUriVariables()) {
@@ -178,6 +186,7 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
     private function normalizeUriVariables($operation)
     {
         $uriVariables = (array) ($operation->getUriVariables() ?? []);
+
         $normalizedUriVariables = [];
         $resourceClass = $operation->getClass();
 
