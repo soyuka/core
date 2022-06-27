@@ -30,7 +30,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
  *
  * @author Vincent Chalamon <vincentchalamon@gmail.com>
  */
-class RelatedDummyPlainIdentifierDenormalizer implements ContextAwareDenormalizerInterface, DenormalizerAwareInterface
+class RelatedDummyPlainIdentifierDenormalizer implements DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
 
