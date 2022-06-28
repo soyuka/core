@@ -336,3 +336,15 @@ services:
         class: 'ApiPlatform\Tests\Fixtures\TestBundle\MessengerHandler\Entity\MessengerWithInputHandler'
         tags:
             -  { name: 'messenger.message_handler' }
+
+    ApiPlatform\Tests\Fixtures\TestBundle\Metadata\ProviderResourceMetadatatCollectionFactory:
+        class: 'ApiPlatform\Tests\Fixtures\TestBundle\Metadata\ProviderResourceMetadatatCollectionFactory'
+        decorates: api_platform.metadata.resource.metadata_collection_factory
+        arguments: ['@ApiPlatform\Tests\Fixtures\TestBundle\Metadata\ProviderResourceMetadatatCollectionFactory.inner']
+
+    app.related_dummy_resource.complex_sub_query_filter:
+        class: ApiPlatform\Tests\Fixtures\TestBundle\Filter\ComplexSubQueryFilter
+        arguments: ['@doctrine']
+        tags: [ { name: 'api_platform.filter', id: 'related_dummy.complex_sub_query' } ]
+
+
