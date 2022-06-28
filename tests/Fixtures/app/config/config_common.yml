@@ -12,6 +12,10 @@ doctrine:
             TestBundle: 
                 type: 'attribute'
 
+web_profiler:
+    toolbar: true
+    intercept_redirects: false
+
 mercure:
     hubs:
         default:
@@ -75,7 +79,6 @@ api_platform:
     mapping:
         paths:
             - '%kernel.project_dir%/../TestBundle/Model'
-
 
 parameters:
     container.autowiring.strict_mode: true

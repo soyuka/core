@@ -56,11 +56,6 @@ services:
         arguments: [ { 'relatedToDummyFriend.dummyFriend': 'exact', 'name': 'partial', 'age': 'exact' } ]
         tags:      [ { name: 'api_platform.filter', id: 'related_dummy.friends' } ]
 
-    app.related_dummy_resource.complex_sub_query_filter:
-        class: ApiPlatform\Tests\Fixtures\TestBundle\Filter\LegacyComplexSubQueryFilter
-        arguments: ['@doctrine']
-        tags: [ { name: 'api_platform.filter', id: 'related_dummy.complex_sub_query' } ]
-
     app.related_dummy_to_friend_resource.search_filter:
         parent:    'api_platform.doctrine.orm.search_filter'
         arguments: [ { 'name': 'ipartial', 'description': 'ipartial' } ]

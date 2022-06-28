@@ -1,3 +1,4 @@
 imports:
     - { resource: config_common.yml }
     - { resource: config_behat_orm.yml }
+    - { resource: config_sqlite.yml }
