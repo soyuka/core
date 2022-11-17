@@ -18,8 +18,11 @@ use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
-use Symfony\Component\HttpFoundation\Response;
+use ApiPlatform\Symfony\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Marshaller\MarshallerInterface;
+use Symfony\Component\Marshaller\Output\OutputStreamOutput;
 
 /**
  * Builds the response object.
@@ -35,7 +38,7 @@ final class RespondListener
         'DELETE' => Response::HTTP_NO_CONTENT,
     ];
 
-    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private readonly ?IriConverterInterface $iriConverter = null)
+    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private readonly ?IriConverterInterface $iriConverter = null, private readonly ?MarshallerInterface $marshaller = null)
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
@@ -98,10 +101,14 @@ final class RespondListener
             }
         }
 
-        $event->setResponse(new Response(
-            $controllerResult,
+        $response = new StreamedResponse(
+            function () use ($controllerResult) {
+                $this->marshaller->marshal($controllerResult, 'json', new OutputStreamOutput());
+            },
             $status,
             $headers
-        ));
+        );
+
+        $event->setResponse($response);
     }
 }
