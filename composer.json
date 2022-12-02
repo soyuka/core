@@ -86,7 +86,8 @@
         "symfony/web-profiler-bundle": "^6.1",
         "symfony/yaml": "^6.1",
         "twig/twig": "^1.42.3 || ^2.12 || ^3.0",
-        "webonyx/graphql-php": "^14.0 || ^15.0"
+        "webonyx/graphql-php": "^14.0 || ^15.0",
+        "zenstruck/foundry": "^1.28"
     },
     "conflict": {
         "doctrine/common": "<3.2.2",
@@ -136,7 +137,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/runtime": true
         }
     },
     "extra": {

@@ -1,0 +1,68 @@
+name: Documentation
+
+on:
+    push:
+    pull_request:
+
+env:
+    COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    COVERAGE: '0'
+    SYMFONY_DEPRECATIONS_HELPER: max[self]=0
+
+jobs:
+    docs:
+        name: Generate Documentation
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v3
+            -   name: Setup PHP with pre-release PECL extension
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: 8.2
+                    tools: pecl, composer
+                    extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite
+                    coverage: none
+                    ini-values: memory_limit=-1
+            -   name: Get composer cache directory
+                id: composercache
+                run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+                shell: bash
+            -   name: Global require pdg
+                run: |
+                    cd $(composer -n config --global home)
+                    echo "{\"repositories\":[{\"type\":\"vcs\",\"url\":\"https://github.com/php-documentation-generator/php-documentation-generator\"}]}" > composer.json
+                    composer global config --no-plugins allow-plugins.symfony/runtime true
+                    composer global require php-documentation-generator/php-documentation-generator:dev-main
+            -   name: Cache dependencies
+                uses: actions/cache@v3
+                with:
+                    path: ${{ steps.composercache.outputs.dir }}
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+                    restore-keys: ${{ runner.os }}-composer-
+            -   name: Update project dependencies
+                run: composer update --no-interaction --no-progress --ansi
+
+            -   name: Install phpunit
+                run: vendor/bin/simple-phpunit --version
+            -   name: Test guides
+                working-directory: docs
+                run: |
+                    for d in guide/*.php; do
+                      APP_ENV=test pdg test:guide $d
+                    done
+            -   name: Generate Guides
+                working-directory: docs
+                run: |
+                    for d in guide/*.php; do
+                      name=$(basename $d .php);
+                      pdg guide "$d" > "pages/guide/$name.mdx";
+                    done
+            -   name: Generate References
+                working-directory: docs
+                run: pdg references > "pages/reference/index.mdx"
+            -   name: Generate Sidebar
+                working-directory: docs
+                run: pdg index > "pages/sidebar.mdx"
+
+
