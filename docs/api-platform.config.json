@@ -1,0 +1,12 @@
+{
+  // Options for the reference.php script 
+  "reference": {
+    // Filter namespaces to 
+    "namespaces": [
+      "ApiPlatform\\Metadata\\ApiResource",
+      "ApiPlatform\\Metadata\\Operations"
+    ],
+    "output": "pages/reference",
+    "src": "../src"
+  }
+}

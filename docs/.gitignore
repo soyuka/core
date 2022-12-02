@@ -1,0 +1,4 @@
+pages/guides/**/*.mdx
+pages/reference/**/*.mdx
+pages/sidebar.mdx
+.next

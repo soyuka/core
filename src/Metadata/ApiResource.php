@@ -18,8 +18,12 @@ use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 /**
  * Resource metadata attribute.
  *
- * @Annotation
+ * The API Resource attribute declares the behaviors attached to a Resource inside API Platform.
+ * This class is immutable, and if you set a value yourself, API Platform will not override the value. 
+ * The API Resource helps sharing options with operations.
  *
+ * Read more about how metadata works [here](/explanation/metadata).
+ * 
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
@@ -28,73 +32,152 @@ class ApiResource
     use WithResourceTrait;
 
     protected ?Operations $operations;
+
     /**
      * @var string|callable|null
      */
     protected $provider;
+
     /**
      * @var string|callable|null
      */
     protected $processor;
 
     /**
-     * @param array|string|null                                               $types                          The RDF types of this resource
-     * @param mixed|null                                                      $operations
-     * @param array|string|null                                               $formats                        https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array|string|null                                               $inputFormats                   https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array|string|null                                               $outputFormats                  https://api-platform.com/docs/core/content-negotiation/#configuring-formats-for-a-specific-resource-or-operation
-     * @param array<string, Link>|array<string, mixed[]>|string[]|string|null $uriVariables
-     * @param string|null                                                     $routePrefix                    https://api-platform.com/docs/core/operations/#prefixing-all-routes-of-all-operations
-     * @param string|null                                                     $sunset                         https://api-platform.com/docs/core/deprecations/#setting-the-sunset-http-header-to-indicate-when-a-resource-or-an-operation-will-be-removed
-     * @param string|null                                                     $deprecationReason              https://api-platform.com/docs/core/deprecations/#deprecating-resource-classes-operations-and-properties
-     * @param array|null                                                      $cacheHeaders                   https://api-platform.com/docs/core/performance/#setting-custom-http-cache-headers
-     * @param array|null                                                      $normalizationContext           https://api-platform.com/docs/core/serialization/#using-serialization-groups
-     * @param array|null                                                      $denormalizationContext         https://api-platform.com/docs/core/serialization/#using-serialization-groups
-     * @param string[]|null                                                   $hydraContext                   https://api-platform.com/docs/core/extending-jsonld-context/#hydra
-     * @param array|null                                                      $openapiContext                 https://api-platform.com/docs/core/openapi/#using-the-openapi-and-swagger-contexts
-     * @param array|null                                                      $validationContext              https://api-platform.com/docs/core/validation/#using-validation-groups
-     * @param string[]                                                        $filters                        https://api-platform.com/docs/core/filters/#doctrine-orm-and-mongodb-odm-filters
-     * @param bool|null                                                       $elasticsearch                  https://api-platform.com/docs/core/elasticsearch/
-     * @param mixed|null                                                      $mercure                        https://api-platform.com/docs/core/mercure
-     * @param mixed|null                                                      $messenger                      https://api-platform.com/docs/core/messenger/#dispatching-a-resource-through-the-message-bus
-     * @param mixed|null                                                      $input                          https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
-     * @param mixed|null                                                      $output                         https://api-platform.com/docs/core/dto/#specifying-an-input-or-an-output-data-representation
-     * @param array|null                                                      $order                          https://api-platform.com/docs/core/default-order/#overriding-default-order
-     * @param bool|null                                                       $fetchPartial                   https://api-platform.com/docs/core/performance/#fetch-partial
-     * @param bool|null                                                       $forceEager                     https://api-platform.com/docs/core/performance/#force-eager
-     * @param bool|null                                                       $paginationClientEnabled        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-1
-     * @param bool|null                                                       $paginationClientItemsPerPage   https://api-platform.com/docs/core/pagination/#for-a-specific-resource-3
-     * @param bool|null                                                       $paginationClientPartial        https://api-platform.com/docs/core/pagination/#for-a-specific-resource-6
-     * @param array|null                                                      $paginationViaCursor            https://api-platform.com/docs/core/pagination/#cursor-based-pagination
-     * @param bool|null                                                       $paginationEnabled              https://api-platform.com/docs/core/pagination/#for-a-specific-resource
-     * @param bool|null                                                       $paginationFetchJoinCollection  https://api-platform.com/docs/core/pagination/#controlling-the-behavior-of-the-doctrine-orm-paginator
-     * @param int|null                                                        $paginationItemsPerPage         https://api-platform.com/docs/core/pagination/#changing-the-number-of-items-per-page
-     * @param int|null                                                        $paginationMaximumItemsPerPage  https://api-platform.com/docs/core/pagination/#changing-maximum-items-per-page
-     * @param bool|null                                                       $paginationPartial              https://api-platform.com/docs/core/performance/#partial-pagination
-     * @param string|null                                                     $paginationType                 https://api-platform.com/docs/core/graphql/#using-the-page-based-pagination
-     * @param string|null                                                     $security                       https://api-platform.com/docs/core/security
-     * @param string|null                                                     $securityMessage                https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
-     * @param string|null                                                     $securityPostDenormalize        https://api-platform.com/docs/core/security/#executing-access-control-rules-after-denormalization
-     * @param string|null                                                     $securityPostDenormalizeMessage https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
-     * @param string                                                          $securityPostValidation         https://api-platform.com/docs/core/security/#executing-access-control-rules-after-validtion
-     * @param string                                                          $securityPostValidationMessage  https://api-platform.com/docs/core/security/#configuring-the-access-control-error-message
-     * @param mixed|null                                                      $provider
-     * @param mixed|null                                                      $processor
+     * @param array<int, HttpOperation>|array<string, HttpOperation>|Operations|null  $operations  Operations is a list of HttpOperation
+     * @param array<string, Link>|array<string, mixed[]>|string[]|string|null         $uriVariables
+     * @param string|callable|null                                                    $provider
+     * @param string|callable|null                                                    $processor
      */
     public function __construct(
+        /** 
+         * The URI template represents your resource IRI with optional variables. It follows [RFC 6570](https://www.rfc-editor.org/rfc/rfc6570.html).
+         * API Platform generates this URL for you if you leave this empty.
+         */
         protected ?string $uriTemplate = null,
+        /**
+         * The short name of your resource is a unique name that identifies your resource. 
+         * It is used within the documentation and for url generation if the `uriTemplate` is not filled. By default this will be the name of your PHP class.
+         */
         protected ?string $shortName = null,
+        /**
+         * A description for this resource that will show on documentations.
+         */
         protected ?string $description = null,
+        /**
+         * The RDF types of this resource.
+         * An RDF type is usually a URI referencing how your resource is structured for the outside world. Values can be a string `https://schema.org/Book` 
+         * or an array of string `['https://schema.org/Flight', 'https://schema.org/BusTrip']`
+         */
         protected string|array|null $types = null,
+        /**
+         * Operations is a list of [HttpOperation](./HttpOperation). 
+         *
+         * By default API Platform declares operations respresenting CRUD routes if you don't specify this parameter:
+         *
+         * ```php
+         * #[ApiResource(
+         *     operations: [
+         *         new Get(uriTemplate: '/books/{id}'),
+         *         // The GetCollection operation returns a list of Books.
+         *         new GetCollection(uriTemplate: '/books'),
+         *         new Post(uriTemplate: '/books'),
+         *         new Patch(uriTemplate: '/books/{id}'),
+         *         new Delete(uriTemplate: '/books/{id}'),
+         *     ]
+         * )]
+         *
+         * ```
+         *
+         * Try this live at [play.api-platform.com/api-resource](play.api-platform.com).
+         */
         $operations = null,
-        protected $formats = null,
-        protected $inputFormats = null,
-        protected $outputFormats = null,
+        /**
+         * The `formats` option allows you to customize content negotiation. By default API Platform supports JsonLd, Hal, JsonAPI. 
+         * For other formats we use the Symfony Serializer. 
+         * 
+         * ```php
+         * #[ApiResource(
+         *   formats: [
+         *       'jsonld' => ['application/ld+json'],
+         *       'jsonhal' => ['application/hal+json'],
+         *       'jsonapi' => ['application/vnd.api+json'],
+         *       'json' =>    ['application/json'],
+         *       'xml' =>     ['application/xml', 'text/xml'],
+         *       'yaml' =>    ['application/x-yaml'],
+         *       'csv' =>     ['text/csv'],
+         *       'html' =>    ['text/html'],
+         *       'myformat' =>['application/vnd.myformat'],
+         *   ]
+         * )]
+         * ```
+         *
+         * Learn more about custom formats in the [dedicated guide](/guides/custom-formats).
+         */
+        protected array|string|null $formats = null,
+        /**
+         * The `inputFormats` option allows you to customize content negotiation for HTTP bodies:
+         *
+         * ```php
+         *  #[ApiResource(formats: ['jsonld', 'csv' => ['text/csv']], operations: [
+         *      new Patch(inputFormats: ['json' => ['application/merge-patch+json']]),
+         *      new GetCollection(),
+         *      new Post(),
+         *  ])]
+         * ```
+         */
+        protected array|string|null $inputFormats = null,
+        /**
+         * The `outputFormats` option allows you to customize content negotiation for HTTP responses.
+         */
+        protected array|string|null $outputFormats = null,
+        /**
+         * The `uriVariables` configuration allows to configure to what each URI Variable. 
+         * With [simple string expansion](https://www.rfc-editor.org/rfc/rfc6570.html#section-3.2.2), we read the input
+         * value and match this to the given `Link`. Note that this setting is usually used on an operation directly:
+         *
+         * ```php
+         *   #[ApiResource(
+         *       uriTemplate: '/companies/{companyId}/employees/{id}',
+         *       uriVariables: [
+         *           'companyId' => ['from_class' => Company::class, 'to_property' => 'company'],
+         *           'id' => ['from_class' => Employee::class],
+         *       ],
+         *       operations: [new Get()]
+         *   )]
+         * ```
+         *
+         * For more examples, read our guide on [subresources](/guides/subresources).
+         */
         protected $uriVariables = null,
+        /**
+         * The `routePrefix` allows you to configure a prefix that will apply to this resource.
+         *
+         * ```php
+         *   #[ApiResource(
+         *       routePrefix: '/books',
+         *       operations: [new Get(uriTemplate: '/{id}')]
+         *   )]
+         * ```
+         * 
+         * This resource will be accessible through `/books/{id}`.
+         */
         protected ?string $routePrefix = null,
+        /**
+         * The `defaults` option adds up to [Symfony's route defaults](https://github.com/symfony/routing/blob/8f068b792e515b25e26855ac8dc7fe800399f3e5/Route.php#L41). You can override [API Platform's defaults](https://github.com/api-platform/core/blob/6abd0fe0a69d4842eb6d5c31ef2bd6dce0e1d372/src/Symfony/Routing/ApiLoader.php#L87) if needed.
+         */
         protected ?array $defaults = null,
+        /**
+         * The `requirements` option configures the Symfony's Route requirements.
+         */
         protected ?array $requirements = null,
+        /**
+         * The `options` option configures the Symfony's Route options.
+         */
         protected ?array $options = null,
+        /**
+         * The `stateless` option configures the Symfony's Route stateless option.
+         */
         protected ?bool $stateless = null,
         protected ?string $sunset = null,
         protected ?string $acceptPatch = null,
@@ -146,7 +229,11 @@ class ApiResource
         $processor = null,
         protected array $extraProperties = []
     ) {
-        $this->operations = null === $operations ? null : new Operations($operations);
+        $this->operations = null;
+        if (null !== $operations) {
+            $this->operations = is_array($operations) ? new Operations($operations) : $operations;
+        }
+
         $this->provider = $provider;
         $this->processor = $processor;
         if (\is_string($types)) {
@@ -230,10 +317,7 @@ class ApiResource
         return $this->formats;
     }
 
-    /**
-     * @param mixed|null $formats
-     */
-    public function withFormats($formats): self
+    public function withFormats(mixed $formats): self
     {
         $self = clone $this;
         $self->formats = $formats;
