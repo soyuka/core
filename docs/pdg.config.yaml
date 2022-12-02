@@ -1,0 +1,14 @@
+pdg:
+    autoload: '../vendor/autoload.php'
+    references:
+        base_url: '/docs/reference'
+        tags_to_ignore: ['@experimental', '@internal']
+        exclude: ['*Factory.php', '*.tpl.php']
+        namespace: 'ApiPlatform'
+        output: '~/forks/api-platform-website-next/pwa/data/docs/reference'
+        src: '../src'
+    guides:
+        output: '~/forks/api-platform-website-next/pwa/data/docs/guides'
+        base_url: '/docs/guide'
+        src: './guides'
+
