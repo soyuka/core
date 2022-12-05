@@ -1,3 +1,6 @@
+#!/bin/bash
+echo Generating sidebar. 1>&2
+
 echo "# Guides"
 cd ./pages/guides
 

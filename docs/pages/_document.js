@@ -4,7 +4,7 @@ import Sidebar from './sidebar.mdx'
 export default function Document() {
   const style = `
 .container {
-  box-sizing: border-box;
+  box-sizing: norder-box;
   min-width: 200px;
   margin: 0 auto;
   padding: 25px;
@@ -20,51 +20,47 @@ export default function Document() {
   flex: 1;
   max-width: 250px;
   padding: 20px;
-  border-right: 1px solid grey;
+  border-right: 1px solid #d7dde3;
   margin-right: 20px;
 }
 
 .main {
   flex: 3;
+  margin-left: 20px;
 }
 .row {
   display: flex;
   margin: auto -1rem 1rem;
 }
 
-ul.sections {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sections li {
-	display: flex;
+.sections .section {
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;
-  margin: 0 !important;
 }
 
-.sections .annotation {
+.sections .section .annotation, .sections .section .content {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
   flex: 1;
 }
 
-.sections .content {
-	display: flex;
-  background: #f6f8fa;
-  flex: 1;
-  width: 70%;
+.sections .section .annotation {
 }
 
-.sections .content pre {
+.sections .section .content {
+  width: 40%;
+}
+
+.sections .section .content pre {
   border: 0;
-  margin: 0;
-  width: 100%;
 }
 
-.sswrap {
-  float: left;
+.sections code[class*="language-"], pre[class*="language-"] {
+    white-space: normal !important;
+    word-break: break-word !important;
 }
 `
   return (
@@ -75,12 +71,12 @@ ul.sections {
         <style>{style}</style>
       </Head>
       <body>
-        <div class="container">
-          <div class="row">
-            <nav class="markdown-body sidebar">
+        <div className="container">
+          <div className="row">
+            <nav className="markdown-body sidebar">
               <Sidebar />
             </nav>
-            <article class="markdown-body main ">
+            <article className="markdown-body main ">
               <Main />
             </article>
           </div>

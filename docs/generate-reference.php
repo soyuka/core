@@ -156,6 +156,7 @@ MDX;
         }
 
         $type = getTypeString($property, $parser, $lexer, $propertiesConstructorDocumentation);
+        $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".PHP_EOL;
         $content .= "## {$type} \${$property->getName()}" . PHP_EOL;
         if (($propertyConstructor = $properties[$property->getName()] ?? false) && $propertyConstructor->description) {
             $content .= $propertyConstructor->description . PHP_EOL;
@@ -173,7 +174,7 @@ MDX;
     
     $fileName = str_replace('.php', '.mdx', $file->getRelativePathname());
     @mkdir($output . '/' . dirname($fileName));
-    fwrite($stderr, sprintf('Writing %s.', $fileName));
+    fwrite($stderr, sprintf('Writing %s.%s', $fileName, PHP_EOL));
     file_put_contents($output . '/' . $fileName, $content);
 
 }

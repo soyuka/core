@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Validator\Exception\ValidationException;
 
 // Each resource has its set of Operations.
 // Note that the uriTemplate may use the `id` variable which is our unique
@@ -25,8 +26,9 @@ use ApiPlatform\Metadata\Delete;
         new Patch(uriTemplate: '/books/{id}'),
         new Delete(uriTemplate: '/books/{id}'),
     ],
+    // This is a configuration that is shared accross every operations. More details are available at [ApiResource::exceptionToStatus](/reference/Metadata/ApiResource#exceptionToStatus).
     exceptionToStatus: [
-
+        ValidationException::class => 422
     ]
 )]
 // If a property named `id` is found it is the property used in your URI template
