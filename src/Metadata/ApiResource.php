@@ -19,11 +19,11 @@ use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
  * Resource metadata attribute.
  *
  * The API Resource attribute declares the behaviors attached to a Resource inside API Platform.
- * This class is immutable, and if you set a value yourself, API Platform will not override the value. 
+ * This class is immutable, and if you set a value yourself, API Platform will not override the value.
  * The API Resource helps sharing options with operations.
  *
  * Read more about how metadata works [here](/explanation/metadata).
- * 
+ *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
@@ -50,13 +50,13 @@ class ApiResource
      * @param string|callable|null                                                    $processor
      */
     public function __construct(
-        /** 
+        /**
          * The URI template represents your resource IRI with optional variables. It follows [RFC 6570](https://www.rfc-editor.org/rfc/rfc6570.html).
          * API Platform generates this URL for you if you leave this empty.
          */
         protected ?string $uriTemplate = null,
         /**
-         * The short name of your resource is a unique name that identifies your resource. 
+         * The short name of your resource is a unique name that identifies your resource.
          * It is used within the documentation and for url generation if the `uriTemplate` is not filled. By default this will be the name of your PHP class.
          */
         protected ?string $shortName = null,
@@ -66,12 +66,12 @@ class ApiResource
         protected ?string $description = null,
         /**
          * The RDF types of this resource.
-         * An RDF type is usually a URI referencing how your resource is structured for the outside world. Values can be a string `https://schema.org/Book` 
+         * An RDF type is usually a URI referencing how your resource is structured for the outside world. Values can be a string `https://schema.org/Book`
          * or an array of string `['https://schema.org/Flight', 'https://schema.org/BusTrip']`
          */
         protected string|array|null $types = null,
         /**
-         * Operations is a list of [HttpOperation](./HttpOperation). 
+         * Operations is a list of [HttpOperation](./HttpOperation).
          *
          * By default API Platform declares operations respresenting CRUD routes if you don't specify this parameter:
          *
@@ -93,9 +93,9 @@ class ApiResource
          */
         $operations = null,
         /**
-         * The `formats` option allows you to customize content negotiation. By default API Platform supports JsonLd, Hal, JsonAPI. 
-         * For other formats we use the Symfony Serializer. 
-         * 
+         * The `formats` option allows you to customize content negotiation. By default API Platform supports JsonLd, Hal, JsonAPI.
+         * For other formats we use the Symfony Serializer.
+         *
          * ```php
          * #[ApiResource(
          *   formats: [
@@ -132,7 +132,7 @@ class ApiResource
          */
         protected array|string|null $outputFormats = null,
         /**
-         * The `uriVariables` configuration allows to configure to what each URI Variable. 
+         * The `uriVariables` configuration allows to configure to what each URI Variable.
          * With [simple string expansion](https://www.rfc-editor.org/rfc/rfc6570.html#section-3.2.2), we read the input
          * value and match this to the given `Link`. Note that this setting is usually used on an operation directly:
          *
@@ -159,7 +159,7 @@ class ApiResource
          *       operations: [new Get(uriTemplate: '/{id}')]
          *   )]
          * ```
-         * 
+         *
          * This resource will be accessible through `/books/{id}`.
          */
         protected ?string $routePrefix = null,
@@ -194,6 +194,16 @@ class ApiResource
         protected ?array $denormalizationContext = null,
         protected ?array $hydraContext = null,
         protected ?array $openapiContext = null,
+        /**
+         * The `validationContext` option configure the context of validation for the current ApiResource.
+         * You can, for instance, describe the validation groups that will be used :
+         *
+         * ```php
+         *   #[ApiResource(validationContext: ['groups' => ['a', 'b']])]
+         * ```
+         *
+         * For more examples, read our guide on [validation](/guides/validation).
+         */
         protected ?array $validationContext = null,
         protected ?array $filters = null,
         protected ?bool $elasticsearch = null,

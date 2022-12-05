@@ -66,6 +66,17 @@ abstract class Operation
         protected ?string $securityPostValidationMessage = null,
         protected ?string $deprecationReason = null,
         protected ?array $filters = null,
+        /**
+         * The `validationContext` option configure the context of validation for the current Operation.
+         * You can, for instance, describe the validation groups that will be used :
+         *
+         * ```php
+         *   #[Put(validationContext: ['groups' => ['Default', 'putValidation']])]
+         *   #[Post(validationContext: ['groups' => ['Default', 'postValidation']])]
+         * ```
+         *
+         * For more examples, read our guide on [validation](/guides/validation).
+         */
         protected ?array $validationContext = null,
         $input = null,
         $output = null,
