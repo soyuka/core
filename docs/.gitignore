@@ -1,4 +1,5 @@
-pages/guides/**/*.mdx
-pages/reference/**/*.mdx
-pages/sidebar.mdx
+pages/guide/**/*.md
+pages/reference/**/*.md
+pages/tutorial/**/*.md
+pages/sidebar.md
 .next
