@@ -66,6 +66,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\TestBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\ORM\OptimisticLockException;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
@@ -427,8 +428,8 @@ class ApiPlatformExtensionTest extends TestCase
 
     public function testMetadataConfigurationDocBlockFactoryInterface(): void
     {
-        if (!interface_exists(DocBlockFactoryInterface::class)) {
-            $this->markTestSkipped('class phpDocumentor\Reflection\DocBlockFactoryInterface does not exist');
+        if (!class_exists(PhpDocParser::class) || !interface_exists(DocBlockFactoryInterface::class)) {
+            $this->markTestSkipped('class PHPStan\PhpDocParser\Parser\PhpDocParser or phpDocumentor\Reflection\DocBlockFactoryInterface does not exist');
         }
 
         $config = self::DEFAULT_CONFIG;
@@ -628,6 +629,7 @@ class ApiPlatformExtensionTest extends TestCase
     {
         $config = self::DEFAULT_CONFIG;
         $config['api_platform']['graphql']['enabled'] = true;
+        $this->container->setParameter('kernel.debug', true);
         (new ApiPlatformExtension())->load($config, $this->container);
 
         $services = [
@@ -673,6 +675,10 @@ class ApiPlatformExtensionTest extends TestCase
             'api_platform.graphql.normalizer.validation_exception',
             'api_platform.graphql.normalizer.http_exception',
             'api_platform.graphql.normalizer.runtime_exception',
+            'api_platform.graphql.data_collector.resolver.factory.collection',
+            'api_platform.graphql.data_collector.resolver.factory.item',
+            'api_platform.graphql.data_collector.resolver.factory.item_mutation',
+            'api_platform.graphql.data_collector.resolver.factory.item_subscription',
         ];
 
         $aliases = [

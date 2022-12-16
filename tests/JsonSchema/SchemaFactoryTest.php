@@ -28,6 +28,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Tests\Fixtures\NotAResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\OverriddenOperationDummy;
+use ApiPlatform\Tests\Fixtures\TestBundle\Enum\GenderTypeEnum;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -53,15 +54,22 @@ class SchemaFactoryTest extends TestCase
         ), Argument::cetera())->willReturn([
             'type' => 'integer',
         ]);
+        $typeFactoryProphecy->getType(Argument::allOf(
+            Argument::type(Type::class),
+            Argument::which('getBuiltinType', Type::BUILTIN_TYPE_OBJECT)
+        ), Argument::cetera())->willReturn([
+            'type' => 'object',
+        ]);
 
         $resourceMetadataFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
 
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
-        $propertyNameCollectionFactoryProphecy->create(NotAResource::class, Argument::cetera())->willReturn(new PropertyNameCollection(['foo', 'bar']));
+        $propertyNameCollectionFactoryProphecy->create(NotAResource::class, Argument::cetera())->willReturn(new PropertyNameCollection(['foo', 'bar', 'genderType']));
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(NotAResource::class, 'foo', Argument::cetera())->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withReadable(true));
         $propertyMetadataFactoryProphecy->create(NotAResource::class, 'bar', Argument::cetera())->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_INT)])->withReadable(true)->withDefault('default_bar')->withExample('example_bar'));
+        $propertyMetadataFactoryProphecy->create(NotAResource::class, 'genderType', Argument::cetera())->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_OBJECT)])->withReadable(true)->withDefault(GenderTypeEnum::MALE));
 
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $resourceClassResolverProphecy->isResourceClass(NotAResource::class)->willReturn(false);
@@ -91,6 +99,14 @@ class SchemaFactoryTest extends TestCase
         $this->assertSame('integer', $definitions[$rootDefinitionKey]['properties']['bar']['type']);
         $this->assertSame('default_bar', $definitions[$rootDefinitionKey]['properties']['bar']['default']);
         $this->assertSame('example_bar', $definitions[$rootDefinitionKey]['properties']['bar']['example']);
+
+        $this->assertArrayHasKey('genderType', $definitions[$rootDefinitionKey]['properties']);
+        $this->assertArrayHasKey('type', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertArrayHasKey('default', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertArrayHasKey('example', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertSame('object', $definitions[$rootDefinitionKey]['properties']['genderType']['type']);
+        $this->assertSame('male', $definitions[$rootDefinitionKey]['properties']['genderType']['default']);
+        $this->assertSame('male', $definitions[$rootDefinitionKey]['properties']['genderType']['example']);
     }
 
     public function testBuildSchemaWithSerializerGroups(): void
@@ -101,6 +117,12 @@ class SchemaFactoryTest extends TestCase
             Argument::which('getBuiltinType', Type::BUILTIN_TYPE_STRING)
         ), Argument::cetera())->willReturn([
             'type' => 'string',
+        ]);
+        $typeFactoryProphecy->getType(Argument::allOf(
+            Argument::type(Type::class),
+            Argument::which('getBuiltinType', Type::BUILTIN_TYPE_OBJECT)
+        ), Argument::cetera())->willReturn([
+            'type' => 'object',
         ]);
 
         $shortName = (new \ReflectionClass(OverriddenOperationDummy::class))->getShortName();
@@ -119,14 +141,16 @@ class SchemaFactoryTest extends TestCase
         $serializerGroup = 'custom_operation_dummy';
 
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
-        $propertyNameCollectionFactoryProphecy->create(OverriddenOperationDummy::class, Argument::type('array'))->willReturn(new PropertyNameCollection(['alias', 'description']));
+        $propertyNameCollectionFactoryProphecy->create(OverriddenOperationDummy::class, Argument::type('array'))->willReturn(new PropertyNameCollection(['alias', 'description', 'genderType']));
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(OverriddenOperationDummy::class, 'alias', Argument::type('array'))->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withReadable(true));
         $propertyMetadataFactoryProphecy->create(OverriddenOperationDummy::class, 'description', Argument::type('array'))->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withReadable(true));
+        $propertyMetadataFactoryProphecy->create(OverriddenOperationDummy::class, 'genderType', Argument::type('array'))->willReturn((new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_OBJECT, false, GenderTypeEnum::class)])->withReadable(true)->withDefault(GenderTypeEnum::MALE));
 
         $resourceClassResolverProphecy = $this->prophesize(ResourceClassResolverInterface::class);
         $resourceClassResolverProphecy->isResourceClass(OverriddenOperationDummy::class)->willReturn(true);
+        $resourceClassResolverProphecy->isResourceClass(GenderTypeEnum::class)->willReturn(true);
 
         $schemaFactory = new SchemaFactory($typeFactoryProphecy->reveal(), $resourceMetadataFactoryProphecy->reveal(), $propertyNameCollectionFactoryProphecy->reveal(), $propertyMetadataFactoryProphecy->reveal(), null, $resourceClassResolverProphecy->reveal());
         $resultSchema = $schemaFactory->buildSchema(OverriddenOperationDummy::class, 'json', Schema::TYPE_OUTPUT, null, null, ['groups' => $serializerGroup, AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false]);
@@ -147,6 +171,11 @@ class SchemaFactoryTest extends TestCase
         $this->assertArrayHasKey('description', $definitions[$rootDefinitionKey]['properties']);
         $this->assertArrayHasKey('type', $definitions[$rootDefinitionKey]['properties']['description']);
         $this->assertSame('string', $definitions[$rootDefinitionKey]['properties']['description']['type']);
+        $this->assertArrayHasKey('genderType', $definitions[$rootDefinitionKey]['properties']);
+        $this->assertArrayHasKey('type', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertArrayNotHasKey('default', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertArrayNotHasKey('example', $definitions[$rootDefinitionKey]['properties']['genderType']);
+        $this->assertSame('object', $definitions[$rootDefinitionKey]['properties']['genderType']['type']);
     }
 
     public function testBuildSchemaForAssociativeArray(): void
