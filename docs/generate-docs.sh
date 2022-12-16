@@ -1,9 +1,12 @@
 #!/bin/bash
 
-php generate-reference.php
-
-for d in ./guides/*.php ; do
-    php generate-guide.php $d > pages/guides/$(basename $d .php).mdx
+for d in ./guide/*.php; do
+    php src/generate-guide.php $d > pages/guide/$(basename $d .php).mdx
 done
 
-bash generate-sidebar.sh > ./pages/sidebar.mdx
+mkdir pages/reference/Metadata
+for d in ../src/Metadata/*.php; do
+    php src/generate-reference.php $d > pages/reference/Metadata/$(basename $d .php).mdx
+done
+
+php src/generate-sidebar.php > ./pages/sidebar.mdx
