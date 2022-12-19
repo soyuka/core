@@ -38,7 +38,7 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
                 $namespaces[$namespace] = [];
             }
         }
-        
+
         $basename = basename($path, '.'.$file->getExtension());
         $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $basename, Path::getDirectory($path), $basename);
     }
@@ -48,7 +48,7 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
             fwrite(\STDOUT, '### '.$namespace.\PHP_EOL);
         }
 
-        fwrite(\STDOUT, implode(\PHP_EOL, $files));
+        fwrite(\STDOUT, implode(\PHP_EOL, $files).\PHP_EOL);
     }
 
     fwrite(\STDOUT, \PHP_EOL);
