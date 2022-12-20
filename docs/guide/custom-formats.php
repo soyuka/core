@@ -31,7 +31,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class CustomItemNormalizer implements NormalizerInterface, DenormalizerInterface
 {
-    private $normalizer;
+    private NormalizerInterface&DenormalizerInterface $normalizer;
 
     public function __construct(NormalizerInterface $normalizer)
     {

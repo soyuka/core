@@ -1,5 +1,6 @@
-pages/guide/**/*.md
-pages/reference/**/*.md
-pages/tutorial/**/*.md
-pages/sidebar.md
+pages/guide/**/*.mdx
+pages/reference/**/*.mdx
+pages/tutorial/**/*.mdx
+pages/sidebar.mdx
 .next
+node_modules

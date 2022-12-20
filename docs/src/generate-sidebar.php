@@ -40,7 +40,12 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
         }
         
         $basename = basename($path, '.'.$file->getExtension());
-        $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $basename, Path::getDirectory($path), $basename);
+
+        if (false !== preg_match('/^\d+\-/', $basename, $matches) && $matches) {
+            $basename = str_replace($matches[0], '', $basename);
+        }
+        $prettyName = str_replace('-', ' ', $basename);
+        $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), strtolower($basename));
     }
 
     foreach ($namespaces as $namespace => $files) {
@@ -50,6 +55,4 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
 
         fwrite(\STDOUT, implode(\PHP_EOL, $files));
     }
-
-    fwrite(\STDOUT, \PHP_EOL);
 }
