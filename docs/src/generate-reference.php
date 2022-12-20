@@ -18,7 +18,9 @@ require '../vendor/autoload.php';
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTextNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ThrowsTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
@@ -104,6 +106,118 @@ function getTypeString(ReflectionProperty $reflectionProperty, PhpDocParser $par
     return '';
 }
 
+function isAccessor(ReflectionMethod $method): bool
+{
+    foreach ($method->getDeclaringClass()->getProperties() as $property) {
+        if (str_contains($method->getName(), ucfirst($property->getName()))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @param ReflectionMethod $method
+ * @return array<string, string>
+ */
+function getParametersWithType(ReflectionMethod $method): array
+{
+    $typedParameters = [];
+    foreach ($method->getParameters() as $parameter) {
+        $type = $parameter->getType();
+        if ($type) {
+            if ($type instanceof ReflectionUnionType) {
+                $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                    return $namedType->getName();
+                }, $type->getTypes());
+
+                $typedParameters[] = implode('|', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+            }
+            if ($type instanceof ReflectionIntersectionType) {
+                $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                    return $namedType->getName();
+                }, $type->getTypes());
+
+                $typedParameters[] = implode('&', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+            }
+            if ($type instanceof ReflectionNamedType) {
+                $typedParameters[] = $type->getName()." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+            }
+        } else {
+            $typedParameters[] = $parameter->getName();
+        }
+    }
+    return $typedParameters;
+}
+
+function getReturnType(ReflectionMethod $method): string
+{
+    $type = $method->getReturnType();
+
+    if ($type) {
+        if ($type instanceof ReflectionUnionType) {
+            return implode('|', array_map(static function(ReflectionNamedType $reflectionNamedType): string {
+                return linkClasses($reflectionNamedType);
+            }, $type->getTypes()
+            ));
+        }
+        if ($type instanceof ReflectionIntersectionType) {
+            return implode('&', array_map(static function(ReflectionNamedType $reflectionNamedType): string {
+                return linkClasses($reflectionNamedType);
+            }, $type->getTypes()
+            ));
+        }
+        return linkClasses($type);
+    } else {
+        return "";
+    }
+}
+
+/**
+ * @param ReflectionType|ReflectionNamedType $reflectionNamedType
+ * @return string
+ */
+function linkClasses(ReflectionType|ReflectionNamedType $reflectionNamedType): string
+{
+    if (class_exists($reflectionNamedType->getName()) || interface_exists($reflectionNamedType->getName())) {
+        if (str_starts_with($reflectionNamedType->getName(), 'ApiPlatform')) {
+            return "[$reflectionNamedType](/reference/" . str_replace(['ApiPlatform\\', '\\'], ['', '/'], $reflectionNamedType->getName()) . ')';
+        } else if (str_starts_with($reflectionNamedType->getName(), 'Symfony')) {
+            return "[$reflectionNamedType](https://symfony.com/doc/current/index.html)";
+        }
+    }
+    return $reflectionNamedType->getName();
+}
+
+function getAccessors(ReflectionProperty $property): array
+{
+    $propertyName = ucfirst($property->getName());
+    $accessors = [];
+
+    foreach ($property->getDeclaringClass()->getMethods() as $method) {
+        switch ($method->getName()) {
+            case 'get'.$propertyName:
+            case 'set'.$propertyName:
+            case 'is'.$propertyName:
+                $accessors[] = $method->getName();
+                break;
+            default:
+                continue 2;
+        }
+    }
+    return $accessors;
+}
+
+function addCssClasses(string $element, array $classes): string
+{
+    return sprintf("<span className=\"%s\">%s</span>", implode(' ', $classes), $element);
+}
+
+function isConstruct(ReflectionMethod $method): bool
+{
+    return "__construct" === $method->getName();
+}
+
 $handle = fopen($argv[1], 'r');
 if (!$handle) {
     fwrite(STDERR, sprintf('Error opening %s. %s', $argv[1], \PHP_EOL));
@@ -120,8 +234,10 @@ $content = "";
 
 $reflectionClass = new ReflectionClass($namespace);
 
-/** @var ParamTagValueNode[] */
+/** @var ParamTagValueNode[] $propertiesConstructorDocumentation */
 $propertiesConstructorDocumentation = [];
+/** @var PhpDocNode[] $methodsDocumentation */
+$methodsDocumentation = [];
 
 if ($reflectionClass->hasMethod('__construct')) {
     $constructorDocumentation = getPhpDoc($reflectionClass->getMethod('__construct'), $parser, $lexer);
@@ -146,20 +262,33 @@ if ($rawDocNode) {
         return $child instanceof PhpDocTextNode;
     });
 
+    /** @var PhpDocTextNode $t */
     foreach ($text as $t) {
+        // todo {@see ... } breaks generation, but we can probably reference it better
+        if (str_contains($t->text, '@see')) {
+            $t = str_replace('{@see', 'see', $t->text);
+            $t = str_replace('}', '', $t);
+        }
         $content .= $t.\PHP_EOL;
     }
+}
+if (!empty($reflectionClass->getProperties())) {
+    $content .= "## Properties: ".\PHP_EOL;
 }
 
 foreach ($reflectionClass->getProperties() as $property) {
     $modifier = getModifier($property);
+    $accessors = [];
     if ('private' === $modifier) {
-        continue;
+        $accessors = getAccessors($property);
     }
 
     $type = getTypeString($property, $parser, $lexer, $propertiesConstructorDocumentation);
-    $content .= "<a class=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
-    $content .= "## {$type} \${$property->getName()}".\PHP_EOL;
+    $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
+    $content .= "### {$type} \${$property->getName()}".\PHP_EOL;
+    if (!empty($accessors)) {
+        $content .= "Accessors: ".implode(',', $accessors).\PHP_EOL;
+    }
     if (($propertyConstructor = $properties[$property->getName()] ?? false) && $propertyConstructor->description) {
         $content .= $propertyConstructor->description.\PHP_EOL;
     }
@@ -174,4 +303,53 @@ foreach ($reflectionClass->getProperties() as $property) {
     }
 }
 
-fwrite(\STDOUT, $content);
+if (!empty($reflectionClass->getMethods())) {
+    $content .= "## Methods: ".\PHP_EOL;
+}
+
+
+foreach ($reflectionClass->getMethods() as $method) {
+
+    if (isAccessor($method)) {
+        continue;
+    }
+
+    if (isConstruct($method)) {
+        continue;
+    }
+
+    $typedParameters = getParametersWithType($method);
+
+    $content .= "### "
+        .getModifier($method)
+        ." "
+        .addCssClasses($method->getName(), ['token', 'function'])
+        ."( "
+        .implode(', ', $typedParameters)
+        ." ): "
+        .addCssClasses(getReturnType($method), ['token', 'keyword'])
+        .\PHP_EOL;
+
+    $phpDoc = getPhpDoc($method, $parser, $lexer);
+    $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
+        return $child instanceof PhpDocTextNode;
+    });
+    /** @var PhpDocTagNode[] $tags */
+    $tags = array_filter($phpDoc->children, static function(PhpDocChildNode $childNode): bool {
+        return $childNode instanceof PhpDocTagNode;
+    });
+
+    foreach ($tags as $tag) {
+        if ($tag->value instanceof ThrowsTagValueNode) {
+            $content .= "> ".addCssClasses("throws ", ['token', 'keyword']).$tag->value->type->name.\PHP_EOL."> ".\PHP_EOL;
+        }
+    }
+
+    foreach ($text as $t) {
+        $content .= $t.\PHP_EOL;
+    }
+
+    $content .= "---".\PHP_EOL;
+}
+
+    fwrite(\STDOUT, $content);

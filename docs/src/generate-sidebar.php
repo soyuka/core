@@ -38,7 +38,7 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
                 $namespaces[$namespace] = [];
             }
         }
-        
+
         $basename = basename($path, '.'.$file->getExtension());
 
         if (false !== preg_match('/^\d+\-/', $basename, $matches) && $matches) {
@@ -53,6 +53,6 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
             fwrite(\STDOUT, '### '.$namespace.\PHP_EOL);
         }
 
-        fwrite(\STDOUT, implode(\PHP_EOL, $files));
+        fwrite(\STDOUT, implode(\PHP_EOL, $files).\PHP_EOL);
     }
 }
