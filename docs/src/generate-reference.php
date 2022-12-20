@@ -157,20 +157,36 @@ function getReturnType(ReflectionMethod $method): string
     if ($type) {
         if ($type instanceof ReflectionUnionType) {
             return implode('|', array_map(static function(ReflectionNamedType $reflectionNamedType): string {
-                return $reflectionNamedType->getName();
+                return linkClasses($reflectionNamedType);
             }, $type->getTypes()
             ));
         }
         if ($type instanceof ReflectionIntersectionType) {
             return implode('&', array_map(static function(ReflectionNamedType $reflectionNamedType): string {
-                return $reflectionNamedType->getName();
+                return linkClasses($reflectionNamedType);
             }, $type->getTypes()
             ));
         }
-        return $type->getName();
+        return linkClasses($type);
     } else {
         return "";
     }
+}
+
+/**
+ * @param ReflectionType|ReflectionNamedType $reflectionNamedType
+ * @return string
+ */
+function linkClasses(ReflectionType|ReflectionNamedType $reflectionNamedType): string
+{
+    if (class_exists($reflectionNamedType->getName()) || interface_exists($reflectionNamedType->getName())) {
+        if (str_starts_with($reflectionNamedType->getName(), 'ApiPlatform')) {
+            return "[$reflectionNamedType](/reference/" . str_replace(['ApiPlatform\\', '\\'], ['', '/'], $reflectionNamedType->getName()) . ')';
+        } else if (str_starts_with($reflectionNamedType->getName(), 'Symfony')) {
+            return "[$reflectionNamedType](https://symfony.com/doc/current/index.html)";
+        }
+    }
+    return $reflectionNamedType->getName();
 }
 
 function getAccessors(ReflectionProperty $property): array
@@ -218,7 +234,7 @@ $content = "";
 
 $reflectionClass = new ReflectionClass($namespace);
 
-/** @var ParamTagValueNode[] */
+/** @var ParamTagValueNode[] $propertiesConstructorDocumentation */
 $propertiesConstructorDocumentation = [];
 /** @var PhpDocNode[] $methodsDocumentation */
 $methodsDocumentation = [];
@@ -246,7 +262,13 @@ if ($rawDocNode) {
         return $child instanceof PhpDocTextNode;
     });
 
+    /** @var PhpDocTextNode $t */
     foreach ($text as $t) {
+        // todo {@see ... } breaks generation, but we can probably reference it better
+        if (str_contains($t->text, '@see')) {
+            $t = str_replace('{@see', 'see', $t->text);
+            $t = str_replace('}', '', $t);
+        }
         $content .= $t.\PHP_EOL;
     }
 }
