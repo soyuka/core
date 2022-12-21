@@ -64,12 +64,29 @@ foreach ($patterns['directories'] as $pattern) {
     }
 }
 
+function containsOnlyPrivateMethods(ReflectionClass $reflectionClass): bool
+{
+    if (!empty($reflectionClass->getProperties())) {
+        return false;
+    }
+
+    foreach ($reflectionClass->getMethods() as $method) {
+        if (!in_array('private', Reflection::getModifierNames($method->getModifiers()))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 foreach ($files as $file) {
     $relativeToSrc = Path::makeRelative($file->getPath(), $root);
     $relativeToDocs = Path::makeRelative($file->getRealPath(), getcwd());
 
     $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relativeToSrc).'\\'.$file->getBasename('.php');
     if (isInternal(new ReflectionClass($namespace), $lexer, $parser)) {
+        continue;
+    }
+    if (containsOnlyPrivateMethods(new ReflectionClass($namespace))) {
         continue;
     }
 
