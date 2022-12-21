@@ -349,7 +349,7 @@ foreach ($reflectionClass->getMethods() as $method) {
         $content .= $t.\PHP_EOL;
     }
 
-    $content .= "---".\PHP_EOL;
+    $content .= \PHP_EOL."---".\PHP_EOL;
 }
 
     fwrite(\STDOUT, $content);
