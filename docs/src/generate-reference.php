@@ -84,11 +84,23 @@ function getTypeString(ReflectionProperty $reflectionProperty, PhpDocParser $par
 {
     $type = $reflectionProperty->getType();
     if ($type) {
-        if ($type instanceof ReflectionNamedType && class_exists($type->getName())) {
-            return "[$type](/reference/".str_replace(['ApiPlatform\\', '\\'], ['', '/'], $type->getName()).')';
+        if ($type instanceof ReflectionUnionType) {
+            $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                return linkClasses($namedType);
+            }, $type->getTypes());
+            return implode('|', $namedTypes);
+        }
+        if ($type instanceof ReflectionIntersectionType) {
+            $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                return linkClasses($namedType);
+            }, $type->getTypes());
+            return implode('&', $namedTypes);
+        }
+        if ($type instanceof ReflectionNamedType) {
+            return linkClasses($type);
         }
 
-        return sprintf('`%s`', (string) $type);
+        return sprintf('`%s`', $type);
     }
 
     // Read the php doc
@@ -124,30 +136,48 @@ function getParametersWithType(ReflectionMethod $method): array
 {
     $typedParameters = [];
     foreach ($method->getParameters() as $parameter) {
+        $parameterName = getParameterName($parameter);
         $type = $parameter->getType();
         if ($type) {
             if ($type instanceof ReflectionUnionType) {
                 $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
-                    return $namedType->getName();
+                    return linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('|', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = implode('|', $namedTypes)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
             if ($type instanceof ReflectionIntersectionType) {
                 $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
-                    return $namedType->getName();
+                    return linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('&', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = implode('&', $namedTypes)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
             if ($type instanceof ReflectionNamedType) {
-                $typedParameters[] = $type->getName()." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = linkClasses($type)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
         } else {
-            $typedParameters[] = $parameter->getName();
+            $typedParameters[] = addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
         }
     }
     return $typedParameters;
+}
+
+function getParameterName(ReflectionParameter $parameter): string
+{
+    return $parameter->isPassedByReference() ? '&$'.$parameter->getName() : '$'.$parameter->getName();
+}
+
+function getDefaultValueString(ReflectionParameter $parameter): string
+{
+    if (!$parameter->isDefaultValueAvailable()) {
+        return '';
+    }
+    return match ($parameter->getDefaultValue()) {
+        null => ' = null',
+        [] => ' = []',
+        default => ' = '.$parameter->getDefaultValue()
+    };
 }
 
 function getReturnType(ReflectionMethod $method): string
