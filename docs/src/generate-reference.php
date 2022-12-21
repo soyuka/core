@@ -310,6 +310,10 @@ if (!empty($reflectionClass->getMethods())) {
 
 foreach ($reflectionClass->getMethods() as $method) {
 
+    if (str_contains(getModifier($method), "private")) {
+        continue;
+    }
+
     if (isAccessor($method)) {
         continue;
     }
