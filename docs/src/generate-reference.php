@@ -218,6 +218,23 @@ function isConstruct(ReflectionMethod $method): bool
     return "__construct" === $method->getName();
 }
 
+/**
+ * Checks if a method is actually from a Trait or an extended class
+ */
+function isFromExternalClass(ReflectionMethod $method, ReflectionClass $class): bool
+{
+    return $method->getFileName() !== $class->getFileName();
+}
+
+function hasToBeSkipped(ReflectionMethod $method, ReflectionClass $reflectionClass): bool
+{
+    return isFromExternalClass($method, $reflectionClass)
+        || str_contains(getModifier($method), "private")
+        || isAccessor($method)
+        || isConstruct($method)
+        ;
+}
+
 $handle = fopen($argv[1], 'r');
 if (!$handle) {
     fwrite(STDERR, sprintf('Error opening %s. %s', $argv[1], \PHP_EOL));
@@ -303,24 +320,19 @@ foreach ($reflectionClass->getProperties() as $property) {
     }
 }
 
-if (!empty($reflectionClass->getMethods())) {
+$methods = [];
+foreach ($reflectionClass->getMethods() as $method) {
+    if (!hasToBeSkipped($method, $reflectionClass)) {
+        $methods[] = $method;
+    }
+}
+
+if (!empty($methods)) {
     $content .= "## Methods: ".\PHP_EOL;
 }
 
 
-foreach ($reflectionClass->getMethods() as $method) {
-
-    if (str_contains(getModifier($method), "private")) {
-        continue;
-    }
-
-    if (isAccessor($method)) {
-        continue;
-    }
-
-    if (isConstruct($method)) {
-        continue;
-    }
+foreach ($methods as $method) {
 
     $typedParameters = getParametersWithType($method);
 
