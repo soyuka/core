@@ -27,11 +27,12 @@ $config = (require('config.php'))();
 $root = Path::makeAbsolute($config['reference']['src'], getcwd());
 $patterns = $config['reference']['patterns'];
 $referencePath = $config['sidebar']['directories']['Reference'][0];
+$tagsToIgnore = $patterns['class-tags-to-ignore'];
 
 $parser = new PhpDocParser(new TypeParser(new ConstExprParser()), new ConstExprParser());
 $lexer = new Lexer();
 
-function isInternal(ReflectionClass $class, Lexer $lexer, PhpDocParser $parser): bool
+function classDocContainsTag(ReflectionClass $class, string $searchedTag, Lexer $lexer, PhpDocParser $parser): bool
 {
     $doc = $class->getDocComment();
     if (!$doc) {
@@ -43,8 +44,9 @@ function isInternal(ReflectionClass $class, Lexer $lexer, PhpDocParser $parser):
     $tags = array_filter($phpDocNode->children, static function (PhpDocChildNode $childNode): bool {
         return $childNode instanceof PhpDocTagNode;
     });
+    /** @var PhpDocTagNode $tag */
     foreach ($tags as $tag) {
-        if ("@internal" === $tag->name) {
+        if ($searchedTag === $tag->name) {
             return true;
         }
     }
@@ -83,8 +85,10 @@ foreach ($files as $file) {
     $relativeToDocs = Path::makeRelative($file->getRealPath(), getcwd());
 
     $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relativeToSrc).'\\'.$file->getBasename('.php');
-    if (isInternal(new ReflectionClass($namespace), $lexer, $parser)) {
-        continue;
+    foreach ($tagsToIgnore as $tagToIgnore) {
+        if (classDocContainsTag(new ReflectionClass($namespace), $tagToIgnore, $lexer, $parser)) {
+            continue 2;
+        }
     }
     if (containsOnlyPrivateMethods(new ReflectionClass($namespace))) {
         continue;
