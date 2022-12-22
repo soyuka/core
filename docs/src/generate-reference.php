@@ -49,7 +49,7 @@ function isImmutable(ReflectionProperty $reflectionProperty, ReflectionClass $re
     return $reflectionClass->hasMethod('get'.ucfirst($reflectionProperty->getName())) && $reflectionClass->hasMethod('with'.ucfirst($reflectionProperty->getName()));
 }
 
-function getPhpDoc(ReflectionMethod|ReflectionProperty $reflection, PhpDocParser $parser, Lexer $lexer): PhpDocNode
+function getPhpDoc(ReflectionMethod|ReflectionProperty|ReflectionClassConstant $reflection, PhpDocParser $parser, Lexer $lexer): PhpDocNode
 {
     if (!($docComment = $reflection->getDocComment())) {
         return new PhpDocNode([]);
@@ -319,6 +319,28 @@ if ($rawDocNode) {
         $content .= $t.\PHP_EOL;
     }
 }
+$constants = [];
+foreach ($reflectionClass->getReflectionConstants(ReflectionClassConstant::IS_PUBLIC) as $constant) {
+        $constants[] = $constant;
+}
+if (!empty($constants)) {
+    $content .= "## Constants: ".\PHP_EOL;
+}
+
+
+foreach ($constants as $constant) {
+
+    $content .= "### ".addCssClasses($constant->getName(), ['token', 'keyword']).' = '.$constant->getValue().\PHP_EOL;
+    $constantDoc = getPhpDoc($constant, $parser, $lexer);
+    $constantText = array_filter($constantDoc->children, static function (PhpDocChildNode $constantDocNode): bool {
+        return $constantDocNode instanceof PhpDocTextNode;
+    });
+
+    foreach ($constantText as $text) {
+        $content .= $text.\PHP_EOL;
+    }
+}
+
 if (!empty($reflectionClass->getProperties())) {
     $content .= "## Properties: ".\PHP_EOL;
 }
