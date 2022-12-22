@@ -265,6 +265,55 @@ function hasToBeSkipped(ReflectionMethod $method, ReflectionClass $reflectionCla
         ;
 }
 
+function containsInheritDoc(PhpDocTextNode $textNode): bool
+{
+    return str_contains($textNode->text, '{@inheritdoc}');
+}
+
+function getInheritedDoc(ReflectionMethod $method, PhpDocParser $parser, Lexer $lexer): string
+{
+    $content = '';
+    try {
+        $parent = $method->getPrototype();
+        // if it is a core php method, no need to look for phpdoc
+        if (!$parent->isUserDefined()) {
+            return $content;
+        }
+        $parentDoc = getPhpDoc($parent, $parser, $lexer);
+        return printTextNodes($parentDoc, printThrowTags($parentDoc, $content));
+
+    } catch (ReflectionException) {
+        return $content;
+    }
+}
+
+function printThrowTags(PhpDocNode $phpDoc, string $content): string
+{
+    /** @var PhpDocTagNode[] $tags */
+    $tags = array_filter($phpDoc->children, static function (PhpDocChildNode $childNode): bool {
+        return $childNode instanceof PhpDocTagNode;
+    });
+
+    foreach ($tags as $tag) {
+        if ($tag->value instanceof ThrowsTagValueNode) {
+            $content .= "> " . addCssClasses("throws ", ['token', 'keyword']) . $tag->value->type->name . \PHP_EOL . "> " . \PHP_EOL;
+        }
+    }
+    return $content;
+}
+
+function printTextNodes(PhpDocNode $phpDoc, string $content): string
+{
+    $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
+        return $child instanceof PhpDocTextNode;
+    });
+
+    foreach ($text as $t) {
+        $content .= $t.\PHP_EOL;
+    }
+    return $content;
+}
+
 $handle = fopen($argv[1], 'r');
 if (!$handle) {
     fwrite(STDERR, sprintf('Error opening %s. %s', $argv[1], \PHP_EOL));
@@ -313,8 +362,7 @@ if ($rawDocNode) {
     foreach ($text as $t) {
         // todo {@see ... } breaks generation, but we can probably reference it better
         if (str_contains($t->text, '@see')) {
-            $t = str_replace('{@see', 'see', $t->text);
-            $t = str_replace('}', '', $t);
+            $t = str_replace(array('{@see', '}'), array('see', ''), $t->text);
         }
         $content .= $t.\PHP_EOL;
     }
@@ -363,13 +411,7 @@ foreach ($reflectionClass->getProperties() as $property) {
     }
 
     $doc = getPhpDoc($property, $parser, $lexer);
-    $text = array_filter($doc->children, static function (PhpDocChildNode $child): bool {
-        return $child instanceof PhpDocTextNode;
-    });
-
-    foreach ($text as $t) {
-        $content .= $t.\PHP_EOL;
-    }
+    $content = printTextNodes($doc, $content);
 }
 
 $methods = [];
@@ -402,19 +444,21 @@ foreach ($methods as $method) {
     $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
         return $child instanceof PhpDocTextNode;
     });
-    /** @var PhpDocTagNode[] $tags */
-    $tags = array_filter($phpDoc->children, static function(PhpDocChildNode $childNode): bool {
-        return $childNode instanceof PhpDocTagNode;
-    });
+    $content = printThrowTags($phpDoc, $content);
 
-    foreach ($tags as $tag) {
-        if ($tag->value instanceof ThrowsTagValueNode) {
-            $content .= "> ".addCssClasses("throws ", ['token', 'keyword']).$tag->value->type->name.\PHP_EOL."> ".\PHP_EOL;
-        }
-    }
-
+    /** @var PhpDocTextNode $t */
     foreach ($text as $t) {
-        $content .= $t.\PHP_EOL;
+        if (containsInheritDoc($t)) {
+            // Imo Trait method should not have @inheritdoc as they might not "inherit" depending
+            // on the using class
+            if ($reflectionClass->isTrait()) {
+                continue;
+            }
+            $t = getInheritedDoc($method, $parser, $lexer);
+        }
+        if (!empty((string)$t)) {
+            $content .= $t.\PHP_EOL;
+        }
     }
 
     $content .= \PHP_EOL."---".\PHP_EOL;
