@@ -219,6 +219,20 @@ function linkClasses(ReflectionType|ReflectionNamedType $reflectionNamedType): s
     return $reflectionNamedType->getName();
 }
 
+function addLink(ReflectionClass $class): string
+{
+    if (class_exists($class->getName()) || interface_exists($class->getName()) || trait_exists($class->getName())) {
+        if (str_starts_with($class->getName(), 'ApiPlatform')) {
+            return "[{$class->getName()}](/reference/" . str_replace(['ApiPlatform\\', '\\'], ['', '/'], $class->getName()) . ')';
+        } else if (str_starts_with($class->getName(), 'Symfony')) {
+            return "[{$class->getName()}](https://symfony.com/doc/current/index.html)";
+        } else if (!$class->isUserDefined()) {
+            return "[\\{$class->getName()}](https://php.net/class." . strtolower($class->getName()) . ")";
+        }
+    }
+    return $class->getName();
+}
+
 function getAccessors(ReflectionProperty $property): array
 {
     $propertyName = ucfirst($property->getName());
@@ -343,6 +357,19 @@ if ($reflectionClass->hasMethod('__construct')) {
 }
 
 $content .= "# \\{$reflectionClass->getName()}".\PHP_EOL;
+
+if ($parent = $reflectionClass->getParentClass()) {
+    $content .= "### Extends: " . \PHP_EOL;
+    $content .= "> ".addLink($parent). \PHP_EOL;
+}
+
+if (!empty($reflectionClass->getInterfaces())) {
+    $content .= "### Implements ". \PHP_EOL;
+
+    foreach ($reflectionClass->getInterfaces() as $interface) {
+        $content .= "> ".addLink($interface). \PHP_EOL. "> " . \PHP_EOL;
+    }
+}
 
 if (!isAttribute($reflectionClass)) {
     // todo document construct method
