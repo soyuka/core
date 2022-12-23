@@ -68,6 +68,11 @@ foreach ($patterns['directories'] as $pattern) {
 
 function containsOnlyPrivateMethods(ReflectionClass $reflectionClass): bool
 {
+    // Do not skip empty interfaces
+    if (interface_exists($reflectionClass->getName()) || trait_exists($reflectionClass->getName())) {
+        return false;
+    }
+
     if (!empty($reflectionClass->getProperties())) {
         return false;
     }
