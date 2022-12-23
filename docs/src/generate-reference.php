@@ -460,6 +460,8 @@ foreach ($methods as $method) {
 
     $typedParameters = getParametersWithType($method);
 
+    $content .= "<a className=\"anchor\" href=\"#{$method->getName()}\" id=\"{$method->getName()}\">§</a>".\PHP_EOL;
+
     $content .= "### "
         .getModifier($method)
         ." "
