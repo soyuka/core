@@ -344,6 +344,11 @@ $content = "";
 
 $reflectionClass = new ReflectionClass($namespace);
 
+$content .= "import Head from \"next/head\";" . \PHP_EOL.\PHP_EOL;
+$content .= "<Head><title>".$reflectionClass->getShortName()."</title></Head> ".\PHP_EOL.\PHP_EOL;
+
+
+
 /** @var ParamTagValueNode[] $propertiesConstructorDocumentation */
 $propertiesConstructorDocumentation = [];
 /** @var PhpDocNode[] $methodsDocumentation */
