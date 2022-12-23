@@ -439,6 +439,9 @@ foreach ($reflectionClass->getProperties() as $property) {
 
     $doc = getPhpDoc($property, $parser, $lexer);
     $content = printTextNodes($doc, $content);
+
+    $content .= \PHP_EOL."---".\PHP_EOL;
+
 }
 
 $methods = [];
