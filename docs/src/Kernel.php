@@ -1,6 +1,7 @@
 <?php
 
 namespace PDG;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
@@ -15,10 +16,8 @@ class Kernel extends BaseKernel
 
     public function registerBundles(): iterable
     {
-        return [];
-    }
-
-    public function registerContainerConfiguration(LoaderInterface $loader)
-    {
+        return [
+            new FrameworkBundle(),
+        ];
     }
 }

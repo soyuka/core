@@ -19,8 +19,7 @@
         "symfony/runtime": "^6.2",
         "symfony/console": "^6.2",
         "symfony/http-kernel": "^6.2",
-        "symfony/framework-bundle": "^6.2",
-        "symfony/event-dispatcher": "^6.2"
+        "symfony/framework-bundle": "^6.2"
     },
     "config": {
         "allow-plugins": {
