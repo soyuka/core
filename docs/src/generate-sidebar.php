@@ -56,3 +56,9 @@ foreach ($config['sidebar']['directories'] as $title => $directories) {
         fwrite(\STDOUT, implode(\PHP_EOL, $files).\PHP_EOL);
     }
 }
+
+// use Symfony\Component\DomCrawler\Crawler;
+//
+// $crawler = new Crawler(file_get_contents($argv[1]));
+// var_dump($crawler->filter('script'));
+// require '../vendor/autoload.php';

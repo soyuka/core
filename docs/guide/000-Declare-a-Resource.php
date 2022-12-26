@@ -1,4 +1,9 @@
 <?php
+// --- 
+// slug: declare-a-resource
+// name: Declare a Resource
+// position: 1
+// ---
 
 // # API Resource
 // This class represents an API resource
@@ -38,3 +43,7 @@ class Book
     public string $id;
 }
 // Select the next example to see how to hook a persistence layer.
+?>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Guide", "@id": "/docs/guide/declare-a-resource", "slug": "declare-a-resource", "name": "Declare a Resource", "position": 1, "identifier": "guide/declare-a-resource"}
+</script>

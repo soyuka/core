@@ -6,8 +6,10 @@ $sections = [];
 $linesOfCode = $linesOfText = $currentSection = 0;
 $sections[$currentSection] = ['text' => [], 'code' => []];
 $regex = '/^\s*\/\//';
+$namespaceOpen = false;
 
 $handle = fopen($argv[1] ?? null, 'r');
+
 if (!$handle) {
     fwrite(STDERR, sprintf('Error opening %s. %s', $argv[1], \PHP_EOL));
     exit(1);
@@ -20,8 +22,6 @@ while (($line = fgets($handle)) !== false) {
     }
 
     if (!trim($line)) {
-        $sections[$currentSection]['text'][] = $line;
-        $sections[$currentSection]['code'][] = $line;
         continue;
     }
 
@@ -34,6 +34,26 @@ while (($line = fgets($handle)) !== false) {
             $linesOfCode = $linesOfText = 0;
         }
         continue;
+    }
+
+    if ($linesOfText === 0) {
+        continue;
+    }
+
+    if (false !== preg_match('/namespace (.+) \{$/', $line, $matches) && $matches) {
+        $line = str_replace(' {', ';', $line);
+        $namespaceOpen = true;
+    } else if ($namespaceOpen) {
+        if  ($line === "}".PHP_EOL) {
+            $line = "";
+            $namespaceOpen = false;
+        } else {
+            $line = substr($line, 4);
+        }
+    }
+
+    if ($matches) {
+        $sections[$currentSection]['code'][] = '// src/' . str_replace('\\', '/', $matches[1]) . '.php';
     }
 
     $sections[$currentSection]['code'][] = $line;

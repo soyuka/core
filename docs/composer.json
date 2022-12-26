@@ -1,0 +1,13 @@
+{
+    "name": "api-platform/pdg",
+    "description": "PHP Documentation Generator",
+    "authors": [
+        {
+            "name": "soyuka",
+            "email": "soyuka@users.noreply.github.com"
+        }
+    ],
+    "require-dev": {
+        "symfony/dom-crawler": "^6.2"
+    }
+}

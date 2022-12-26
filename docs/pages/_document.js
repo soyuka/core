@@ -56,6 +56,8 @@ export default function Document() {
 
 .sections .section .content pre {
   border: 0;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .sections code[class*="language-"], pre[class*="language-"] {
