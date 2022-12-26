@@ -49,7 +49,7 @@ function isImmutable(ReflectionProperty $reflectionProperty, ReflectionClass $re
     return $reflectionClass->hasMethod('get'.ucfirst($reflectionProperty->getName())) && $reflectionClass->hasMethod('with'.ucfirst($reflectionProperty->getName()));
 }
 
-function getPhpDoc(ReflectionMethod|ReflectionProperty $reflection, PhpDocParser $parser, Lexer $lexer): PhpDocNode
+function getPhpDoc(ReflectionMethod|ReflectionProperty|ReflectionClassConstant $reflection, PhpDocParser $parser, Lexer $lexer): PhpDocNode
 {
     if (!($docComment = $reflection->getDocComment())) {
         return new PhpDocNode([]);
@@ -84,11 +84,23 @@ function getTypeString(ReflectionProperty $reflectionProperty, PhpDocParser $par
 {
     $type = $reflectionProperty->getType();
     if ($type) {
-        if ($type instanceof ReflectionNamedType && class_exists($type->getName())) {
-            return "[$type](/reference/".str_replace(['ApiPlatform\\', '\\'], ['', '/'], $type->getName()).')';
+        if ($type instanceof ReflectionUnionType) {
+            $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                return linkClasses($namedType);
+            }, $type->getTypes());
+            return implode('|', $namedTypes);
+        }
+        if ($type instanceof ReflectionIntersectionType) {
+            $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
+                return linkClasses($namedType);
+            }, $type->getTypes());
+            return implode('&', $namedTypes);
+        }
+        if ($type instanceof ReflectionNamedType) {
+            return linkClasses($type);
         }
 
-        return sprintf('`%s`', (string) $type);
+        return sprintf('`%s`', $type);
     }
 
     // Read the php doc
@@ -124,30 +136,48 @@ function getParametersWithType(ReflectionMethod $method): array
 {
     $typedParameters = [];
     foreach ($method->getParameters() as $parameter) {
+        $parameterName = getParameterName($parameter);
         $type = $parameter->getType();
         if ($type) {
             if ($type instanceof ReflectionUnionType) {
                 $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
-                    return $namedType->getName();
+                    return linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('|', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = implode('|', $namedTypes)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
             if ($type instanceof ReflectionIntersectionType) {
                 $namedTypes = array_map(static function (ReflectionNamedType $namedType) {
-                    return $namedType->getName();
+                    return linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('&', $namedTypes)." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = implode('&', $namedTypes)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
             if ($type instanceof ReflectionNamedType) {
-                $typedParameters[] = $type->getName()." ".addCssClasses($parameter->getName(), ['token', 'variable']);
+                $typedParameters[] = linkClasses($type)." ".addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
             }
         } else {
-            $typedParameters[] = $parameter->getName();
+            $typedParameters[] = addCssClasses($parameterName, ['token', 'variable']).getDefaultValueString($parameter);
         }
     }
     return $typedParameters;
+}
+
+function getParameterName(ReflectionParameter $parameter): string
+{
+    return $parameter->isPassedByReference() ? '&$'.$parameter->getName() : '$'.$parameter->getName();
+}
+
+function getDefaultValueString(ReflectionParameter $parameter): string
+{
+    if (!$parameter->isDefaultValueAvailable()) {
+        return '';
+    }
+    return match ($parameter->getDefaultValue()) {
+        null => ' = null',
+        [] => ' = []',
+        default => ' = '.$parameter->getDefaultValue()
+    };
 }
 
 function getReturnType(ReflectionMethod $method): string
@@ -189,6 +219,20 @@ function linkClasses(ReflectionType|ReflectionNamedType $reflectionNamedType): s
     return $reflectionNamedType->getName();
 }
 
+function addLink(ReflectionClass $class): string
+{
+    if (class_exists($class->getName()) || interface_exists($class->getName()) || trait_exists($class->getName())) {
+        if (str_starts_with($class->getName(), 'ApiPlatform')) {
+            return "[{$class->getName()}](/reference/" . str_replace(['ApiPlatform\\', '\\'], ['', '/'], $class->getName()) . ')';
+        } else if (str_starts_with($class->getName(), 'Symfony')) {
+            return "[{$class->getName()}](https://symfony.com/doc/current/index.html)";
+        } else if (!$class->isUserDefined()) {
+            return "[\\{$class->getName()}](https://php.net/class." . strtolower($class->getName()) . ")";
+        }
+    }
+    return $class->getName();
+}
+
 function getAccessors(ReflectionProperty $property): array
 {
     $propertyName = ucfirst($property->getName());
@@ -218,6 +262,72 @@ function isConstruct(ReflectionMethod $method): bool
     return "__construct" === $method->getName();
 }
 
+/**
+ * Checks if a method is actually from a Trait or an extended class
+ */
+function isFromExternalClass(ReflectionMethod $method, ReflectionClass $class): bool
+{
+    return $method->getFileName() !== $class->getFileName();
+}
+
+function hasToBeSkipped(ReflectionMethod $method, ReflectionClass $reflectionClass): bool
+{
+    return isFromExternalClass($method, $reflectionClass)
+        || str_contains(getModifier($method), "private")
+        || isAccessor($method)
+        || isConstruct($method)
+        ;
+}
+
+function containsInheritDoc(PhpDocTextNode $textNode): bool
+{
+    return str_contains($textNode->text, '{@inheritdoc}');
+}
+
+function getInheritedDoc(ReflectionMethod $method, PhpDocParser $parser, Lexer $lexer): string
+{
+    $content = '';
+    try {
+        $parent = $method->getPrototype();
+        // if it is a core php method, no need to look for phpdoc
+        if (!$parent->isUserDefined()) {
+            return $content;
+        }
+        $parentDoc = getPhpDoc($parent, $parser, $lexer);
+        return printTextNodes($parentDoc, printThrowTags($parentDoc, $content));
+
+    } catch (ReflectionException) {
+        return $content;
+    }
+}
+
+function printThrowTags(PhpDocNode $phpDoc, string $content): string
+{
+    /** @var PhpDocTagNode[] $tags */
+    $tags = array_filter($phpDoc->children, static function (PhpDocChildNode $childNode): bool {
+        return $childNode instanceof PhpDocTagNode;
+    });
+
+    foreach ($tags as $tag) {
+        if ($tag->value instanceof ThrowsTagValueNode) {
+            $content .= "> " . addCssClasses("throws ", ['token', 'keyword']) . $tag->value->type->name . \PHP_EOL . "> " . \PHP_EOL;
+        }
+    }
+    return $content;
+}
+
+function printTextNodes(PhpDocNode $phpDoc, string $content): string
+{
+    $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
+        return $child instanceof PhpDocTextNode;
+    });
+
+    foreach ($text as $t) {
+        $content .= $t.\PHP_EOL;
+    }
+    return $content;
+}
+
 $handle = fopen($argv[1], 'r');
 if (!$handle) {
     fwrite(STDERR, sprintf('Error opening %s. %s', $argv[1], \PHP_EOL));
@@ -234,6 +344,11 @@ $content = "";
 
 $reflectionClass = new ReflectionClass($namespace);
 
+$content .= "import Head from \"next/head\";" . \PHP_EOL.\PHP_EOL;
+$content .= "<Head><title>".$reflectionClass->getShortName()."</title></Head> ".\PHP_EOL.\PHP_EOL;
+
+
+
 /** @var ParamTagValueNode[] $propertiesConstructorDocumentation */
 $propertiesConstructorDocumentation = [];
 /** @var PhpDocNode[] $methodsDocumentation */
@@ -247,6 +362,19 @@ if ($reflectionClass->hasMethod('__construct')) {
 }
 
 $content .= "# \\{$reflectionClass->getName()}".\PHP_EOL;
+
+if ($parent = $reflectionClass->getParentClass()) {
+    $content .= "### Extends: " . \PHP_EOL;
+    $content .= "> ".addLink($parent). \PHP_EOL;
+}
+
+if (!empty($reflectionClass->getInterfaces())) {
+    $content .= "### Implements ". \PHP_EOL;
+
+    foreach ($reflectionClass->getInterfaces() as $interface) {
+        $content .= "> ".addLink($interface). \PHP_EOL. "> " . \PHP_EOL;
+    }
+}
 
 if (!isAttribute($reflectionClass)) {
     // todo document construct method
@@ -266,12 +394,33 @@ if ($rawDocNode) {
     foreach ($text as $t) {
         // todo {@see ... } breaks generation, but we can probably reference it better
         if (str_contains($t->text, '@see')) {
-            $t = str_replace('{@see', 'see', $t->text);
-            $t = str_replace('}', '', $t);
+            $t = str_replace(array('{@see', '}'), array('see', ''), $t->text);
         }
         $content .= $t.\PHP_EOL;
     }
 }
+$constants = [];
+foreach ($reflectionClass->getReflectionConstants(ReflectionClassConstant::IS_PUBLIC) as $constant) {
+        $constants[] = $constant;
+}
+if (!empty($constants)) {
+    $content .= "## Constants: ".\PHP_EOL;
+}
+
+
+foreach ($constants as $constant) {
+
+    $content .= "### ".addCssClasses($constant->getName(), ['token', 'keyword']).' = '.$constant->getValue().\PHP_EOL;
+    $constantDoc = getPhpDoc($constant, $parser, $lexer);
+    $constantText = array_filter($constantDoc->children, static function (PhpDocChildNode $constantDocNode): bool {
+        return $constantDocNode instanceof PhpDocTextNode;
+    });
+
+    foreach ($constantText as $text) {
+        $content .= $text.\PHP_EOL;
+    }
+}
+
 if (!empty($reflectionClass->getProperties())) {
     $content .= "## Properties: ".\PHP_EOL;
 }
@@ -294,31 +443,29 @@ foreach ($reflectionClass->getProperties() as $property) {
     }
 
     $doc = getPhpDoc($property, $parser, $lexer);
-    $text = array_filter($doc->children, static function (PhpDocChildNode $child): bool {
-        return $child instanceof PhpDocTextNode;
-    });
+    $content = printTextNodes($doc, $content);
 
-    foreach ($text as $t) {
-        $content .= $t.\PHP_EOL;
+    $content .= \PHP_EOL."---".\PHP_EOL;
+
+}
+
+$methods = [];
+foreach ($reflectionClass->getMethods() as $method) {
+    if (!hasToBeSkipped($method, $reflectionClass)) {
+        $methods[] = $method;
     }
 }
 
-if (!empty($reflectionClass->getMethods())) {
+if (!empty($methods)) {
     $content .= "## Methods: ".\PHP_EOL;
 }
 
 
-foreach ($reflectionClass->getMethods() as $method) {
-
-    if (isAccessor($method)) {
-        continue;
-    }
-
-    if (isConstruct($method)) {
-        continue;
-    }
+foreach ($methods as $method) {
 
     $typedParameters = getParametersWithType($method);
+
+    $content .= "<a className=\"anchor\" href=\"#{$method->getName()}\" id=\"{$method->getName()}\">§</a>".\PHP_EOL;
 
     $content .= "### "
         .getModifier($method)
@@ -334,22 +481,24 @@ foreach ($reflectionClass->getMethods() as $method) {
     $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
         return $child instanceof PhpDocTextNode;
     });
-    /** @var PhpDocTagNode[] $tags */
-    $tags = array_filter($phpDoc->children, static function(PhpDocChildNode $childNode): bool {
-        return $childNode instanceof PhpDocTagNode;
-    });
+    $content = printThrowTags($phpDoc, $content);
 
-    foreach ($tags as $tag) {
-        if ($tag->value instanceof ThrowsTagValueNode) {
-            $content .= "> ".addCssClasses("throws ", ['token', 'keyword']).$tag->value->type->name.\PHP_EOL."> ".\PHP_EOL;
+    /** @var PhpDocTextNode $t */
+    foreach ($text as $t) {
+        if (containsInheritDoc($t)) {
+            // Imo Trait method should not have @inheritdoc as they might not "inherit" depending
+            // on the using class
+            if ($reflectionClass->isTrait()) {
+                continue;
+            }
+            $t = getInheritedDoc($method, $parser, $lexer);
+        }
+        if (!empty((string)$t)) {
+            $content .= $t.\PHP_EOL;
         }
     }
 
-    foreach ($text as $t) {
-        $content .= $t.\PHP_EOL;
-    }
-
-    $content .= "---".\PHP_EOL;
+    $content .= \PHP_EOL."---".\PHP_EOL;
 }
 
     fwrite(\STDOUT, $content);

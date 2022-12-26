@@ -1,7 +1,12 @@
 {
-  // Options for the generate-reference.php script 
+  // Options for the generate-reference.php script
   "reference": {
-    "src": "../src"
+    "src": "../src",
+    "patterns": {
+      "directories": ["Metadata", "OpenApi/Model"],
+      "names": ["*Interface.php", "*Trait.php"],
+      "class-tags-to-ignore": ["@internal", "@experimental"]
+    }
   },
   "sidebar": {
     "directories": {
