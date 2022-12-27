@@ -1,7 +1,6 @@
 import remarkFrontmatter from 'remark-frontmatter' // YAML and such.
 import remarkFrontmatterMdx from 'remark-mdx-frontmatter' // YAML and such.
-import remarkPrism from 'remark-prism'
-import remarkDisableBlocks from 'remark-disable-tokenizers'
+import rehypePrism from '@mapbox/rehype-prism'
 import mdx from '@next/mdx'
 
 const withMDX = mdx({
@@ -12,24 +11,11 @@ const withMDX = mdx({
     // https://github.com/remarkjs/remark-gfm#install
     remarkPlugins: [
       remarkFrontmatter,
-      remarkFrontmatterMdx,
-      [
-        remarkPrism,
-        // https://www.npmjs.com/package/remark-prism
-        // [
-        //     'autolinker',
-        //     'command-line',
-        //     'data-uri-highlight',
-        //     'diff-highlight',
-        //     'inline-color',
-        //     'keep-markup',
-        //     'line-numbers',
-        //     'show-invisibles',
-        //     'treeview',
-        // ]
-      ],
+      remarkFrontmatterMdx
     ],
-    rehypePlugins: [],
+    rehypePlugins: [
+      rehypePrism
+    ],
     // If you use `MDXProvider`, uncomment the following line.
     // providerImportSource: "@mdx-js/react",
   },

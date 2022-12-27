@@ -75,19 +75,17 @@ class GuideCommand extends Command
                     continue;
                 }
 
+                if ($linesOfCode && ($linesOfText || $currentSection > 0)) {
+                    ++$currentSection;
+                    $sections[$currentSection] = ['text' => [], 'code' => []];
+                    $linesOfCode = $linesOfText = 0;
+                }
+
                 $sections[$currentSection]['text'][] = $text;
                 ++$linesOfText;
 
-                if ($linesOfCode) {
-                    ++$currentSection;
-                    $linesOfCode = $linesOfText = 0;
-                }
                 continue;
             }
-
-            // if ($linesOfText === 0) {
-            //     continue;
-            // }
 
             if (false !== preg_match('/namespace (.+) \{$/', $line, $matches) && $matches) {
                 $line = str_replace(' {', ';', $line);
@@ -111,13 +109,13 @@ class GuideCommand extends Command
             if ($linesOfText && $linesOfCode >= $linesOfText) {
                 ++$currentSection;
                 $linesOfCode = $linesOfText = 0;
-            } else if (!$linesOfText) {
-                $sections[$currentSection]['text'][] = PHP_EOL;
             }
             
         }
 
         fclose($handle);
+        // var_dump($sections);
+        // die();
 
         $a = implode('', $header);
         $a .= <<<MD
