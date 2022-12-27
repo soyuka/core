@@ -84,7 +84,6 @@ export default function Document() {
           </div>
         </div>
         <NextScript />
-        <script type="text/javascript" src="/prism-php.js"></script>
       </body>
     </Html>
   )
