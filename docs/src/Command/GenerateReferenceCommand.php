@@ -73,7 +73,7 @@ class GenerateReferenceCommand extends Command
         $file = Path::makeAbsolute($fileName, getcwd());
         $relative = Path::makeRelative($file, $this->root);
 
-        $output->writeln(sprintf('Generating reference for %s', $relative));
+        $style->info(sprintf('Generating reference for %s', $relative));
         $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relative);
         $content = '';
 

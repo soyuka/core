@@ -15,6 +15,7 @@ namespace PDG\Services\Reference;
 
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTextNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
@@ -106,5 +107,27 @@ class PhpDocHelper
         } catch (ReflectionException) {
             return $content;
         }
+    }
+
+    public function classDocContainsTag(\ReflectionClass $class, string $searchedTag): bool
+    {
+        $doc = $class->getDocComment();
+        if (!$doc) {
+            return false;
+        }
+        $tokens = new TokenIterator($this->lexer->tokenize($doc));
+        $phpDocNode = $this->parser->parse($tokens);
+        $tokens->consumeTokenType(Lexer::TOKEN_END);
+        $tags = array_filter($phpDocNode->children, static function (PhpDocChildNode $childNode): bool {
+            return $childNode instanceof PhpDocTagNode;
+        });
+        /** @var PhpDocTagNode $tag */
+        foreach ($tags as $tag) {
+            if ($searchedTag === $tag->name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

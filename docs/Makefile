@@ -9,7 +9,5 @@ guide:
 index:
 	./bin/pdg pdg:index > "pages/sidebar.mdx"
 
-reference:
-	mkdir -p pages/reference/Symfony/Bundle/DependencyInjection
-	php src/generate-reference.php ../src/Symfony/Bundle/DependencyInjection/Configuration.php > pages/reference/Symfony/Bundle/DependencyInjection/Configuration.mdx
-
+references:
+	./bin/pdg pdg:generate-references

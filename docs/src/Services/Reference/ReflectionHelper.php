@@ -61,9 +61,13 @@ class ReflectionHelper
             $content .=
                 '### '
                 .$this->outputFormatter->addCssClasses($constant->getName(), ['token', 'keyword'])
-                .' = '
-                .$constant->getValue()
-                .\PHP_EOL;
+                .' = ';
+            if (!\is_array($constant->getValue())) {
+                $content .= $constant->getValue().\PHP_EOL;
+            } else {
+                $content .= \PHP_EOL.'```php'.\PHP_EOL.print_r($constant->getValue(), true).'```'.\PHP_EOL;
+            }
+
             $constantDoc = $this->phpDocHelper->getPhpDoc($constant);
             $constantText = array_filter($constantDoc->children, static function (PhpDocChildNode $constantDocNode): bool {
                 return $constantDocNode instanceof PhpDocTextNode;
@@ -200,7 +204,7 @@ class ReflectionHelper
                 .'( '
                 .implode(', ', $typedParameters)
                 .' ): '
-                .$this->outputFormatter->addCssClasses(getReturnType($method), ['token', 'keyword'])
+                .$this->outputFormatter->addCssClasses($this->getReturnType($method), ['token', 'keyword'])
                 .\PHP_EOL;
 
             $phpDoc = $this->phpDocHelper->getPhpDoc($method);
@@ -269,7 +273,7 @@ class ReflectionHelper
     {
         $typedParameters = [];
         foreach ($method->getParameters() as $parameter) {
-            $parameterName = getParameterName($parameter);
+            $parameterName = $this->getParameterName($parameter);
             $type = $parameter->getType();
             if (!$type) {
                 $typedParameters[] = $this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
@@ -308,5 +312,54 @@ class ReflectionHelper
             [] => ' = []',
             default => ' = '.$parameter->getDefaultValue()
         };
+    }
+
+    private function getParameterName(\ReflectionParameter $parameter): string
+    {
+        return $parameter->isPassedByReference() ? '&$'.$parameter->getName() : '$'.$parameter->getName();
+    }
+
+    private function getReturnType(\ReflectionMethod $method): string
+    {
+        $type = $method->getReturnType();
+
+        if (!$type) {
+            return '';
+        }
+
+        if ($type instanceof \ReflectionUnionType) {
+            return implode('|', array_map(function (\ReflectionNamedType $reflectionNamedType): string {
+                return $this->outputFormatter->linkClasses($reflectionNamedType);
+            }, $type->getTypes()
+            ));
+        }
+        if ($type instanceof \ReflectionIntersectionType) {
+            return implode('&', array_map(function (\ReflectionNamedType $reflectionNamedType): string {
+                return $this->outputFormatter->linkClasses($reflectionNamedType);
+            }, $type->getTypes()
+            ));
+        }
+
+        return $this->outputFormatter->linkClasses($type);
+    }
+
+    public function containsOnlyPrivateMethods(\ReflectionClass $reflectionClass): bool
+    {
+        // Do not skip empty interfaces
+        if (interface_exists($reflectionClass->getName()) || trait_exists($reflectionClass->getName())) {
+            return false;
+        }
+
+        if (!empty($reflectionClass->getProperties())) {
+            return false;
+        }
+
+        foreach ($reflectionClass->getMethods() as $method) {
+            if (!\in_array('private', \Reflection::getModifierNames($method->getModifiers()), true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
