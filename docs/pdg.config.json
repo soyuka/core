@@ -5,6 +5,7 @@
     "patterns": {
       "directories": ["Metadata", "OpenApi/Model"],
       "names": ["*Interface.php", "*Trait.php"],
+      "exclude": ["*Factory.php"],
       "class-tags-to-ignore": ["@internal", "@experimental"]
     }
   },

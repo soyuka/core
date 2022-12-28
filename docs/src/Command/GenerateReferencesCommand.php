@@ -47,10 +47,11 @@ class GenerateReferencesCommand extends Command
         $patterns = $this->config['reference']['patterns'];
         $referencePath = $this->config['sidebar']['directories']['Reference'][0];
         $tagsToIgnore = $patterns['class-tags-to-ignore'];
+        $filesToExclude = $patterns['exclude'];
 
         $files = [];
-        $files = $this->findFilesByName($patterns['names'], $files);
-        $files = $this->findFilesByDirectories($patterns['directories'], $files);
+        $files = $this->findFilesByName($patterns['names'], $files, $filesToExclude);
+        $files = $this->findFilesByDirectories($patterns['directories'], $files, $filesToExclude);
 
         foreach ($files as $file) {
             $relativeToSrc = Path::makeRelative($file->getPath(), $this->root);
@@ -75,7 +76,7 @@ class GenerateReferencesCommand extends Command
 
             $arguments = [
                 'filename' => $relativeToDocs,
-                'output' => sprintf('%s%s%s%2$s%s.mdx', $referencePath, DIRECTORY_SEPARATOR, $relativeToSrc, $file->getBaseName('.php')),
+                'output' => sprintf('%s%s%s%2$s%s.mdx', $referencePath, \DIRECTORY_SEPARATOR, $relativeToSrc, $file->getBaseName('.php')),
             ];
 
             $commandInput = new ArrayInput($arguments);
@@ -90,10 +91,10 @@ class GenerateReferencesCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function findFilesByDirectories($directories, array $files): array
+    private function findFilesByDirectories(array $directories, array $files, array $filesToExclude = []): array
     {
         foreach ($directories as $pattern) {
-            foreach ((new Finder())->files()->in($this->root.'/'.$pattern)->name('*.php') as $file) {
+            foreach ((new Finder())->files()->in($this->root.'/'.$pattern)->name('*.php')->notName($filesToExclude) as $file) {
                 $files[] = $file;
             }
         }
@@ -101,12 +102,10 @@ class GenerateReferencesCommand extends Command
         return $files;
     }
 
-    private function findFilesByName($names, array $files): array
+    private function findFilesByName(array $names, array $files, array $filesToExclude = []): array
     {
-        foreach ($names as $pattern) {
-            foreach ((new Finder())->files()->in($this->root)->name($pattern) as $file) {
-                $files[] = $file;
-            }
+        foreach ((new Finder())->files()->in($this->root)->name($names)->notName($filesToExclude) as $file) {
+            $files[] = $file;
         }
 
         return $files;
