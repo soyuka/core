@@ -40,15 +40,6 @@ class GenerateReferenceCommand extends Command
         $this->root = Path::makeAbsolute($this->config['reference']['src'], getcwd());
     }
 
-    public function openFile(mixed $fileName): void
-    {
-        $handle = fopen($fileName, 'r');
-        if (!$handle) {
-            fwrite(\STDERR, sprintf('Error opening %s. %s', $fileName, \PHP_EOL));
-            exit(1);
-        }
-    }
-
     protected function configure(): void
     {
         $this
@@ -67,8 +58,6 @@ class GenerateReferenceCommand extends Command
     {
         $style = new SymfonyStyle($input, $output);
         $fileName = $input->getArgument('filename');
-
-        $this->openFile($fileName);
 
         $file = Path::makeAbsolute($fileName, getcwd());
         $relative = Path::makeRelative($file, $this->root);
