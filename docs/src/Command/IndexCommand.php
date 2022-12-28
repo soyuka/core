@@ -62,6 +62,10 @@ class IndexCommand extends Command
                 if ($matter = $object?->matter()) {
                     $prettyName = $matter['name'] ?? str_replace('-', ' ', $basename);
                     $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), $matter['slug'] ?? $basename);
+
+                    if (isset($matter['slug'])) {
+                        rename($file->getPathName(), str_replace(basename($path), $matter['slug'] . '.' . $file->getExtension(), $file->getPathName()));
+                    }
                     continue;
                 }
 
