@@ -21,7 +21,8 @@
         "symfony/runtime": "^6.2",
         "symfony/console": "^6.2",
         "symfony/http-kernel": "^6.2",
-        "symfony/framework-bundle": "^6.2"
+        "symfony/framework-bundle": "^6.2",
+        "spatie/yaml-front-matter": "^2.0"
     },
     "config": {
         "allow-plugins": {

@@ -7,7 +7,7 @@ export default function Document() {
   box-sizing: norder-box;
   min-width: 200px;
   margin: 0 auto;
-  padding: 25px;
+  padding: 20px;
 }
 
 @media (max-width: 767px) {
@@ -18,7 +18,7 @@ export default function Document() {
 
 .sidebar {
   flex: 1;
-  max-width: 250px;
+  max-width: 300px;
   padding: 20px;
   border-right: 1px solid #d7dde3;
   margin-right: 20px;

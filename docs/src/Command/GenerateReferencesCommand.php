@@ -75,7 +75,9 @@ class GenerateReferencesCommand extends Command
 
             $arguments = [
                 'filename' => $relativeToDocs,
+                'output' => sprintf('%s%s%s%2$s%s.mdx', $referencePath, DIRECTORY_SEPARATOR, $relativeToSrc, $file->getBaseName('.php')),
             ];
+
             $commandInput = new ArrayInput($arguments);
 
             if (Command::FAILURE === $generateRefCommand->run($commandInput, $output)) {

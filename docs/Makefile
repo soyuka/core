@@ -1,4 +1,4 @@
-.PHONY: guide
+.PHONY: guide index references clean
 
 guide:
 	for d in ./guide/*.php; do \
@@ -11,3 +11,7 @@ index:
 
 references:
 	./bin/pdg pdg:generate-references
+
+clean:
+	rm -r pages/reference/*
+	rm pages/guide/*.mdx

@@ -140,8 +140,8 @@ class ApiResource
          *   #[ApiResource(
          *       uriTemplate: '/companies/{companyId}/employees/{id}',
          *       uriVariables: [
-         *           'companyId' => ['from_class' => Company::class, 'to_property' => 'company'],
-         *           'id' => ['from_class' => Employee::class],
+         *           'companyId' => new Link(fromClass: Company::class, toProperty: 'company']),
+         *           'id' => new Link(fromClass: Employee::class)
          *       ],
          *       operations: [new Get()]
          *   )]

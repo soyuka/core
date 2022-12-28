@@ -10,6 +10,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
+                use Spatie\YamlFrontMatter\YamlFrontMatter;
+use Symfony\Component\Yaml\Exception\ParseException;
 
 // the name of the command is what users type after "php bin/console"
 #[AsCommand(name: 'pdg:index')]
@@ -38,6 +40,7 @@ class IndexCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $stderr = $io->getErrorStyle();
 
+        $glob = '*.mdx';
         $directories = ['Guides' => ['pages/guide'], 'Reference' => ['pages/reference']];
         foreach ($directories as $title => $directories) {
             $output->writeln('## '.$title);
@@ -48,7 +51,21 @@ class IndexCommand extends Command
                 $parts = explode(\DIRECTORY_SEPARATOR, $path);
                 $n = count($parts);
                 $namespace = '';
+                $basename = basename($path, '.'.$file->getExtension());
 
+                $object = null;
+                try {
+                    $object = YamlFrontMatter::parse(file_get_contents($file->getPathName()));
+                } catch (ParseException $e) {
+                }
+
+                if ($matter = $object?->matter()) {
+                    $prettyName = $matter['name'] ?? str_replace('-', ' ', $basename);
+                    $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), $matter['slug'] ?? $basename);
+                    continue;
+                }
+
+                // This is a reference
                 if ($n > 2) {
                     array_shift($parts);
                     array_pop($parts);
@@ -59,13 +76,11 @@ class IndexCommand extends Command
                     }
                 }
 
-                $basename = basename($path, '.'.$file->getExtension());
-
                 if (false !== preg_match('/^\d+\-/', $basename, $matches) && $matches) {
                     $basename = str_replace($matches[0], '', $basename);
                 }
                 $prettyName = str_replace('-', ' ', $basename);
-                $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), strtolower($basename));
+                $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), $basename);
             }
 
             foreach ($namespaces as $namespace => $files) {
