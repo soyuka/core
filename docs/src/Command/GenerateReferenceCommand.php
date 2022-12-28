@@ -50,7 +50,7 @@ class GenerateReferenceCommand extends Command
             ->addArgument(
                 'output',
                 InputArgument::OPTIONAL,
-                'leave empty for automatic generation, use `stdout` for printing'
+                'The path to the mdx file where the reference will be printed.Leave empty for screen printing'
             );
     }
 
@@ -67,11 +67,7 @@ class GenerateReferenceCommand extends Command
         $content = '';
 
         $this->reflectionClass = new \ReflectionClass($namespace);
-        $outputFile = match ($outputArg = $input->getArgument('output')) {
-            null => $this->getOutPutFile($file),
-            'stdout' => \STDOUT,
-            default => $outputArg
-        };
+        $outputFile = $input->getArgument('output');
 
         $content = $this->writePageTitle($content);
         $content = $this->writeClassName($content);
@@ -82,32 +78,21 @@ class GenerateReferenceCommand extends Command
         $content = $this->reflectionHelper->handleProperties($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleMethods($this->reflectionClass, $content);
 
-        if (\STDOUT !== $outputFile) {
-            if (!fwrite(fopen($outputFile, 'w'), $content)) {
-                $style->error('Error opening or writing '.$outputFile);
-
-                return Command::FAILURE;
-            }
-            $style->success('Reference successfully generated for '.$relative);
+        if (!$outputFile) {
+            fwrite(\STDOUT, $content);
+            $style->success('Reference successfully printed on stdout for '.$relative);
 
             return Command::SUCCESS;
         }
-        fwrite($outputFile, $content);
-        $style->success('Reference successfully printed on stdout for '.$relative);
+
+        if (!fwrite(fopen($outputFile, 'w'), $content)) {
+            $style->error('Error opening or writing '.$outputFile);
+
+            return Command::FAILURE;
+        }
+        $style->success('Reference successfully generated for '.$relative);
 
         return Command::SUCCESS;
-    }
-
-    private function getOutPutFile(string $file): string
-    {
-        $relativeToSrc = Path::makeRelative($file, $this->root);
-        $array = explode('/', $relativeToSrc);
-        array_pop($array);
-        $x = implode('/', $array);
-
-        $referencePath = $this->config['sidebar']['directories']['Reference'][0];
-
-        return $referencePath.'/'.$x.'/'.strtolower($this->reflectionClass->getShortName()).'.mdx';
     }
 
     private function writePageTitle(string $content): string
