@@ -26,22 +26,25 @@ class ReflectionHelper
 
     public function handleParent(\ReflectionClass $reflectionClass, string $content): string
     {
-        if ($parent = $reflectionClass->getParentClass()) {
-            $content .= '### Extends: '.\PHP_EOL;
-            $content .= '> '.$this->outputFormatter->addLink($parent).\PHP_EOL;
+        if (!$parent = $reflectionClass->getParentClass()) {
+            return $content;
         }
+        $content .= '### Extends: '.\PHP_EOL;
+        $content .= '> '.$this->outputFormatter->addLink($parent).\PHP_EOL;
 
         return $content;
     }
 
     public function handleImplementations(\ReflectionClass $reflectionClass, string $content): string
     {
-        if (!empty($reflectionClass->getInterfaces())) {
-            $content .= '### Implements '.\PHP_EOL;
+        if (!$interfaces = $reflectionClass->getInterfaces()) {
+            return $content;
+        }
 
-            foreach ($reflectionClass->getInterfaces() as $interface) {
-                $content .= '> '.$this->outputFormatter->addLink($interface).\PHP_EOL.'> '.\PHP_EOL;
-            }
+        $content .= '### Implements '.\PHP_EOL;
+
+        foreach ($interfaces as $interface) {
+            $content .= '> '.$this->outputFormatter->addLink($interface).\PHP_EOL.'> '.\PHP_EOL;
         }
 
         return $content;
@@ -49,13 +52,11 @@ class ReflectionHelper
 
     public function handleClassConstants(\ReflectionClass $reflectionClass, string $content): string
     {
-        $constants = [];
-        foreach ($reflectionClass->getReflectionConstants(\ReflectionClassConstant::IS_PUBLIC) as $constant) {
-            $constants[] = $constant;
+        if (!$constants = $reflectionClass->getReflectionConstants(\ReflectionClassConstant::IS_PUBLIC)) {
+            return $content;
         }
-        if (!empty($constants)) {
-            $content .= '## Constants: '.\PHP_EOL;
-        }
+
+        $content .= '## Constants: '.\PHP_EOL;
 
         foreach ($constants as $constant) {
             $content .=
@@ -83,11 +84,12 @@ class ReflectionHelper
 
     public function handleProperties(\ReflectionClass $reflectionClass, string $content): string
     {
-        if (!empty($reflectionClass->getProperties())) {
-            $content .= '## Properties: '.\PHP_EOL;
+        if (!$classProperties = $reflectionClass->getProperties()) {
+            return $content;
         }
+        $content .= '## Properties: '.\PHP_EOL;
 
-        foreach ($reflectionClass->getProperties() as $property) {
+        foreach ($classProperties as $property) {
             $modifier = $this->getModifier($property);
             $accessors = [];
             if ('private' === $modifier) {
@@ -188,9 +190,10 @@ class ReflectionHelper
             }
         }
 
-        if (!empty($methods)) {
-            $content .= '## Methods: '.\PHP_EOL;
+        if (!$methods) {
+            return $content;
         }
+        $content .= '## Methods: '.\PHP_EOL;
 
         foreach ($methods as $method) {
             $typedParameters = $this->getParametersWithType($method);
@@ -350,7 +353,7 @@ class ReflectionHelper
             return false;
         }
 
-        if (!empty($reflectionClass->getProperties())) {
+        if ($reflectionClass->getProperties()) {
             return false;
         }
 

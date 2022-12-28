@@ -53,22 +53,23 @@ class PhpDocHelper
     {
         $rawDocNode = $class->getDocComment();
 
-        if ($rawDocNode) {
-            $tokens = new TokenIterator($this->lexer->tokenize($rawDocNode));
-            $phpDocNode = $this->parser->parse($tokens);
-            $tokens->consumeTokenType(Lexer::TOKEN_END);
-            $text = array_filter($phpDocNode->children, static function (PhpDocChildNode $child): bool {
-                return $child instanceof PhpDocTextNode;
-            });
+        if (!$rawDocNode) {
+            return $content;
+        }
+        $tokens = new TokenIterator($this->lexer->tokenize($rawDocNode));
+        $phpDocNode = $this->parser->parse($tokens);
+        $tokens->consumeTokenType(Lexer::TOKEN_END);
+        $text = array_filter($phpDocNode->children, static function (PhpDocChildNode $child): bool {
+            return $child instanceof PhpDocTextNode;
+        });
 
-            /** @var PhpDocTextNode $t */
-            foreach ($text as $t) {
-                // todo {@see ... } breaks generation, but we can probably reference it better
-                if (str_contains($t->text, '@see')) {
-                    $t = str_replace(['{@see', '}'], ['see', ''], $t->text);
-                }
-                $content .= $t.\PHP_EOL;
+        /** @var PhpDocTextNode $t */
+        foreach ($text as $t) {
+            // todo {@see ... } breaks generation, but we can probably reference it better
+            if (str_contains($t->text, '@see')) {
+                $t = str_replace(['{@see', '}'], ['see', ''], $t->text);
             }
+            $content .= $t.\PHP_EOL;
         }
 
         return $content;
