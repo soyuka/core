@@ -104,7 +104,8 @@ class ReflectionHelper
             $type = $this->getTypeString($property);
             $additionalTypeInfo = $this->getAdditionalTypeInfo($property, $propertiesConstructorDocumentation);
             $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
-            $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(),['token', 'keyword'])}".\PHP_EOL;
+            $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(),['token', 'keyword'])}";
+            $content .= $this->getDefaultValueString($property) . \PHP_EOL;
             if ($additionalTypeInfo) {
                 $content .= "> Type from PHPDoc: " . $additionalTypeInfo.\PHP_EOL.\PHP_EOL;
             }
@@ -299,16 +300,22 @@ class ReflectionHelper
         return $typedParameters;
     }
 
-    private function getDefaultValueString(\ReflectionParameter $parameter): string
+    private function getDefaultValueString(\ReflectionParameter | \ReflectionProperty $reflection): string
     {
-        if (!$parameter->isDefaultValueAvailable()) {
+        if ($reflection instanceof \ReflectionParameter && !$reflection->isDefaultValueAvailable()) {
             return '';
         }
 
-        return match ($parameter->getDefaultValue()) {
+        if ($reflection instanceof \ReflectionProperty && !$reflection->hasDefaultValue()) {
+            return '';
+        }
+        if (is_array($default = $reflection->getDefaultValue()) && array_is_list($default)) {
+            return sprintf('= [%s]', implode(', ', $default));
+        }
+
+        return match ($default) {
             null => ' = null',
-            [] => ' = []',
-            default => ' = '.$parameter->getDefaultValue()
+            default => ' = '.$default
         };
     }
 
