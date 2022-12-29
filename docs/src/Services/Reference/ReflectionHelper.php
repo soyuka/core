@@ -109,11 +109,9 @@ class ReflectionHelper
                 $content .= "> Type from PHPDoc: " . $additionalTypeInfo.\PHP_EOL.\PHP_EOL;
             }
             if (!empty($accessors)) {
-                $content .= 'Accessors: '.implode(',', $accessors).\PHP_EOL;
+                $content .= '**Accessors**: '.implode(', ', $accessors).\PHP_EOL;
             }
-            if (($propertyConstructor = $properties[$property->getName()] ?? false) && $propertyConstructor->description) {
-                $content .= $propertyConstructor->description.\PHP_EOL;
-            }
+            $content .= \PHP_EOL;
 
             $doc = $this->phpDocHelper->getPhpDoc($property);
             $content = $this->outputFormatter->printTextNodes($doc, $content);
