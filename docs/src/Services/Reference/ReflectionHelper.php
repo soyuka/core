@@ -84,22 +84,30 @@ class ReflectionHelper
 
     public function handleProperties(\ReflectionClass $reflectionClass, string $content): string
     {
-        if (!$classProperties = $reflectionClass->getProperties()) {
+        $classProperties = [];
+        foreach ($reflectionClass->getProperties() as $property) {
+            if (!$this->propertyHasToBeSkipped($property)) {
+                $classProperties[] = $property;
+            }
+        }
+
+        if (!$classProperties) {
             return $content;
         }
         $content .= '## Properties: '.\PHP_EOL;
 
         foreach ($classProperties as $property) {
             $modifier = $this->getModifier($property);
-            $accessors = [];
-            if ('private' === $modifier) {
-                $accessors = $this->getAccessors($property);
-            }
-            $propertiesConstructorDocumentation = $this->phpDocHelper->getPropertiesConstructorDocumentation($reflectionClass);
+            $accessors = $this->getAccessors($property);
 
-            $type = $this->getTypeString($property, $propertiesConstructorDocumentation);
+            $propertiesConstructorDocumentation = $this->phpDocHelper->getPropertiesConstructorDocumentation($reflectionClass);
+            $type = $this->getTypeString($property);
+            $additionalTypeInfo = $this->getAdditionalTypeInfo($property, $propertiesConstructorDocumentation);
             $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
-            $content .= "### {$type} \${$property->getName()}".\PHP_EOL;
+            $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(),['token', 'keyword'])}".\PHP_EOL;
+            if ($additionalTypeInfo) {
+                $content .= "> Type from PHPDoc: " . $additionalTypeInfo.\PHP_EOL.\PHP_EOL;
+            }
             if (!empty($accessors)) {
                 $content .= 'Accessors: '.implode(',', $accessors).\PHP_EOL;
             }
@@ -141,51 +149,40 @@ class ReflectionHelper
         return $accessors;
     }
 
-    private function getTypeString(\ReflectionProperty $reflectionProperty, array $constructorDocumentation): string
+    private function getTypeString(\ReflectionProperty $reflectionProperty): string
     {
         $type = $reflectionProperty->getType();
-        if ($type) {
-            if ($type instanceof \ReflectionUnionType) {
-                $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
-                    return $this->outputFormatter->linkClasses($namedType);
-                }, $type->getTypes());
 
-                return implode('|', $namedTypes);
-            }
-            if ($type instanceof \ReflectionIntersectionType) {
-                $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
-                    return $this->outputFormatter->linkClasses($namedType);
-                }, $type->getTypes());
-
-                return implode('&', $namedTypes);
-            }
-            if ($type instanceof \ReflectionNamedType) {
-                return $this->outputFormatter->linkClasses($type);
-            }
-
-            return sprintf('`%s`', $type);
+        if (!$type) {
+            return '';
         }
 
-        // Read the php doc
-        $propertyTypes = $this->phpDocHelper->getPhpDoc($reflectionProperty);
-        if ($varTagValues = $propertyTypes->getVarTagValues()) {
-            $type = $varTagValues[0]->type;
+        if ($type instanceof \ReflectionUnionType) {
+            $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
+                return $this->outputFormatter->linkClasses($namedType);
+            }, $type->getTypes());
 
-            return $this->outputFormatter->formatType((string) $type);
+            return implode('|', $namedTypes);
+        }
+        if ($type instanceof \ReflectionIntersectionType) {
+            $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
+                return $this->outputFormatter->linkClasses($namedType);
+            }, $type->getTypes());
+
+            return implode('&', $namedTypes);
+        }
+        if ($type instanceof \ReflectionNamedType) {
+            return $this->outputFormatter->linkClasses($type);
         }
 
-        if (isset($constructorDocumentation[$reflectionProperty->getName()])) {
-            return $this->outputFormatter->formatType((string) $constructorDocumentation[$reflectionProperty->getName()]->type);
-        }
-
-        return '';
+        return sprintf('`%s`', $type);
     }
 
     public function handleMethods(\ReflectionClass $reflectionClass, string $content): string
     {
         $methods = [];
         foreach ($reflectionClass->getMethods() as $method) {
-            if (!$this->hasToBeSkipped($method, $reflectionClass)) {
+            if (!$this->methodHasToBeSkipped($method, $reflectionClass)) {
                 $methods[] = $method;
             }
         }
@@ -261,7 +258,7 @@ class ReflectionHelper
         return $method->getFileName() !== $class->getFileName();
     }
 
-    private function hasToBeSkipped(\ReflectionMethod $method, \ReflectionClass $reflectionClass): bool
+    private function methodHasToBeSkipped(\ReflectionMethod $method, \ReflectionClass $reflectionClass): bool
     {
         return $this->isFromExternalClass($method, $reflectionClass)
             || str_contains($this->getModifier($method), 'private')
@@ -364,5 +361,26 @@ class ReflectionHelper
         }
 
         return true;
+    }
+
+    public function getAdditionalTypeInfo($reflectionProperty, $constructorDocumentation): string
+    {
+        // Read the php doc
+        $propertyTypes = $this->phpDocHelper->getPhpDoc($reflectionProperty);
+        if ($varTagValues = $propertyTypes->getVarTagValues()) {
+            $type = $varTagValues[0]->type;
+
+            return $this->outputFormatter->formatType((string)$type);
+        }
+
+        if (isset($constructorDocumentation[$reflectionProperty->getName()])) {
+            return $this->outputFormatter->formatType((string)$constructorDocumentation[$reflectionProperty->getName()]->type);
+        }
+        return '';
+    }
+
+    private function propertyHasToBeSkipped(\ReflectionProperty $property): bool
+    {
+        return str_contains($this->getModifier($property), 'private') && !$this->getAccessors($property);
     }
 }
