@@ -13,15 +13,22 @@ declare(strict_types=1);
 
 namespace PDG\Services\Reference;
 
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\Parser;
+use PhpParser\ParserFactory;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTextNode;
 
 class ReflectionHelper
 {
+    private readonly Parser $parser;
+
     public function __construct(
         private readonly PhpDocHelper $phpDocHelper,
-        private readonly OutputFormatter $outputFormatter
+        private readonly OutputFormatter $outputFormatter,
     ) {
+        $this->parser = (new ParserFactory())->create(ParserFactory::ONLY_PHP7);
     }
 
     public function handleParent(\ReflectionClass $reflectionClass, string $content): string
@@ -97,6 +104,12 @@ class ReflectionHelper
         $content .= '## Properties: '.\PHP_EOL;
 
         foreach ($classProperties as $property) {
+            if ($property->isPromoted()) {
+                $defaultValue = $this->getPromotedPropertyDefaultValueString($property);
+            } else {
+                // TODO handle array to string conversions etc
+                $defaultValue = $this->getDefaultValueString($property);
+            }
             $modifier = $this->getModifier($property);
             $accessors = $this->getAccessors($property);
 
@@ -104,10 +117,10 @@ class ReflectionHelper
             $type = $this->getTypeString($property);
             $additionalTypeInfo = $this->getAdditionalTypeInfo($property, $propertiesConstructorDocumentation);
             $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
-            $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(),['token', 'keyword'])}";
-            $content .= $this->getDefaultValueString($property) . \PHP_EOL;
+            $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(), ['token', 'keyword'])}";
+            $content .= $defaultValue.\PHP_EOL;
             if ($additionalTypeInfo) {
-                $content .= "> Type from PHPDoc: " . $additionalTypeInfo.\PHP_EOL.\PHP_EOL;
+                $content .= '> Type from PHPDoc: '.$additionalTypeInfo.\PHP_EOL.\PHP_EOL;
             }
             if (!empty($accessors)) {
                 $content .= '**Accessors**: '.implode(', ', $accessors).\PHP_EOL;
@@ -300,7 +313,50 @@ class ReflectionHelper
         return $typedParameters;
     }
 
-    private function getDefaultValueString(\ReflectionParameter | \ReflectionProperty $reflection): string
+    private function getPromotedPropertyDefaultValueString(\ReflectionProperty $reflection): string
+    {
+        $traverser = new NodeTraverser();
+        $visitor = new DefaultValueNodeVisitor($reflection);
+        $traverser->addVisitor($visitor);
+
+        $stmts = $this->parser->parse(file_get_contents($reflection->getDeclaringClass()->getFileName()));
+        $traverser->traverse($stmts);
+
+        $defaultValue = $visitor->defaultValue;
+
+        return match (true) {
+            null === $defaultValue => '',
+            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
+            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
+            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
+            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->arrayNodeToString($defaultValue),
+            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
+        };
+    }
+
+    private function arrayNodeToString(Node\Expr\Array_ $array): string
+    {
+        if (!$items = $array->items) {
+            return '[]';
+        }
+        $return = '[';
+        /** @var Node\Expr\ArrayItem $item */
+        foreach ($items as $item) {
+            // TODO: maybe also handle multi dimensional arrays
+            if ($item->value instanceof Node\Scalar) {
+                $return .= $item->value->getAttribute('rawValue').', ';
+            }
+            if ($item->value instanceof Node\Expr\ConstFetch) {
+                $return .= $item->value->name->parts[0].', ';
+            }
+        }
+        $return = substr($return, 0, -2);
+        $return .= ']';
+
+        return $return;
+    }
+
+    private function getDefaultValueString(\ReflectionParameter|\ReflectionProperty $reflection): mixed
     {
         if ($reflection instanceof \ReflectionParameter && !$reflection->isDefaultValueAvailable()) {
             return '';
@@ -309,7 +365,7 @@ class ReflectionHelper
         if ($reflection instanceof \ReflectionProperty && !$reflection->hasDefaultValue()) {
             return '';
         }
-        if (is_array($default = $reflection->getDefaultValue()) && array_is_list($default)) {
+        if (\is_array($default = $reflection->getDefaultValue()) && array_is_list($default)) {
             return sprintf('= [%s]', implode(', ', $default));
         }
 
@@ -375,12 +431,13 @@ class ReflectionHelper
         if ($varTagValues = $propertyTypes->getVarTagValues()) {
             $type = $varTagValues[0]->type;
 
-            return $this->outputFormatter->formatType((string)$type);
+            return $this->outputFormatter->formatType((string) $type);
         }
 
         if (isset($constructorDocumentation[$reflectionProperty->getName()])) {
-            return $this->outputFormatter->formatType((string)$constructorDocumentation[$reflectionProperty->getName()]->type);
+            return $this->outputFormatter->formatType((string) $constructorDocumentation[$reflectionProperty->getName()]->type);
         }
+
         return '';
     }
 
