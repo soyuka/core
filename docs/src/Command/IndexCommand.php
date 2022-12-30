@@ -1,6 +1,19 @@
 <?php
+
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace PDG\Command;
 
+use Spatie\YamlFrontMatter\YamlFrontMatter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -10,7 +23,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
-                use Spatie\YamlFrontMatter\YamlFrontMatter;
 use Symfony\Component\Yaml\Exception\ParseException;
 
 // the name of the command is what users type after "php bin/console"
@@ -31,8 +43,7 @@ class IndexCommand extends Command
                 name: 'basePath',
                 default: 'pages',
                 mode: InputOption::VALUE_OPTIONAL
-            )
-        ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -49,7 +60,7 @@ class IndexCommand extends Command
             foreach ((new Finder())->files()->in($directories)->sortByName() as $file) {
                 $path = Path::makeRelative($file->getPathName(), $input->getOption('basePath'));
                 $parts = explode(\DIRECTORY_SEPARATOR, $path);
-                $n = count($parts);
+                $n = \count($parts);
                 $namespace = '';
                 $basename = basename($path, '.'.$file->getExtension());
 
@@ -64,7 +75,7 @@ class IndexCommand extends Command
                     $namespaces[$namespace][] = sprintf('- [%s](/%s/%s)', $prettyName, Path::getDirectory($path), $matter['slug'] ?? $basename);
 
                     if (isset($matter['slug'])) {
-                        rename($file->getPathName(), str_replace(basename($path), $matter['slug'] . '.' . $file->getExtension(), $file->getPathName()));
+                        rename($file->getPathName(), str_replace(basename($path), $matter['slug'].'.'.$file->getExtension(), $file->getPathName()));
                     }
                     continue;
                 }
@@ -99,4 +110,3 @@ class IndexCommand extends Command
         return Command::SUCCESS;
     }
 }
-

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace PDG\Command;
 
 use PDG\Services\Reference\PhpDocHelper;
-use PDG\Services\Reference\ReflectionHelper;
+use PDG\Services\Reference\Reflection\ReflectionHelper;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;

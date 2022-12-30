@@ -16,7 +16,7 @@ namespace PDG\Services\Reference;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
-class DefaultValueNodeVisitor extends NodeVisitorAbstract
+class PromotedPropertyDefaultValueNodeVisitor extends NodeVisitorAbstract
 {
     public function __construct(
         private readonly \ReflectionParameter|\ReflectionProperty $reflection,

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace PDG\Services\Reference;
 
+use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
@@ -95,5 +96,27 @@ class OutputFormatter
         }
 
         return sprintf('`%s`', str_replace(' ', '', $type));
+    }
+
+    public function arrayNodeToString(Node\Expr\Array_ $array): string
+    {
+        if (!$items = $array->items) {
+            return '[]';
+        }
+        $return = '[';
+        /** @var Node\Expr\ArrayItem $item */
+        foreach ($items as $item) {
+            // TODO: maybe also handle multi dimensional arrays
+            if ($item->value instanceof Node\Scalar) {
+                $return .= $item->value->getAttribute('rawValue').', ';
+            }
+            if ($item->value instanceof Node\Expr\ConstFetch) {
+                $return .= $item->value->name->parts[0].', ';
+            }
+        }
+        $return = substr($return, 0, -2);
+        $return .= ']';
+
+        return $return;
     }
 }

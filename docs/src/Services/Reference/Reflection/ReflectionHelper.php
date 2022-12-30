@@ -11,24 +11,22 @@
 
 declare(strict_types=1);
 
-namespace PDG\Services\Reference;
+namespace PDG\Services\Reference\Reflection;
 
-use PhpParser\Node;
-use PhpParser\NodeTraverser;
-use PhpParser\Parser;
-use PhpParser\ParserFactory;
+use PDG\Services\Reference\OutputFormatter;
+use PDG\Services\Reference\PhpDocHelper;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTextNode;
 
 class ReflectionHelper
 {
-    private readonly Parser $parser;
+    use ReflectionHelperTrait;
 
     public function __construct(
         private readonly PhpDocHelper $phpDocHelper,
         private readonly OutputFormatter $outputFormatter,
+        private readonly ReflectionPropertyHelper $propertyHelper
     ) {
-        $this->parser = (new ParserFactory())->create(ParserFactory::ONLY_PHP7);
     }
 
     public function handleParent(\ReflectionClass $reflectionClass, string $content): string
@@ -93,7 +91,7 @@ class ReflectionHelper
     {
         $classProperties = [];
         foreach ($reflectionClass->getProperties() as $property) {
-            if (!$this->propertyHasToBeSkipped($property)) {
+            if (!$this->propertyHelper->propertyHasToBeSkipped($property)) {
                 $classProperties[] = $property;
             }
         }
@@ -105,17 +103,17 @@ class ReflectionHelper
 
         foreach ($classProperties as $property) {
             if ($property->isPromoted()) {
-                $defaultValue = $this->getPromotedPropertyDefaultValueString($property);
+                $defaultValue = $this->propertyHelper->getPromotedPropertyDefaultValueString($property);
             } else {
                 // TODO handle array to string conversions etc
                 $defaultValue = $this->getDefaultValueString($property);
             }
             $modifier = $this->getModifier($property);
-            $accessors = $this->getAccessors($property);
+            $accessors = $this->propertyHelper->getAccessors($property);
 
             $propertiesConstructorDocumentation = $this->phpDocHelper->getPropertiesConstructorDocumentation($reflectionClass);
-            $type = $this->getTypeString($property);
-            $additionalTypeInfo = $this->getAdditionalTypeInfo($property, $propertiesConstructorDocumentation);
+            $type = $this->propertyHelper->getTypeString($property);
+            $additionalTypeInfo = $this->propertyHelper->getAdditionalTypeInfo($property, $propertiesConstructorDocumentation);
             $content .= "<a className=\"anchor\" href=\"#{$property->getName()}\" id=\"{$property->getName()}\">§</a>".\PHP_EOL;
             $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(), ['token', 'keyword'])}";
             $content .= $defaultValue.\PHP_EOL;
@@ -134,60 +132,6 @@ class ReflectionHelper
         }
 
         return $content;
-    }
-
-    private function getModifier(\ReflectionMethod|\ReflectionProperty $reflection): string
-    {
-        return implode(' ', \Reflection::getModifierNames($reflection->getModifiers()));
-    }
-
-    private function getAccessors(\ReflectionProperty $property): array
-    {
-        $propertyName = ucfirst($property->getName());
-        $accessors = [];
-
-        foreach ($property->getDeclaringClass()->getMethods() as $method) {
-            switch ($method->getName()) {
-                case 'get'.$propertyName:
-                case 'set'.$propertyName:
-                case 'is'.$propertyName:
-                    $accessors[] = $method->getName();
-                    break;
-                default:
-                    continue 2;
-            }
-        }
-
-        return $accessors;
-    }
-
-    private function getTypeString(\ReflectionProperty $reflectionProperty): string
-    {
-        $type = $reflectionProperty->getType();
-
-        if (!$type) {
-            return '';
-        }
-
-        if ($type instanceof \ReflectionUnionType) {
-            $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
-                return $this->outputFormatter->linkClasses($namedType);
-            }, $type->getTypes());
-
-            return implode('|', $namedTypes);
-        }
-        if ($type instanceof \ReflectionIntersectionType) {
-            $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
-                return $this->outputFormatter->linkClasses($namedType);
-            }, $type->getTypes());
-
-            return implode('&', $namedTypes);
-        }
-        if ($type instanceof \ReflectionNamedType) {
-            return $this->outputFormatter->linkClasses($type);
-        }
-
-        return sprintf('`%s`', $type);
     }
 
     public function handleMethods(\ReflectionClass $reflectionClass, string $content): string
@@ -296,83 +240,21 @@ class ReflectionHelper
                     return $this->outputFormatter->linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('|', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = implode('|', $namedTypes).' ReflectionHelper.php'.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
             }
             if ($type instanceof \ReflectionIntersectionType) {
                 $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
                     return $this->outputFormatter->linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('&', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = implode('&', $namedTypes).' ReflectionHelper.php'.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
             }
             if ($type instanceof \ReflectionNamedType) {
-                $typedParameters[] = $this->outputFormatter->linkClasses($type).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = $this->outputFormatter->linkClasses($type).' ReflectionHelper.php'.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
             }
         }
 
         return $typedParameters;
-    }
-
-    private function getPromotedPropertyDefaultValueString(\ReflectionProperty $reflection): string
-    {
-        $traverser = new NodeTraverser();
-        $visitor = new DefaultValueNodeVisitor($reflection);
-        $traverser->addVisitor($visitor);
-
-        $stmts = $this->parser->parse(file_get_contents($reflection->getDeclaringClass()->getFileName()));
-        $traverser->traverse($stmts);
-
-        $defaultValue = $visitor->defaultValue;
-
-        return match (true) {
-            null === $defaultValue => '',
-            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
-            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
-            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
-            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->arrayNodeToString($defaultValue),
-            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
-        };
-    }
-
-    private function arrayNodeToString(Node\Expr\Array_ $array): string
-    {
-        if (!$items = $array->items) {
-            return '[]';
-        }
-        $return = '[';
-        /** @var Node\Expr\ArrayItem $item */
-        foreach ($items as $item) {
-            // TODO: maybe also handle multi dimensional arrays
-            if ($item->value instanceof Node\Scalar) {
-                $return .= $item->value->getAttribute('rawValue').', ';
-            }
-            if ($item->value instanceof Node\Expr\ConstFetch) {
-                $return .= $item->value->name->parts[0].', ';
-            }
-        }
-        $return = substr($return, 0, -2);
-        $return .= ']';
-
-        return $return;
-    }
-
-    private function getDefaultValueString(\ReflectionParameter|\ReflectionProperty $reflection): mixed
-    {
-        if ($reflection instanceof \ReflectionParameter && !$reflection->isDefaultValueAvailable()) {
-            return '';
-        }
-
-        if ($reflection instanceof \ReflectionProperty && !$reflection->hasDefaultValue()) {
-            return '';
-        }
-        if (\is_array($default = $reflection->getDefaultValue()) && array_is_list($default)) {
-            return sprintf('= [%s]', implode(', ', $default));
-        }
-
-        return match ($default) {
-            null => ' = null',
-            default => ' = '.$default
-        };
     }
 
     private function getParameterName(\ReflectionParameter $parameter): string
@@ -422,27 +304,5 @@ class ReflectionHelper
         }
 
         return true;
-    }
-
-    public function getAdditionalTypeInfo($reflectionProperty, $constructorDocumentation): string
-    {
-        // Read the php doc
-        $propertyTypes = $this->phpDocHelper->getPhpDoc($reflectionProperty);
-        if ($varTagValues = $propertyTypes->getVarTagValues()) {
-            $type = $varTagValues[0]->type;
-
-            return $this->outputFormatter->formatType((string) $type);
-        }
-
-        if (isset($constructorDocumentation[$reflectionProperty->getName()])) {
-            return $this->outputFormatter->formatType((string) $constructorDocumentation[$reflectionProperty->getName()]->type);
-        }
-
-        return '';
-    }
-
-    private function propertyHasToBeSkipped(\ReflectionProperty $property): bool
-    {
-        return str_contains($this->getModifier($property), 'private') && !$this->getAccessors($property);
     }
 }
