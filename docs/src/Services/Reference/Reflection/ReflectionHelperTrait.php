@@ -41,4 +41,9 @@ trait ReflectionHelperTrait
             default => ' = '.$default
         };
     }
+
+    private function getParameterName(\ReflectionParameter $parameter): string
+    {
+        return $parameter->isPassedByReference() ? '&$'.$parameter->getName() : '$'.$parameter->getName();
+    }
 }
