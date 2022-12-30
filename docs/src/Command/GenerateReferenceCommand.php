@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace PDG\Command;
 
+use PDG\Services\Reference\OutputFormatter;
 use PDG\Services\Reference\PhpDocHelper;
 use PDG\Services\Reference\Reflection\ReflectionHelper;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -33,6 +34,7 @@ class GenerateReferenceCommand extends Command
     public function __construct(
         private readonly PhpDocHelper $phpDocHelper,
         private readonly ReflectionHelper $reflectionHelper,
+        private readonly OutputFormatter $outputFormatter,
         string $name = null
     ) {
         parent::__construct($name);
@@ -69,8 +71,8 @@ class GenerateReferenceCommand extends Command
         $this->reflectionClass = new \ReflectionClass($namespace);
         $outputFile = $input->getArgument('output');
 
-        $content = $this->writePageTitle($content);
-        $content = $this->writeClassName($content);
+        $content = $this->outputFormatter->writePageTitle($this->reflectionClass, $content);
+        $content = $this->outputFormatter->writeClassName($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleParent($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleImplementations($this->reflectionClass, $content);
         $content = $this->phpDocHelper->handleClassDoc($this->reflectionClass, $content);
@@ -93,18 +95,5 @@ class GenerateReferenceCommand extends Command
         $style->success('Reference successfully generated for '.$relative);
 
         return Command::SUCCESS;
-    }
-
-    private function writePageTitle(string $content): string
-    {
-        $content .= 'import Head from "next/head";'.\PHP_EOL.\PHP_EOL;
-        $content .= '<Head><title>'.$this->reflectionClass->getShortName().'</title></Head> '.\PHP_EOL.\PHP_EOL;
-
-        return $content;
-    }
-
-    private function writeClassName(string $content): string
-    {
-        return $content."# \\{$this->reflectionClass->getName()}".\PHP_EOL;
     }
 }
