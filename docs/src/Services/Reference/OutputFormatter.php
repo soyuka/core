@@ -48,6 +48,9 @@ class OutputFormatter
     public function linkClasses(\ReflectionType|\ReflectionNamedType $reflectionNamedType): string
     {
         if (!class_exists($name = $reflectionNamedType->getName()) && !interface_exists($name)) {
+            if ($reflectionNamedType instanceof \ReflectionNamedType && $reflectionNamedType->allowsNull()) {
+                return '?'.$name;
+            }
             return $name;
         }
         if (str_starts_with($name, 'ApiPlatform')) {
