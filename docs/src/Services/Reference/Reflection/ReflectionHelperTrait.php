@@ -23,25 +23,6 @@ trait ReflectionHelperTrait
         return implode(' ', \Reflection::getModifierNames($reflection->getModifiers()));
     }
 
-    private function getDefaultValueString(\ReflectionParameter|\ReflectionProperty $reflection): string
-    {
-        if ($reflection instanceof \ReflectionParameter && !$reflection->isDefaultValueAvailable()) {
-            return '';
-        }
-
-        if ($reflection instanceof \ReflectionProperty && !$reflection->hasDefaultValue()) {
-            return '';
-        }
-        if (\is_array($default = $reflection->getDefaultValue()) && array_is_list($default)) {
-            return sprintf('= [%s]', implode(', ', $default));
-        }
-
-        return match ($default) {
-            null => ' = null',
-            default => ' = '.$default
-        };
-    }
-
     private function getParameterName(\ReflectionParameter $parameter): string
     {
         return $parameter->isPassedByReference() ? '&$'.$parameter->getName() : '$'.$parameter->getName();
