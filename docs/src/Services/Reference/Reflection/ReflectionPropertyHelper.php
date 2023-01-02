@@ -14,8 +14,9 @@ declare(strict_types=1);
 namespace PDG\Services\Reference\Reflection;
 
 use PDG\Services\Reference\OutputFormatter;
+use PDG\Services\Reference\Parser\PromotedPropertyDefaultValueNodeVisitor;
+use PDG\Services\Reference\Parser\PropertyDefaultValueNodeVisitor;
 use PDG\Services\Reference\PhpDocHelper;
-use PDG\Services\Reference\PromotedPropertyDefaultValueNodeVisitor;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -124,5 +125,26 @@ class ReflectionPropertyHelper
         }
 
         return '';
+    }
+
+    public function getPropertyDefaultValueString(\ReflectionProperty $property): string
+    {
+        $traverser = new NodeTraverser();
+        $visitor = new PropertyDefaultValueNodeVisitor($property);
+        $traverser->addVisitor($visitor);
+
+        $stmts = $this->parser->parse(file_get_contents($property->getDeclaringClass()->getFileName()));
+        $traverser->traverse($stmts);
+
+        $defaultValue = $visitor->defaultValue;
+
+        return match (true) {
+            null === $defaultValue => '',
+            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
+            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
+            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
+            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->outputFormatter->arrayNodeToString($defaultValue),
+            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
+        };
     }
 }

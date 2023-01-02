@@ -51,6 +51,7 @@ class OutputFormatter
             if ($reflectionNamedType instanceof \ReflectionNamedType && $reflectionNamedType->allowsNull()) {
                 return '?'.$name;
             }
+
             return $name;
         }
         if (str_starts_with($name, 'ApiPlatform')) {

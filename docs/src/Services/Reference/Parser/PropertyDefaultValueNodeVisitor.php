@@ -11,25 +11,30 @@
 
 declare(strict_types=1);
 
-namespace PDG\Services\Reference;
+namespace PDG\Services\Reference\Parser;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 
-class PromotedPropertyDefaultValueNodeVisitor extends NodeVisitorAbstract
+class PropertyDefaultValueNodeVisitor extends NodeVisitorAbstract
 {
     public function __construct(
-        private readonly \ReflectionParameter|\ReflectionProperty $reflection,
+        private readonly \ReflectionProperty $property,
         public mixed $defaultValue = null
     ) {
     }
 
+    /**
+     * @return null
+     */
     public function enterNode(Node $node)
     {
-        if ($node instanceof Node\Stmt\ClassMethod && '__construct' === $node->name->name) {
-            foreach ($node->getParams() as $param) {
-                if ($param->var->name === $this->reflection->getName()) {
-                    $this->defaultValue = $param->default;
+        if ($node instanceof Node\Stmt\Property) {
+            foreach ($node->props as $prop) {
+                if ($prop->name->name === $this->property->getName()) {
+                    $this->defaultValue = $prop->default;
+
+                    return null;
                 }
             }
         }

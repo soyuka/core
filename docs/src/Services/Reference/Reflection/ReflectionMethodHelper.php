@@ -14,14 +14,22 @@ declare(strict_types=1);
 namespace PDG\Services\Reference\Reflection;
 
 use PDG\Services\Reference\OutputFormatter;
+use PDG\Services\Reference\Parser\MethodParameterDefaultValuedNodeVisitor;
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\Parser;
+use PhpParser\ParserFactory;
 
 class ReflectionMethodHelper
 {
     use ReflectionHelperTrait;
 
+    private Parser $parser;
+
     public function __construct(
         private readonly OutputFormatter $outputFormatter
     ) {
+        $this->parser = (new ParserFactory())->create(ParserFactory::ONLY_PHP7);
     }
 
     public function methodHasToBeSkipped(\ReflectionMethod $method, \ReflectionClass $reflectionClass): bool
@@ -66,7 +74,7 @@ class ReflectionMethodHelper
             $parameterName = $this->getParameterName($parameter);
             $type = $parameter->getType();
             if (!$type) {
-                $typedParameters[] = $this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = $this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getParameterDefaultValueString($parameter);
                 continue;
             }
             if ($type instanceof \ReflectionUnionType) {
@@ -74,17 +82,17 @@ class ReflectionMethodHelper
                     return $this->outputFormatter->linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('|', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = implode('|', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getParameterDefaultValueString($parameter);
             }
             if ($type instanceof \ReflectionIntersectionType) {
                 $namedTypes = array_map(function (\ReflectionNamedType $namedType) {
                     return $this->outputFormatter->linkClasses($namedType);
                 }, $type->getTypes());
 
-                $typedParameters[] = implode('&', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = implode('&', $namedTypes).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getParameterDefaultValueString($parameter);
             }
             if ($type instanceof \ReflectionNamedType) {
-                $typedParameters[] = $this->outputFormatter->linkClasses($type).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getDefaultValueString($parameter);
+                $typedParameters[] = $this->outputFormatter->linkClasses($type).' '.$this->outputFormatter->addCssClasses($parameterName, ['token', 'variable']).$this->getParameterDefaultValueString($parameter);
             }
         }
 
@@ -113,5 +121,26 @@ class ReflectionMethodHelper
         }
 
         return $this->outputFormatter->linkClasses($type);
+    }
+
+    private function getParameterDefaultValueString(\ReflectionParameter $parameter): string
+    {
+        $traverser = new NodeTraverser();
+        $visitor = new MethodParameterDefaultValuedNodeVisitor($parameter);
+        $traverser->addVisitor($visitor);
+
+        $stmts = $this->parser->parse(file_get_contents($parameter->getDeclaringClass()->getFileName()));
+        $traverser->traverse($stmts);
+
+        $defaultValue = $visitor->defaultValue;
+
+        return match (true) {
+            null === $defaultValue => '',
+            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
+            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
+            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
+            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->outputFormatter->arrayNodeToString($defaultValue),
+            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
+        };
     }
 }

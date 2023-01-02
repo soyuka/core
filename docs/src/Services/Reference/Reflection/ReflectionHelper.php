@@ -106,8 +106,7 @@ class ReflectionHelper
             if ($property->isPromoted()) {
                 $defaultValue = $this->propertyHelper->getPromotedPropertyDefaultValueString($property);
             } else {
-                // TODO handle array to string conversions etc
-                $defaultValue = $this->getDefaultValueString($property);
+                $defaultValue = $this->propertyHelper->getPropertyDefaultValueString($property);
             }
             $modifier = $this->getModifier($property);
             $accessors = $this->propertyHelper->getAccessors($property);
