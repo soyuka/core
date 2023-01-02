@@ -24,8 +24,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Finder\Finder;
 
-#[AsCommand(name: 'pdg:generate-references')]
-class GenerateReferencesCommand extends Command
+#[AsCommand(name: 'pdg:references')]
+class ReferencesCommand extends Command
 {
     private readonly array $config;
     private readonly string $root;
@@ -72,7 +72,7 @@ class GenerateReferencesCommand extends Command
 
                 return Command::FAILURE;
             }
-            $generateRefCommand = $this->getApplication()?->find('pdg:generate-reference');
+            $generateRefCommand = $this->getApplication()?->find('pdg:reference');
 
             $arguments = [
                 'filename' => $relativeToDocs,

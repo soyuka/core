@@ -24,8 +24,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Path;
 
-#[AsCommand(name: 'pdg:generate-reference')]
-class GenerateReferenceCommand extends Command
+#[AsCommand(name: 'pdg:reference')]
+class ReferenceCommand extends Command
 {
     private readonly array $config;
     private string $root;

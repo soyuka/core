@@ -12,10 +12,10 @@ index:
 	./bin/pdg pdg:index > "pages/sidebar.mdx"
 
 references:
-	./bin/pdg pdg:generate-references
+	./bin/pdg pdg:references
 
 configuration-reference:
-	./bin/pdg pdg:generate-configuration pages/reference/Configuration.mdx
+	./bin/pdg pdg:configuration pages/reference/Configuration.mdx
 
 clean:
 	rm -r pages/reference/*

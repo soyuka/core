@@ -23,8 +23,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'pdg:generate-configuration')]
-class GenerateConfigurationReferenceCommand extends Command
+#[AsCommand(name: 'pdg:configuration')]
+class ConfigurationReferenceCommand extends Command
 {
     protected function configure(): void
     {
