@@ -4,7 +4,7 @@
     "src": "../src",
     "patterns": {
       "directories": ["Metadata", "OpenApi/Model"],
-      "names": ["*Interface.php", "*Trait.php"],
+      "names": ["*Interface.php", "*Trait.php", "Configuration.php"],
       "exclude": ["*Factory.php"],
       "class-tags-to-ignore": ["@internal", "@experimental"]
     }

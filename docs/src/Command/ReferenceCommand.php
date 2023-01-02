@@ -16,6 +16,8 @@ namespace PDG\Command;
 use PDG\Services\Reference\OutputFormatter;
 use PDG\Services\Reference\PhpDocHelper;
 use PDG\Services\Reference\Reflection\ReflectionHelper;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -27,6 +29,7 @@ use Symfony\Component\Filesystem\Path;
 #[AsCommand(name: 'pdg:reference')]
 class ReferenceCommand extends Command
 {
+    private const CONFIGURATION_REFERENCE_PATH = 'pages/reference/Configuration.mdx';
     private readonly array $config;
     private string $root;
     private \ReflectionClass $reflectionClass;
@@ -71,6 +74,10 @@ class ReferenceCommand extends Command
         $this->reflectionClass = new \ReflectionClass($namespace);
         $outputFile = $input->getArgument('output');
 
+        if ($this->reflectionClass->implementsInterface(ConfigurationInterface::class)) {
+            return $this->generateConfigExample($style, $outputFile);
+        }
+
         $content = $this->outputFormatter->writePageTitle($this->reflectionClass, $content);
         $content = $this->outputFormatter->writeClassName($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleParent($this->reflectionClass, $content);
@@ -93,6 +100,32 @@ class ReferenceCommand extends Command
             return Command::FAILURE;
         }
         $style->success('Reference successfully generated for '.$relative);
+
+        return Command::SUCCESS;
+    }
+
+    private function generateConfigExample(SymfonyStyle $style): int
+    {
+        $style->info('Generating configuration reference');
+
+        $yaml = (new YamlReferenceDumper())->dump($this->reflectionClass->newInstance());
+        if (!$yaml) {
+            $style->error('No configuration is available');
+
+            return Command::FAILURE;
+        }
+
+        $content = $this->outputFormatter->writePageTitle($this->reflectionClass, '');
+        $content .= '# Configuration Reference'.\PHP_EOL;
+        $content .= sprintf('```yaml'.\PHP_EOL.'%s```', $yaml);
+        $content .= \PHP_EOL;
+
+        if (!fwrite(fopen(self::CONFIGURATION_REFERENCE_PATH, 'w'), $content)) {
+            $style->error('Error opening or writing '.self::CONFIGURATION_REFERENCE_PATH);
+
+            return Command::FAILURE;
+        }
+        $style->success('Configuration reference successfully generated');
 
         return Command::SUCCESS;
     }
