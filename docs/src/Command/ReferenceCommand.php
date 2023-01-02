@@ -29,7 +29,6 @@ use Symfony\Component\Filesystem\Path;
 #[AsCommand(name: 'pdg:reference')]
 class ReferenceCommand extends Command
 {
-    private const CONFIGURATION_REFERENCE_PATH = 'pages/reference/Configuration.mdx';
     private readonly array $config;
     private string $root;
     private \ReflectionClass $reflectionClass;
@@ -104,7 +103,7 @@ class ReferenceCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function generateConfigExample(SymfonyStyle $style): int
+    private function generateConfigExample(SymfonyStyle $style, ?string $outputFile): int
     {
         $style->info('Generating configuration reference');
 
@@ -120,8 +119,8 @@ class ReferenceCommand extends Command
         $content .= sprintf('```yaml'.\PHP_EOL.'%s```', $yaml);
         $content .= \PHP_EOL;
 
-        if (!fwrite(fopen(self::CONFIGURATION_REFERENCE_PATH, 'w'), $content)) {
-            $style->error('Error opening or writing '.self::CONFIGURATION_REFERENCE_PATH);
+        if (!fwrite(fopen($outputFile, 'w'), $content)) {
+            $style->error('Error opening or writing '.$outputFile);
 
             return Command::FAILURE;
         }
