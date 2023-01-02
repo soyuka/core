@@ -1,5 +1,7 @@
 .PHONY: guide index references clean
 
+all: guide references index 
+
 guide:
 	for d in ./guide/*.php; do \
 			name=$$(basename $$d .php); \

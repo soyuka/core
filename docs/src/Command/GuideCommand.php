@@ -92,7 +92,7 @@ class GuideCommand extends Command
                 $namespaceOpen = true;
             } else if ($namespaceOpen) {
                 if  ($line === "}".PHP_EOL) {
-                    $line = "";
+                    $line = PHP_EOL;
                     $namespaceOpen = false;
                 } else {
                     $line = substr($line, 4);
@@ -100,7 +100,7 @@ class GuideCommand extends Command
             }
 
             if ($matches) {
-                $sections[$currentSection]['code'][] = '// src/' . str_replace('\\', '/', $matches[1]) . '.php';
+                $sections[$currentSection]['code'][] = '// src/' . str_replace('\\', '/', $matches[1]) . '.php' . PHP_EOL;
             }
 
             $sections[$currentSection]['code'][] = $line;
@@ -114,8 +114,6 @@ class GuideCommand extends Command
         }
 
         fclose($handle);
-        // var_dump($sections);
-        // die();
 
         $a = implode('', $header);
         $a .= <<<MD

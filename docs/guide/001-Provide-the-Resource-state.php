@@ -1,13 +1,18 @@
 <?php
+// --- 
+// slug: provide-the-resource-state
+// name: Provide the Resource State
+// position: 2
+// ---
 
-// # Provider
-// Our model is the same then in the [ApiResource guide](./0-ApiResource.php). API Platform will declare
+// # Provide the Resource State
+// Our model is the same then in the previous guide ([Declare a Resource](./declare-a-resource). API Platform will declare
 // CRUD operations if we don't declare them. 
 namespace App\ApiResource {
     use ApiPlatform\Metadata\ApiResource;
     use App\State\BookProvider;
 
-    // We used a `BookProvider` as the [Operation::provider]() option. (reference doc technique)
+    // We use a `BookProvider` as the [ApiResource::provider](http://localhost:3000/reference/Metadata/ApiResource#provider) option. 
     #[ApiResource(provider: BookProvider::class)]
     class Book
     {
@@ -23,7 +28,6 @@ namespace App\State {
 
     // The BookProvider is where we retrieve the data in our persistence layer. 
     // In this provider we choose to handle the retrieval of a single Book but also a list of Books.
-    // As an exercise you can edit the code and add a second book in the collection.
     final class BookProvider implements ProviderInterface
     {
         public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|object|null
@@ -31,11 +35,12 @@ namespace App\State {
             if ($operation instanceof CollectionOperationInterface) {
                 $book = new Book();
                 $book->id = '1';
+                // As an exercise you can edit the code and add a second book in the collection.
                 return [$book];
             }
 
             $book = new Book();
-            // This holds the value of the `{id}` variable of the URI template.
+            // The value at `$uriVariables['id']` is the one that matches the `{id}` variable of the **[URI template](/explanation/uri#uri-template)**.
             $book->id = $uriVariables['id'];
             return $book;
         }
