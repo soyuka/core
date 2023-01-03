@@ -13,8 +13,11 @@ declare(strict_types=1);
 
 namespace PDG\Command;
 
+use PDG\Services\Reference\OutputFormatter;
 use PDG\Services\Reference\PhpDocHelper;
-use PDG\Services\Reference\ReflectionHelper;
+use PDG\Services\Reference\Reflection\ReflectionHelper;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Dumper\YamlReferenceDumper;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,8 +26,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Path;
 
-#[AsCommand(name: 'pdg:generate-reference')]
-class GenerateReferenceCommand extends Command
+#[AsCommand(name: 'pdg:reference')]
+class ReferenceCommand extends Command
 {
     private readonly array $config;
     private string $root;
@@ -33,6 +36,7 @@ class GenerateReferenceCommand extends Command
     public function __construct(
         private readonly PhpDocHelper $phpDocHelper,
         private readonly ReflectionHelper $reflectionHelper,
+        private readonly OutputFormatter $outputFormatter,
         string $name = null
     ) {
         parent::__construct($name);
@@ -69,8 +73,12 @@ class GenerateReferenceCommand extends Command
         $this->reflectionClass = new \ReflectionClass($namespace);
         $outputFile = $input->getArgument('output');
 
-        $content = $this->writePageTitle($content);
-        $content = $this->writeClassName($content);
+        if ($this->reflectionClass->implementsInterface(ConfigurationInterface::class)) {
+            return $this->generateConfigExample($style, $outputFile);
+        }
+
+        $content = $this->outputFormatter->writePageTitle($this->reflectionClass, $content);
+        $content = $this->outputFormatter->writeClassName($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleParent($this->reflectionClass, $content);
         $content = $this->reflectionHelper->handleImplementations($this->reflectionClass, $content);
         $content = $this->phpDocHelper->handleClassDoc($this->reflectionClass, $content);
@@ -95,16 +103,29 @@ class GenerateReferenceCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function writePageTitle(string $content): string
+    private function generateConfigExample(SymfonyStyle $style, ?string $outputFile): int
     {
-        $content .= 'import Head from "next/head";'.\PHP_EOL.\PHP_EOL;
-        $content .= '<Head><title>'.$this->reflectionClass->getShortName().'</title></Head> '.\PHP_EOL.\PHP_EOL;
+        $style->info('Generating configuration reference');
 
-        return $content;
-    }
+        $yaml = (new YamlReferenceDumper())->dump($this->reflectionClass->newInstance());
+        if (!$yaml) {
+            $style->error('No configuration is available');
 
-    private function writeClassName(string $content): string
-    {
-        return $content."# \\{$this->reflectionClass->getName()}".\PHP_EOL;
+            return Command::FAILURE;
+        }
+
+        $content = $this->outputFormatter->writePageTitle($this->reflectionClass, '');
+        $content .= '# Configuration Reference'.\PHP_EOL;
+        $content .= sprintf('```yaml'.\PHP_EOL.'%s```', $yaml);
+        $content .= \PHP_EOL;
+
+        if (!fwrite(fopen($outputFile, 'w'), $content)) {
+            $style->error('Error opening or writing '.$outputFile);
+
+            return Command::FAILURE;
+        }
+        $style->success('Configuration reference successfully generated');
+
+        return Command::SUCCESS;
     }
 }

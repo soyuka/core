@@ -110,7 +110,7 @@ class GuideCommand extends Command
                 ++$currentSection;
                 $linesOfCode = $linesOfText = 0;
             }
-            
+
         }
 
         fclose($handle);

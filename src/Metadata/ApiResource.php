@@ -31,6 +31,27 @@ class ApiResource
 {
     use WithResourceTrait;
 
+    /**
+     * Operations is a list of [HttpOperation](./HttpOperation).
+     *
+     * By default API Platform declares operations representing CRUD routes if you don't specify this parameter:
+     *
+     * ```php
+     * #[ApiResource(
+     *     operations: [
+     *         new Get(uriTemplate: '/books/{id}'),
+     *         // The GetCollection operation returns a list of Books.
+     *         new GetCollection(uriTemplate: '/books'),
+     *         new Post(uriTemplate: '/books'),
+     *         new Patch(uriTemplate: '/books/{id}'),
+     *         new Delete(uriTemplate: '/books/{id}'),
+     *     ]
+     * )]
+     *
+     * ```
+     *
+     * Try this live at [play.api-platform.com/api-resource](play.api-platform.com).
+     */
     protected ?Operations $operations;
 
     /**
@@ -70,27 +91,7 @@ class ApiResource
          * or an array of string `['https://schema.org/Flight', 'https://schema.org/BusTrip']`
          */
         protected string|array|null $types = null,
-        /**
-         * Operations is a list of [HttpOperation](./HttpOperation).
-         *
-         * By default API Platform declares operations respresenting CRUD routes if you don't specify this parameter:
-         *
-         * ```php
-         * #[ApiResource(
-         *     operations: [
-         *         new Get(uriTemplate: '/books/{id}'),
-         *         // The GetCollection operation returns a list of Books.
-         *         new GetCollection(uriTemplate: '/books'),
-         *         new Post(uriTemplate: '/books'),
-         *         new Patch(uriTemplate: '/books/{id}'),
-         *         new Delete(uriTemplate: '/books/{id}'),
-         *     ]
-         * )]
-         *
-         * ```
-         *
-         * Try this live at [play.api-platform.com/api-resource](play.api-platform.com).
-         */
+
         $operations = null,
         /**
          * The `formats` option allows you to customize content negotiation. By default API Platform supports JsonLd, Hal, JsonAPI.
