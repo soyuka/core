@@ -65,7 +65,8 @@ class PhpDocHelper
 
         /** @var PhpDocTextNode $t */
         foreach ($text as $t) {
-            // todo {@see ... } breaks generation, but we can probably reference it better
+            // @TODO: this should be handled by the Javascript using `md` files as `mdx` we should not need this here
+            // indeed {@see} breaks mdx as it thinks that its a React component
             if (str_contains($t->text, '@see')) {
                 $t = str_replace(['{@see', '}'], ['see', ''], $t->text);
             }

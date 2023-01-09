@@ -61,12 +61,13 @@ class ReferenceCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $style = new SymfonyStyle($input, $output);
+        $stderr = $style->getErrorStyle();
         $fileName = $input->getArgument('filename');
 
         $file = Path::makeAbsolute($fileName, getcwd());
         $relative = Path::makeRelative($file, $this->root);
 
-        $style->info(sprintf('Generating reference for %s', $relative));
+        $stderr->info(sprintf('Generating reference for %s', $relative));
         $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relative);
         $content = '';
 
@@ -74,7 +75,7 @@ class ReferenceCommand extends Command
         $outputFile = $input->getArgument('output');
 
         if ($this->reflectionClass->implementsInterface(ConfigurationInterface::class)) {
-            return $this->generateConfigExample($style, $outputFile);
+            return $this->generateConfigExample($stderr, $outputFile);
         }
 
         $content = $this->outputFormatter->writePageTitle($this->reflectionClass, $content);
@@ -88,17 +89,17 @@ class ReferenceCommand extends Command
 
         if (!$outputFile) {
             fwrite(\STDOUT, $content);
-            $style->success('Reference successfully printed on stdout for '.$relative);
+            $stderr->success('Reference successfully printed on stdout for '.$relative);
 
             return Command::SUCCESS;
         }
 
         if (!fwrite(fopen($outputFile, 'w'), $content)) {
-            $style->error('Error opening or writing '.$outputFile);
+            $stderr->error('Error opening or writing '.$outputFile);
 
             return Command::FAILURE;
         }
-        $style->success('Reference successfully generated for '.$relative);
+        $stderr->success('Reference successfully generated for '.$relative);
 
         return Command::SUCCESS;
     }

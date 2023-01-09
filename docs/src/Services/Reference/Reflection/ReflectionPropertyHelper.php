@@ -70,14 +70,15 @@ class ReflectionPropertyHelper
         $traverser->traverse($stmts);
 
         $defaultValue = $visitor->defaultValue;
+        $prefix = ' = ';
 
         return match (true) {
             null === $defaultValue => '',
-            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
-            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
-            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
-            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->outputFormatter->arrayNodeToString($defaultValue),
-            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
+            $defaultValue instanceof Node\Scalar => $prefix.$defaultValue->getAttribute('rawValue'),
+            $defaultValue instanceof Node\Expr\ConstFetch => $prefix.$defaultValue->name->parts[0],
+            $defaultValue instanceof Node\Expr\New_ => sprintf('%s new %s()', $prefix, $defaultValue->class->parts[0]),
+            $defaultValue instanceof Node\Expr\Array_ => $prefix.$this->outputFormatter->arrayNodeToString($defaultValue),
+            $defaultValue instanceof Node\Expr\ClassConstFetch => $prefix.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
         };
     }
 
@@ -137,14 +138,15 @@ class ReflectionPropertyHelper
         $traverser->traverse($stmts);
 
         $defaultValue = $visitor->defaultValue;
+        $prefix = ' = ';
 
         return match (true) {
             null === $defaultValue => '',
-            $defaultValue instanceof Node\Scalar => '= '.$defaultValue->getAttribute('rawValue'),
-            $defaultValue instanceof Node\Expr\ConstFetch => '= '.$defaultValue->name->parts[0],
-            $defaultValue instanceof Node\Expr\New_ => sprintf('= new %s()', $defaultValue->class->parts[0]),
-            $defaultValue instanceof Node\Expr\Array_ => '= '.$this->outputFormatter->arrayNodeToString($defaultValue),
-            $defaultValue instanceof Node\Expr\ClassConstFetch => '= '.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
+            $defaultValue instanceof Node\Scalar => $prefix.$defaultValue->getAttribute('rawValue'),
+            $defaultValue instanceof Node\Expr\ConstFetch => $prefix.$defaultValue->name->parts[0],
+            $defaultValue instanceof Node\Expr\New_ => sprintf('%s new %s()', $prefix, $defaultValue->class->parts[0]),
+            $defaultValue instanceof Node\Expr\Array_ => $prefix.$this->outputFormatter->arrayNodeToString($defaultValue),
+            $defaultValue instanceof Node\Expr\ClassConstFetch => $prefix.$defaultValue->class->parts[0].'::'.$defaultValue->name->name
         };
     }
 }

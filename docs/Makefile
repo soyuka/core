@@ -14,9 +14,6 @@ index:
 references:
 	./bin/pdg pdg:references
 
-configuration-reference:
-	./bin/pdg pdg:generate-configuration pages/reference/Configuration.mdx
-
 clean:
 	rm -r pages/reference/*
 	rm pages/guide/*.mdx

@@ -118,7 +118,7 @@ class ReflectionHelper
             $content .= "### {$modifier} {$type} {$this->outputFormatter->addCssClasses('$'.$property->getName(), ['token', 'keyword'])}";
             $content .= $defaultValue.\PHP_EOL;
             if ($additionalTypeInfo) {
-                $content .= '> Type from PHPDoc: '.$additionalTypeInfo.\PHP_EOL.\PHP_EOL;
+                $content .= '> '.$additionalTypeInfo.\PHP_EOL.\PHP_EOL;
             }
             if (!empty($accessors)) {
                 $content .= '**Accessors**: '.implode(', ', $accessors).\PHP_EOL;

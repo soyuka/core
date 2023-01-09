@@ -5,7 +5,6 @@
 // position: 99 
 // ---
 
-/
 // Let's add a [custom Constraint](https://symfony.com/doc/current/validation/custom_constraint.html).
 namespace App\Validator {
     use Symfony\Component\Validator\Constraint;
@@ -25,7 +24,7 @@ namespace App\Validator {
     {
         public function validate(mixed $value, Constraint $constraint)
         {
-            // TODO: Implement validate() method.
+            /* TODO: Implement validate() method. */
         }
     }
 }
@@ -81,10 +80,8 @@ namespace App\State {
     }
 }
 
-
 // TODO move this to reference somehow
 // This operation uses a Callable as group so that you can vary the Validation according to your dataset
 // new Get(validationContext: ['groups' =>])
 // ## Sequential Validation Groups
 // If you need to specify the order in which your validation groups must be tested against, you can use a [group sequence](http://symfony.com/doc/current/validation/sequence_provider.html).
-

@@ -3,6 +3,7 @@
 // slug: provide-the-resource-state
 // name: Provide the Resource State
 // position: 2
+// executable: true
 // ---
 
 // # Provide the Resource State
@@ -12,7 +13,7 @@ namespace App\ApiResource {
     use ApiPlatform\Metadata\ApiResource;
     use App\State\BookProvider;
 
-    // We use a `BookProvider` as the [ApiResource::provider](http://localhost:3000/reference/Metadata/ApiResource#provider) option. 
+    // We use a `BookProvider` as the [ApiResource::provider](/reference/Metadata/ApiResource#provider) option. 
     #[ApiResource(provider: BookProvider::class)]
     class Book
     {

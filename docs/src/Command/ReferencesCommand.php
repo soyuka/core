@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace PDG\Command;
 
+use ApiPlatform\Metadata\Get;
 use PDG\Services\Reference\PhpDocHelper;
 use PDG\Services\Reference\Reflection\ReflectionHelper;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -44,6 +45,7 @@ class ReferencesCommand extends Command
     {
         $style = new SymfonyStyle($input, $output);
 
+        // TODO: move this to a Sf Configuration
         $patterns = $this->config['reference']['patterns'];
         $referencePath = $this->config['sidebar']['directories']['Reference'][0];
         $tagsToIgnore = $patterns['class-tags-to-ignore'];
@@ -53,25 +55,42 @@ class ReferencesCommand extends Command
         $files = $this->findFilesByName($patterns['names'], $files, $filesToExclude);
         $files = $this->findFilesByDirectories($patterns['directories'], $files, $filesToExclude);
 
+        $namespaces = [];
+
         foreach ($files as $file) {
             $relativeToSrc = Path::makeRelative($file->getPath(), $this->root);
             $relativeToDocs = Path::makeRelative($file->getRealPath(), getcwd());
 
-            $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relativeToSrc).'\\'.$file->getBasename('.php');
+            $namespace = 'ApiPlatform\\'.str_replace(['/', '.php'], ['\\', ''], $relativeToSrc);
+            $className = sprintf('%s\\%s', $namespace, $file->getBasename('.php'));
+            $refl = new \ReflectionClass($className);
+
+            if (!($namespaces[$namespace] ?? false)) {
+                $namespaces[$namespace] = [];
+            }
+
+            $namespaces[$namespace][] = [
+                'className' => $className,
+                'shortName' => $file->getBasename('.php'),
+                'type' => $this->getClassType($refl),
+                'link' => '/reference/' . ($relativeToSrc . $file->getBaseName('.php'))
+            ];
+                
             foreach ($tagsToIgnore as $tagToIgnore) {
-                if ($this->phpDocHelper->classDocContainsTag(new \ReflectionClass($namespace), $tagToIgnore)) {
+                if ($this->phpDocHelper->classDocContainsTag($refl, $tagToIgnore)) {
                     continue 2;
                 }
             }
-            if ($this->reflectionHelper->containsOnlyPrivateMethods(new \ReflectionClass($namespace))) {
+
+            if ($this->reflectionHelper->containsOnlyPrivateMethods($refl)) {
                 continue;
             }
 
             if (!@mkdir($concurrentDirectory = $referencePath.'/'.$relativeToSrc, 0777, true) && !is_dir($concurrentDirectory)) {
                 $style->error(sprintf('Directory "%s" was not created', $concurrentDirectory));
-
                 return Command::FAILURE;
             }
+
             $generateRefCommand = $this->getApplication()?->find('pdg:reference');
 
             $arguments = [
@@ -83,10 +102,22 @@ class ReferencesCommand extends Command
 
             if (Command::FAILURE === $generateRefCommand->run($commandInput, $output)) {
                 $style->error(sprintf('Failed generating reference for %s', $file->getBaseNme()));
-
                 return Command::FAILURE;
             }
         }
+
+        // Creating an index like https://angular.io/api
+        $content = '';
+        foreach ($namespaces as $namespace => $classes) {
+            $content .= '## ' . $namespace . PHP_EOL;
+            $content .= '<ul>' . PHP_EOL;
+            foreach ($classes as $classObj) {
+                $content .= sprintf('<li><a href="%s"><span class="symbol %s">%2$s</span>%s</a></li>%s', $classObj['link'], $classObj['type'], $classObj['shortName'], PHP_EOL);
+            }
+            $content .='</ul>' . PHP_EOL;
+        }
+
+        fwrite(\STDOUT, $content);
 
         return Command::SUCCESS;
     }
@@ -109,5 +140,21 @@ class ReferencesCommand extends Command
         }
 
         return $files;
+    }
+
+    private function getClassType(\ReflectionClass $refl): string {
+        if ($refl->isInterface()) {
+            return 'I';
+        }
+
+        if (\count($refl->getAttributes('Attribute'))) {
+            return 'A';
+        }
+
+        if ($refl->isTrait()) {
+            return 'T';
+        }
+
+        return 'C';
     }
 }

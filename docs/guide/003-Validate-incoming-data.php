@@ -3,6 +3,7 @@
 // slug: use-validation-groups
 // name: Use Validation Groups
 // position: 3 
+// executable: true
 // ---
 
 // # Validing incoming data

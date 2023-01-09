@@ -3,6 +3,7 @@
 // slug: declare-a-resource
 // name: Declare a Resource
 // position: 1
+// executable: true
 // ---
 
 // # Declare a Resource

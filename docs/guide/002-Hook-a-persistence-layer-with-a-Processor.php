@@ -3,6 +3,7 @@
 // slug: hook-a-persistence-layer-with-a-processor
 // name: Hook a Persistence Layer with a Processor
 // position: 2
+// executable: true
 // ---
 
 // # Hook a Persistence Layer with a Processor
