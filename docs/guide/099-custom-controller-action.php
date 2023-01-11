@@ -6,7 +6,7 @@
 // executable: false
 // ---
 
-// In case you're using a custom controller action, make sure you return the `Paginator` object to get the full hydra response with `hydra:view` (which contains information about first, last, next and previous page). The following examples show how to handle it within a repository method.
+// In case you're using a custom controller action, make sure you return the `Paginator` object to get the full hydra response with `hydra:view` (which contains information about first, last, next and previous page). The following example show how to handle it within a repository method.
 // The controller needs to pass through the page number. You will need to use the Doctrine Paginator and pass it to the API Platform Paginator.
 
 namespace App\Entity {
@@ -14,7 +14,6 @@ namespace App\Entity {
     use App\Repository\BookRepository;
     use Doctrine\ORM\Mapping as ORM;
     use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-    use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
     use Symfony\Component\Security\Core\User\UserInterface;
     use Symfony\Component\Validator\Constraints as Assert;
 

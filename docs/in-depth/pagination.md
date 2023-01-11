@@ -25,7 +25,7 @@ is returned. It's a valid JSON(-LD) document containing items of the requested p
     },
     {
         "_": "Other items in the collection..."
-    },
+    }
   ],
   "hydra:totalItems": 50,
   "hydra:view": {
@@ -48,13 +48,12 @@ The name of the page parameter can be changed with the following configuration:
 api_platform:
     collection:
         pagination:
-            page_parameter_name: _page
+            page_parameter_name: page # Default value
 ```
 
 If you are using custom state providers (not the provided Doctrine ORM, ODM or ElasticSearch ones)
 and if you want your results to be paginated, you will need to return an instance of a
-`ApiPlatform\State\Pagination\PartialPaginatorInterface` or
-`ApiPlatform\State\Pagination\PaginatorInterface`.
+`ApiPlatform\State\Pagination\PartialPaginatorInterface` or `ApiPlatform\State\Pagination\PaginatorInterface`.
 
 A few existing classes are provided to make it easier to paginate the results:
 
