@@ -188,6 +188,43 @@ class ApiResource
         protected ?string $condition = null,
         protected ?string $controller = null,
         protected ?string $class = null,
+        /**
+         * The `urlGenerationStrategy` option configures the url generation strategy.
+         *
+         * See: [UrlGeneratorInterface::class](/reference/Api/UrlGeneratorInterface)
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         * use ApiPlatform\Api\UrlGeneratorInterface;
+         *
+         * #[ApiResource(urlGenerationStrategy: UrlGeneratorInterface::ABS_URL)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * App\Entity\Book:
+         *     urlGenerationStrategy: !php/const ApiPlatform\Api\UrlGeneratorInterface::ABS_URL
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" urlGenerationStrategy="0" />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?int $urlGenerationStrategy = null,
         protected ?string $deprecationReason = null,
         protected ?array $cacheHeaders = null,
