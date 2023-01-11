@@ -41,12 +41,24 @@ is returned. It's a valid JSON(-LD) document containing items of the requested p
 Hypermedia links to the first, the last, previous and the next page in the collection are displayed as well as the number
 of total items in the collection.
 
-* [Changing the Pagination Parameter Name](/docs/guide/changing-the-pagination-parameter-name)
-* [Disabling the Pagination](/docs/guide/disabling-the-pagination)
-* [Changing the Number of Items per Page](/docs/guide/changing-the-number-of-items-per-page)
-* [Changing the Number of Maximum Items per Page](/docs/guide/changing-the-number-of-maximum-items-per-page)
-* [Partial Pagination](/docs/guide/partial-pagination)
-* [Cursor-Based Pagination](/docs/guide/cursor-based-pagination)
-* [Controlling The Behavior of The Doctrine ORM Paginator](/docs/guide/controlling-the-behavior-of-the-doctrine-orm-paginator)
+The name of the page parameter can be changed with the following configuration:
+
+```yaml
+# api/config/packages/api_platform.yaml
+api_platform:
+    collection:
+        pagination:
+            page_parameter_name: _page
+```
+
+If you are using custom state providers (not the provided Doctrine ORM, ODM or ElasticSearch ones)
+and if you want your results to be paginated, you will need to return an instance of a
+`ApiPlatform\State\Pagination\PartialPaginatorInterface` or
+`ApiPlatform\State\Pagination\PaginatorInterface`.
+
+A few existing classes are provided to make it easier to paginate the results:
+
+* `ApiPlatform\State\Pagination\ArrayPaginator`
+* `ApiPlatform\State\Pagination\TraversablePaginator`
+
 * [Custom Controller Action](/docs/guide/custom-controller-action)
-* [Pagination for Custom State Providers](/docs/guide/pagination-for-custom-state-providers)
