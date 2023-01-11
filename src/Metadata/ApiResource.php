@@ -180,6 +180,42 @@ class ApiResource
          * The `stateless` option configures the Symfony's Route stateless option.
          */
         protected ?bool $stateless = null,
+        /**
+         * The `sunset` option indicates when a deprecated operation will be removed.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Parchment.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(deprecationReason: 'Create a Book instead', sunset: '01/01/2020')]
+         * class Parchment
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Parchment:
+         *         - deprecationReason: 'Create a Book instead'
+         *           sunset: '01/01/2020'
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Parchment" deprecationReason="Create a Book instead" sunset="01/01/2020" />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?string $sunset = null,
         protected ?string $acceptPatch = null,
         protected ?int $status = null,
@@ -189,6 +225,45 @@ class ApiResource
         protected ?string $controller = null,
         protected ?string $class = null,
         protected ?int $urlGenerationStrategy = null,
+        /**
+         * The `deprecationReason` option deprecates the current resource with a deprecation message.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Parchment.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(deprecationReason: 'Create a Book instead')]
+         * class Parchment
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Parchment:
+         *         - deprecationReason: 'Create a Book instead'
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Parchment" deprecationReason="Create a Book instead" />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * - With JSON-lD / Hydra, [an `owl:deprecated` annotation property](https://www.w3.org/TR/owl2-syntax/#Annotation_Properties) will be added to the appropriate data structure
+         * - With Swagger / OpenAPI, [a `deprecated` property](https://swagger.io/docs/specification/2-0/paths-and-operations/) will be added
+         * - With GraphQL, the [`isDeprecated` and `deprecationReason` properties](https://facebook.github.io/graphql/June2018/#sec-Deprecation) will be added to the schema
+         */
         protected ?string $deprecationReason = null,
         protected ?array $cacheHeaders = null,
         protected ?array $normalizationContext = null,

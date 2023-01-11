@@ -64,6 +64,51 @@ abstract class Operation
         protected ?string $securityPostDenormalizeMessage = null,
         protected ?string $securityPostValidation = null,
         protected ?string $securityPostValidationMessage = null,
+        /**
+         * The `deprecationReason` option deprecates the current operation with a deprecation message.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Parchment.php
+         * use ApiPlatform\Metadata\Get;
+         *
+         * #[Get(deprecationReason: 'Create a Book instead')]
+         * class Parchment
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Parchment:
+         *         - operations:
+         *               ApiPlatform\Metadata\Get:
+         *                   deprecationReason: 'Create a Book instead'
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Parchment">
+         *         <operations>
+         *             <operation class="ApiPlatform\Metadata\Get" deprecationReason="Create a Book instead" />
+         *         <operations>
+         *     </resource>
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * - With JSON-lD / Hydra, [an `owl:deprecated` annotation property](https://www.w3.org/TR/owl2-syntax/#Annotation_Properties) will be added to the appropriate data structure
+         * - With Swagger / OpenAPI, [a `deprecated` property](https://swagger.io/docs/specification/2-0/paths-and-operations/) will be added
+         * - With GraphQL, the [`isDeprecated` and `deprecationReason` properties](https://facebook.github.io/graphql/June2018/#sec-Deprecation) will be added to the schema
+         */
         protected ?string $deprecationReason = null,
         protected ?array $filters = null,
         /**
