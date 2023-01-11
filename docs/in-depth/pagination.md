@@ -2,15 +2,17 @@
 
 <p align="center" class="symfonycasts"><a href="https://symfonycasts.com/screencast/api-platform/pagination?cid=apip"><img src="../distribution/images/symfonycasts-player.png" alt="Pagination screencast"><br>Watch the Pagination screencast</a></p>
 
-API Platform has native support for paged collections. Pagination is enabled by default for all collections. Each collection
-contains 30 items per page.
+API Platform has native support for paged collections. Pagination is enabled by default for all collections. Each
+collection contains 30 items per page.
+
 The activation of the pagination and the number of elements per page can be configured from:
 
 * the server-side (globally or per resource)
 * the client-side, via a custom GET parameter (disabled by default)
 
-When issuing a `GET` request on a collection containing more than 1 page (here `/books`), a [Hydra collection](http://www.hydra-cg.com/spec/latest/core/#collections)
-is returned. It's a valid JSON(-LD) document containing items of the requested page and metadata.
+When issuing a `GET` request on a collection containing more than 1 page (here `/books`), a
+[Hydra collection](http://www.hydra-cg.com/spec/latest/core/#collections) is returned. It's a valid JSON(-LD) document
+containing items of the requested page and metadata.
 
 ```json
 {
@@ -38,8 +40,8 @@ is returned. It's a valid JSON(-LD) document containing items of the requested p
 }
 ```
 
-Hypermedia links to the first, the last, previous and the next page in the collection are displayed as well as the number
-of total items in the collection.
+Hypermedia links to the first, the last, previous and the next page in the collection are displayed as well as the
+number of total items in the collection.
 
 The name of the page parameter can be changed with the following configuration:
 
@@ -51,8 +53,8 @@ api_platform:
             page_parameter_name: page # Default value
 ```
 
-If you are using custom state providers (not the provided Doctrine ORM, ODM or ElasticSearch ones)
-and if you want your results to be paginated, you will need to return an instance of a
+If you are using custom state providers (not the provided Doctrine ORM, ODM or ElasticSearch ones) and if you want your
+results to be paginated, you will need to return an instance of a
 `ApiPlatform\State\Pagination\PartialPaginatorInterface` or `ApiPlatform\State\Pagination\PaginatorInterface`.
 
 A few existing classes are provided to make it easier to paginate the results:
@@ -60,4 +62,4 @@ A few existing classes are provided to make it easier to paginate the results:
 * `ApiPlatform\State\Pagination\ArrayPaginator`
 * `ApiPlatform\State\Pagination\TraversablePaginator`
 
-* [Custom Controller Action](/docs/guide/custom-controller-action)
+For more examples, read our guide on [how to handle a pagination on a custom collection](/docs/guide/handle-a-pagination-on-a-custom-collection).
