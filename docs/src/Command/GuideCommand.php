@@ -1,6 +1,7 @@
 <?php
 namespace PDG\Command;
 
+use PDG\Services\Reference\OutputFormatter;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -14,6 +15,14 @@ class GuideCommand extends Command
 {
     // Regular expression to match comment
     private const REGEX = '/^\s*\/\/\s/';
+
+    public function __construct(
+        private readonly OutputFormatter $outputFormatter,
+        string $name = null
+    ) {
+        parent::__construct($name);
+    }
+
     protected function configure(): void
     {
         $this
@@ -128,7 +137,11 @@ MD;
     <a className="anchor" href="#section-$i">&#x00a7;</a>
 
 MD;
-            $a .= implode('', $section['text'] ?: [\PHP_EOL]);
+            $text = implode('', $section['text'] ?: [\PHP_EOL]);
+            $a .= str_contains($text,'[codeSelector]')
+                ? $this->outputFormatter->formatCodeSelector($text)
+                : $text
+            ;
             $a .= <<<MD
     </div>
     <div className="content">

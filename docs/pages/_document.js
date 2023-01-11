@@ -64,6 +64,69 @@ export default function Document() {
     white-space: normal !important;
     word-break: break-word !important;
 }
+
+.code-selector {
+  overflow-x: hidden;
+  margin: 32px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ccc;
+}
+
+.code-selector input {
+  display: none;
+}
+
+.code-selector .code-selector-nav {
+  display: flex;
+  align-items: stretch;
+  list-style: none;
+  padding: 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.code-selector label {
+  display: block;
+  margin-bottom: -1px;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  background: #eee;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.code-selector label:hover {
+  border-top-color: #333;
+  color: #333;
+}
+
+.code-selector .code-selector-content {
+  display: none;
+  color: #777;
+}
+
+.code-selector input:nth-of-type(1):checked ~ .code-selector-nav label:nth-of-type(1),
+.code-selector input:nth-of-type(2):checked ~ .code-selector-nav label:nth-of-type(2),
+.code-selector input:nth-of-type(3):checked ~ .code-selector-nav label:nth-of-type(3),
+.code-selector input:nth-of-type(4):checked ~ .code-selector-nav label:nth-of-type(4),
+.code-selector input:nth-of-type(5):checked ~ .code-selector-nav label:nth-of-type(5) {
+  border-bottom-color: #fff;
+  border-top-color: #B721FF;
+  background: #fff;
+  color: #222;
+}
+
+.code-selector input:nth-of-type(1):checked ~ .code-selector-content:nth-of-type(1),
+.code-selector input:nth-of-type(2):checked ~ .code-selector-content:nth-of-type(2),
+.code-selector input:nth-of-type(3):checked ~ .code-selector-content:nth-of-type(3),
+.code-selector input:nth-of-type(4):checked ~ .code-selector-content:nth-of-type(4),
+.code-selector input:nth-of-type(5):checked ~ .code-selector-content:nth-of-type(5) {
+  display: block !important;
+}
 `
   return (
     <Html>
