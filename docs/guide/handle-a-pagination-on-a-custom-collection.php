@@ -28,7 +28,7 @@ namespace App\Entity {
         #[ORM\Column]
         public ?string $title = null;
 
-        #[ORM\Column(type: 'boolean')]
+        #[ORM\Column(name: 'is_published', type: 'boolean')]
         public ?bool $published = null;
     }
 }
@@ -52,7 +52,8 @@ namespace App\Repository {
             // Retrieve the custom collection and inject it into a Doctrine Paginator object
             return new DoctrinePaginator(
                 $this->createQueryBuilder('b')
-                     ->where('b.published IS NOT NULL')
+                     ->where('b.published = :isPublished')
+                     ->setParameter('isPublished', true)
                      ->addCriteria(
                          Criteria::create()
                              ->setFirstResult(($page - 1) * $itemsPerPage)
@@ -83,6 +84,59 @@ namespace App\State {
 
             // Decorates the Doctrine Paginator object to the API Platform Paginator one
             return new Paginator($this->bookRepository->getPublishedBooks($page, $limit));
+        }
+    }
+}
+
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/books.jsonld', 'GET');
+    }
+
+    function setup(Kernel $kernel): void
+    {
+        $kernel->executeMigration();
+        $kernel->loadFixtures();
+    }
+}
+
+namespace DoctrineMigrations {
+    use Doctrine\Migrations\AbstractMigration;
+
+    final class Migration extends AbstractMigration
+    {
+        public function getDescription(): string
+        {
+            return 'Creates Book objects.';
+        }
+
+        public function up(): void
+        {
+            $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, is_published SMALLINT NOT NULL)');
+        }
+
+        public function down(): void
+        {
+            $this->addSql('DROP TABLE book');
+        }
+    }
+}
+
+namespace App\Fixtures {
+    use App\Entity\Book;
+    use Zenstruck\Foundry\AnonymousFactory;
+
+    final class BookFixtures
+    {
+        public function __invoke(): void
+        {
+            $factory = AnonymousFactory::new(Book::class);
+            $factory->many(20)->create(['published' => true]);
+            $factory->many(20)->create(['published' => false]);
         }
     }
 }
