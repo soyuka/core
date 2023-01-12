@@ -101,10 +101,11 @@ abstract class Operation
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     operations:
-         *         ApiPlatform\Metadata\Post:
-         *             messenger: true
+         * resources:
+         *     App\Entity\Book:
+         *         - operations:
+         *               ApiPlatform\Metadata\Post:
+         *                   messenger: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
