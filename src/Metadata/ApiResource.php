@@ -232,8 +232,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationClientEnabled: true
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientEnabled: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -271,8 +272,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationClientItemsPerPage: true
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientItemsPerPage: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -309,8 +311,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationClientPartial: true
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientPartial: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -355,11 +358,12 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationPartial: true
-         *     paginationViaCursor:
-         *         - { field: 'id', direction: 'DESC' }
-         *     filters: [ 'app.filters.book.range', 'app.filters.book.order' ]
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationPartial: true
+         *           paginationViaCursor:
+         *               - { field: 'id', direction: 'DESC' }
+         *           filters: [ 'app.filters.book.range', 'app.filters.book.order' ]
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -403,8 +407,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationEnabled: true
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationEnabled: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -443,8 +448,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationFetchJoinCollection: false
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationFetchJoinCollection: false
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -485,8 +491,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationUseOutputWalkers: false
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationUseOutputWalkers: false
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -521,8 +528,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationItemsPerPage: 30
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationItemsPerPage: 30
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -555,8 +563,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationMaximumItemsPerPage: 50
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationMaximumItemsPerPage: 50
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -589,8 +598,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationPartial: true
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationPartial: true
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>
@@ -623,8 +633,9 @@ class ApiResource
          * ```
          * ```yaml
          * # api/config/api_platform/resources.yaml
-         * App\Entity\Book:
-         *     paginationType: page
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationType: page
          * ```
          * ```xml
          * <?xml version="1.0" encoding="UTF-8" ?>

@@ -116,12 +116,9 @@ namespace App\Fixtures {
     {
         public function load(): void
         {
-            /* Create 60 books randomly published or not */
-            AnonymousFactory::new(Book::class)::createMany(60, function () {
-                return [
-                    'published' => (bool) random_int(0, 1),
-                ];
-            });
+            /* Create books published or not */
+            AnonymousFactory::new(Book::class)::createMany(35, ['published' => true]);
+            AnonymousFactory::new(Book::class)::createMany(5, ['published' => false]);
         }
     }
 }
@@ -132,13 +129,23 @@ namespace App\Tests {
 
     final class BookTest extends ApiTestCase
     {
-        public function testAsAnonymousICanAccessTheDocumentation(): void
+        public function testTheCustomCollectionIsPaginated(): void
         {
             $response = static::createClient()->request('GET', '/books.jsonld');
 
             $this->assertResponseIsSuccessful();
             $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books.{_format}_get_collection', 'jsonld');
             $this->assertNotSame(0, $response->toArray(false)['hydra:totalItems'], 'The collection is empty.');
+            $this->assertJsonContains([
+                'hydra:totalItems' => 35,
+                'hydra:view' => [
+                    '@id' => '/books.jsonld?page=1',
+                    '@type' => 'hydra:PartialCollectionView',
+                    'hydra:first' => '/books.jsonld?page=1',
+                    'hydra:last' => '/books.jsonld?page=2',
+                    'hydra:next' => '/books.jsonld?page=2',
+                ],
+            ]);
         }
     }
 }
