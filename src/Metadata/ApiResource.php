@@ -209,6 +209,48 @@ class ApiResource
         protected ?array $filters = null,
         protected ?bool $elasticsearch = null,
         protected $mercure = null,
+        /**
+         * The `messenger` option dispatches the current resource through the Message Bus.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(messenger: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * App\Entity\Book:
+         *     messenger: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" messenger=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * Note: when using `messenger=true` on a Doctrine entity, the Doctrine Processor is not called. If you want it
+         * to be called, you should [decorate a built-in state processor](/docs/guide/hook-a-persistence-layer-with-a-processor)
+         * and implement your own logic.
+         *
+         * Read [how to use Messenger with an Input object](/docs/guide/using-messenger-with-an-input-object).
+         *
+         * @var string|bool|null
+         */
         protected $messenger = null,
         protected $input = null,
         protected $output = null,
