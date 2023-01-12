@@ -65,6 +65,50 @@ abstract class Operation
         protected ?string $securityPostValidation = null,
         protected ?string $securityPostValidationMessage = null,
         protected ?string $deprecationReason = null,
+        /**
+         * The `filters` option configures the filters (declared as services) available on the collection routes for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\GetCollection;
+         *
+         * #[GetCollection(filters: ['app.filters.book.search'])]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - operations:
+         *               ApiPlatform\Metadata\GetCollection:
+         *                   filters: ['app.filters.book.search']
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book">
+         *         <operations>
+         *             <operation class="ApiPlatform\Metadata\GetCollection">
+         *                 <filters>
+         *                     <filter>app.filters.book.search</filter>
+         *                 </filters>
+         *             </operation>
+         *         </operations>
+         *     </resource>
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?array $filters = null,
         /**
          * The `validationContext` option configure the context of validation for the current Operation.
