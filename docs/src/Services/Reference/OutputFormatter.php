@@ -64,6 +64,35 @@ class OutputFormatter
         return $name;
     }
 
+    public function formatCodeSelector(string $content): string
+    {
+        $codeSelectorId= \uniqid();
+        if (false !== \preg_match_all('/```(\w+)/', $content, $languages) && $languages) {
+            $inputs = '';
+            $nav = '<ul class="code-selector-nav">'.\PHP_EOL;
+            foreach($languages[1] as $k => $language){
+                $defaultChecked = $k === 0 ? 'defaultChecked' : '';
+                $inputs .= '<input type="radio" id="'.$codeSelectorId.'-'.$language.'" name="'.$codeSelectorId.'-code-tabs" '.$defaultChecked.' />'.\PHP_EOL;
+                $nav .= '<label for="'.$codeSelectorId.'-'.$language.'">'.$language.'</label>'.\PHP_EOL;
+            }
+            $nav .= '</ul>'.\PHP_EOL;
+        }
+
+        $content = preg_replace(
+            '/\[codeSelector\]([\w\s\S\n]*?)\[\/codeSelector\]/i',
+            '<div class="code-selector">'.\PHP_EOL.$inputs.$nav.'${1}'.\PHP_EOL.'</div>'.\PHP_EOL,
+            $content,
+        );
+
+        $content = \preg_replace(
+            '/(```\w+\n[\w\s\S\n]*?```)/i',
+            '<div class="code-selector-content">'.\PHP_EOL.'${1}'.\PHP_EOL.'</div>'.\PHP_EOL,
+            $content,
+        );
+
+        return $content;
+    }
+
     public function printTextNodes(PhpDocNode $phpDoc, string $content): string
     {
         $text = array_filter($phpDoc->children, static function (PhpDocChildNode $child): bool {
@@ -72,6 +101,18 @@ class OutputFormatter
 
         foreach ($text as $t) {
             $content .= $t.\PHP_EOL;
+        }
+
+        $explodedByCodeBlock = preg_split('/(\[codeSelector\][\s\S\w\n]*?\[\/codeSelector\])/', $content, 0, PREG_SPLIT_DELIM_CAPTURE);
+
+        $content = '';
+        foreach($explodedByCodeBlock as $contentBlock){
+            if(str_contains($contentBlock, 'codeSelector')){
+                $content .= $this->formatCodeSelector($contentBlock);
+                continue;
+            }
+
+            $content .= $contentBlock;
         }
 
         return $content;
