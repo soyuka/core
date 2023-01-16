@@ -9,7 +9,7 @@
 // # Provide the Resource State
 // Our model is the same then in the previous guide ([Declare a Resource](./declare-a-resource). API Platform will declare
 // CRUD operations if we don't declare them. 
-namespace App\ApiResource {
+namespace App\Entity {
     use ApiPlatform\Metadata\ApiResource;
     use App\State\BookProvider;
 
@@ -18,6 +18,10 @@ namespace App\ApiResource {
     class Book
     {
         public string $id;
+
+        public function getId(){
+            return $this->id;
+        }
     }
 }
 
@@ -25,7 +29,7 @@ namespace App\State {
     use ApiPlatform\Metadata\CollectionOperationInterface;
     use ApiPlatform\Metadata\Operation;
     use ApiPlatform\State\ProviderInterface;
-    use App\ApiResource\Book;
+    use App\Entity\Book;
 
     // The BookProvider is where we retrieve the data in our persistence layer. 
     // In this provider we choose to handle the retrieval of a single Book but also a list of Books.
@@ -45,6 +49,15 @@ namespace App\State {
             $book->id = $uriVariables['id'];
             return $book;
         }
+    }
+}
+
+namespace App\Playground {
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/docs.json');
     }
 }
 
