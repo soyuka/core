@@ -76,3 +76,14 @@ namespace App\ApiResource {
         // ...
     }
 }
+
+
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/books/1.jsonld');
+    }
+}

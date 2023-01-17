@@ -57,7 +57,7 @@ namespace App\Playground {
 
     function request(): Request
     {
-        return Request::create('/docs.json');
+        return Request::create('/books.json');
     }
 }
 

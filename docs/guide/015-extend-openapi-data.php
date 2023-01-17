@@ -51,6 +51,16 @@ namespace App\Configurator {
     };
 }
 
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/api/grumpy_pizzas/1.jsonld');
+    }
+}
+
 // namespace App\Tests {
 //     class ApiTestCase extends ApiTestCase {
 //

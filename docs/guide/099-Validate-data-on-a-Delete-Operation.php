@@ -3,12 +3,12 @@
 // slug: validate-data-on-a-delete-operation
 // name: Validate Data on a Delete Operation
 // position: 99 
+// executable: false
 // ---
 
 // Let's add a [custom Constraint](https://symfony.com/doc/current/validation/custom_constraint.html).
 namespace App\Validator {
     use Symfony\Component\Validator\Constraint;
-    use Symfony\Component\Validator\ConstraintValidator;
 
     #[\Attribute]
     class AssertCanDelete extends Constraint
@@ -20,6 +20,9 @@ namespace App\Validator {
 
 // And a custom validator following Symfony's naming conventions.
 namespace App\Validator {
+    use Symfony\Component\Validator\Constraint;
+    use Symfony\Component\Validator\ConstraintValidator;
+
     class AssertCanDeleteValidator extends ConstraintValidator
     {
         public function validate(mixed $value, Constraint $constraint)
@@ -77,6 +80,16 @@ namespace App\State {
             // Then we persist the data.
             $this->doctrineProcessor->process($data, $operation, $uriVariables, $context);
         }
+    }
+}
+
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/books/1.jsonld', 'DELETE');
     }
 }
 

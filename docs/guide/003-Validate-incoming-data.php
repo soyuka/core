@@ -27,7 +27,6 @@ namespace App\Entity {
     use ApiPlatform\Metadata\ApiResource;
     // A custom constraint.
     use App\Validator\Constraints\MinimalProperties;
-    use Doctrine\ORM\Mapping as ORM;
     // Symfony's built-in constraints
     use Symfony\Component\Validator\Constraints as Assert;
 
@@ -38,10 +37,8 @@ namespace App\Entity {
     #[ApiResource]
     class Product
     {
-        #[ORM\Id, ORM\Column, ORM\GeneratedValue]
         private ?int $id = null;
 
-        #[ORM\Column]
         #[Assert\NotBlank]
         public string $name;
 
@@ -49,7 +46,6 @@ namespace App\Entity {
          * @var string[] Describe the product
          */
         #[MinimalProperties]
-        #[ORM\Column(type: 'json')] 
         public $properties;
     }
 }
@@ -101,3 +97,16 @@ namespace App\Validator\Constraints {
 //
 // Take a look at the [Errors Handling guide](errors.md) to learn how API Platform converts PHP exceptions like validation
 // errors to HTTP errors.
+
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        $body = [
+            'description' => 'foobar',
+        ];
+        return Request::create('/products.jsonld', 'POST',[], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($body));
+    }
+}
