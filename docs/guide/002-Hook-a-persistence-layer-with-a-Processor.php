@@ -39,4 +39,15 @@ namespace App\State {
     }
 }
 
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
 
+    function request(): Request
+    {
+        $body = [
+            'id' => 'foo',
+        ];
+        return Request::create('/books.jsonld', 'POST',[], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($body));
+    }
+}

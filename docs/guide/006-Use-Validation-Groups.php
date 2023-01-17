@@ -65,3 +65,18 @@ namespace App\Validator {
 }
 
 // To go further, read the guide on [Validating data on a Delete operation](./validate-data-on-a-delete-operation)
+
+
+namespace App\Playground {
+    use App\Kernel;
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        $body = [
+            'name' => 'foo',
+            'author' => 'bar',
+        ];
+        return Request::create('/books.jsonld', 'POST',[], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($body));
+    }
+}
