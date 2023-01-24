@@ -78,7 +78,7 @@ class ApiResource
         protected ?string $uriTemplate = null,
         /**
          * The short name of your resource is a unique name that identifies your resource.
-         * It is used within the documentation and for url generation if the `uriTemplate` is not filled. By default this will be the name of your PHP class.
+         * It is used within the documentation and for url generation if the `uriTemplate` is not filled. By default, this will be the name of your PHP class.
          */
         protected ?string $shortName = null,
         /**
@@ -308,11 +308,11 @@ class ApiResource
         protected ?array $hydraContext = null,
         protected ?array $openapiContext = null,
         /**
-         * The `validationContext` option configure the context of validation for the current ApiResource.
-         * You can, for instance, describe the validation groups that will be used :
+         * The `validationContext` option configures the context of validation for the current ApiResource.
+         * You can, for instance, describe the validation groups that will be used:
          *
          * ```php
-         *   #[ApiResource(validationContext: ['groups' => ['a', 'b']])]
+         * #[ApiResource(validationContext: ['groups' => ['a', 'b']])]
          * ```
          *
          * For more examples, read our guide on [validation](/guides/validation).
@@ -327,16 +327,441 @@ class ApiResource
         protected ?array $order = null,
         protected ?bool $fetchPartial = null,
         protected ?bool $forceEager = null,
+        /**
+         * The `paginationClientEnabled` option allows (or disallows) the client to enable (or disable) the pagination for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationClientEnabled: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientEnabled: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationClientEnabled=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * The pagination can now be enabled (or disabled) by adding a query parameter named `pagination`:
+         * - `GET /books?pagination=false`: disabled
+         * - `GET /books?pagination=true`: enabled
+         */
         protected ?bool $paginationClientEnabled = null,
+        /**
+         * The `paginationClientItemsPerPage` option allows (or disallows) the client to set the number of items per page for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationClientItemsPerPage: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientItemsPerPage: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationClientItemsPerPage=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * The number of items can now be set by adding a query parameter named `itemsPerPage`:
+         * - `GET /books?itemsPerPage=50`
+         */
         protected ?bool $paginationClientItemsPerPage = null,
+        /**
+         * The `paginationClientPartial` option allows (or disallows) the client to enable (or disable) the partial pagination for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationClientPartial: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationClientPartial: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationClientPartial=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * The partial pagination can now be enabled (or disabled) by adding a query parameter named `partial`:
+         * - `GET /books?partial=false`: disabled
+         * - `GET /books?partial=true`: enabled
+         */
         protected ?bool $paginationClientPartial = null,
+        /**
+         * The `paginationViaCursor` option configures the cursor-based pagination for the current resource.
+         * Select your unique sorted field as well as the direction you'll like the pagination to go via filters.
+         * Note that for now you have to declare a `RangeFilter` and an `OrderFilter` on the property used for the cursor-based pagination:
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiFilter;
+         * use ApiPlatform\Metadata\ApiResource;
+         * use ApiPlatform\Doctrine\Odm\Filter\OrderFilter;
+         * use ApiPlatform\Doctrine\Odm\Filter\RangeFilter;
+         *
+         * #[ApiResource(paginationPartial: true, paginationViaCursor: [['field' => 'id', 'direction' => 'DESC']])]
+         * #[ApiFilter(RangeFilter::class, properties: ["id"])]
+         * #[ApiFilter(OrderFilter::class, properties: ["id" => "DESC"])]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationPartial: true
+         *           paginationViaCursor:
+         *               - { field: 'id', direction: 'DESC' }
+         *           filters: [ 'app.filters.book.range', 'app.filters.book.order' ]
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationPartial=true>
+         *         <filters>
+         *             <filter>app.filters.book.range</filter>
+         *             <filter>app.filters.book.order</filter>
+         *         </filters>
+         *         <paginationViaCursor>
+         *             <paginationField field="id" direction="DESC" />
+         *         </paginationViaCursor>
+         *     </resource>
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * To know more about cursor-based pagination take a look at [this blog post on medium (draft)](https://medium.com/@sroze/74fd1d324723).
+         */
         protected ?array $paginationViaCursor = null,
+        /**
+         * The `paginationEnabled` option enables (or disables) the pagination for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationEnabled: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationEnabled: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationEnabled=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?bool $paginationEnabled = null,
+        /**
+         * The PaginationExtension of API Platform performs some checks on the `QueryBuilder` to guess, in most common
+         * cases, the correct values to use when configuring the Doctrine ORM Paginator: `$fetchJoinCollection`
+         * argument, whether there is a join to a collection-valued association.
+         *
+         * When set to `true`, the Doctrine ORM Paginator will perform an additional query, in order to get the
+         * correct number of results. You can configure this using the `paginationFetchJoinCollection` option:
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationFetchJoinCollection: false)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationFetchJoinCollection: false
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         *
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationFetchJoinCollection=false />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * For more information, please see the [Pagination](https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html) entry in the Doctrine ORM documentation.
+         */
         protected ?bool $paginationFetchJoinCollection = null,
+        /**
+         * The PaginationExtension of API Platform performs some checks on the `QueryBuilder` to guess, in most common
+         * cases, the correct values to use when configuring the Doctrine ORM Paginator: `$setUseOutputWalkers` setter,
+         * whether to use output walkers.
+         *
+         * When set to `true`, the Doctrine ORM Paginator will use output walkers, which are compulsory for some types
+         * of queries. You can configure this using the `paginationUseOutputWalkers` option:
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationUseOutputWalkers: false)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationUseOutputWalkers: false
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationUseOutputWalkers=false />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         *
+         * For more information, please see the [Pagination](https://www.doctrine-project.org/projects/doctrine-orm/en/current/tutorials/pagination.html) entry in the Doctrine ORM documentation.
+         */
         protected ?bool $paginationUseOutputWalkers = null,
+        /**
+         * The `paginationItemsPerPage` option defines the number of items per page for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationItemsPerPage: 30)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationItemsPerPage: 30
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationItemsPerPage=30 />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?int $paginationItemsPerPage = null,
+        /**
+         * The `paginationMaximumItemsPerPage` option defines the maximum number of items per page for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationMaximumItemsPerPage: 50)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationMaximumItemsPerPage: 50
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationMaximumItemsPerPage=50 />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?int $paginationMaximumItemsPerPage = null,
+        /**
+         * The `paginationPartial` option enables (or disables) the partial pagination for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationPartial: true)]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationPartial: true
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationPartial=true />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?bool $paginationPartial = null,
+        /**
+         * The `paginationType` option defines the type of pagination (`page` or `cursor`) to use for the current resource.
+         *
+         * [codeSelector]
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(paginationType: 'page')]
+         * class Book
+         * {
+         *     // ...
+         * }
+         * ```
+         * ```yaml
+         * # api/config/api_platform/resources.yaml
+         * resources:
+         *     App\Entity\Book:
+         *         - paginationType: page
+         * ```
+         * ```xml
+         * <?xml version="1.0" encoding="UTF-8" ?>
+         * <!-- api/config/api_platform/resources.xml -->
+         * <resources
+         *         xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+         *         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         *         xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0
+         *         https://api-platform.com/schema/metadata/resources-3.0.xsd">
+         *     <resource class="App\Entity\Book" paginationType="page" />
+         * </resources>
+         * ```
+         * [/codeSelector]
+         */
         protected ?string $paginationType = null,
         protected ?string $security = null,
         protected ?string $securityMessage = null,
