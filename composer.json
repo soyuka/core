@@ -43,6 +43,7 @@
         "friends-of-behat/mink-extension": "^2.2",
         "friends-of-behat/symfony-extension": "^2.1",
         "guzzlehttp/guzzle": "^6.0 || ^7.0",
+        "api-platform/pdg": "dev-main",
         "jangregor/phpstan-prophecy": "^1.0",
         "justinrainbow/json-schema": "^5.2.1",
         "phpdocumentor/reflection-docblock": "^3.0 || ^4.0 || ^5.1",
@@ -133,7 +134,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/runtime": true
         }
     },
     "extra": {
@@ -143,5 +145,11 @@
         "symfony": {
             "require": "^6.1"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/JacquesDurand/php-documentation-generator"
+        }
+    ]
 }

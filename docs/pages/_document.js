@@ -65,67 +65,68 @@ export default function Document() {
     word-break: break-word !important;
 }
 
-.code-selector {
-  overflow-x: hidden;
-  margin: 32px 0;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #ccc;
-}
-
-.code-selector input {
-  display: none;
-}
-
-.code-selector .code-selector-nav {
+.api-list-container {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
+  padding: 16px 0;
+  position: relative;
+}
+
+.api-list-container h2 {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.api-list-container ul.api-list {
   list-style: none;
+  margin: 0 0 32px -8px;
   padding: 0;
-  border-bottom: 1px solid #ccc;
+  overflow: hidden;
 }
 
-.code-selector label {
-  display: block;
-  margin-bottom: -1px;
-  padding: 12px 15px;
-  border: 1px solid #ccc;
-  background: #eee;
-  color: #666;
-  font-size: 12px;
+.api-list-container ul.api-list li.api-item {
+  font-size: 1.4rem;
+  margin: 8px 0;
+  line-height: 14px;
+  line-height: 1.4rem;
+  padding: 0;
+  float: left;
+  width: 33%;
+  overflow: hidden;
+  min-width: 330px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-list-container .symbol {
+  box-shadow: 0 1px 2px #0a10143d;
+  color: #fff;
+  border-radius: 2px;
+  display: inline-block;
+  font-size: 10px;
+  font-size: 1rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
+  line-height: 16px;
+  line-height: 1.6rem;
+  margin-right: 8px;
+  text-align: center;
+  width: 16px;
 }
 
-.code-selector label:hover {
-  border-top-color: #333;
-  color: #333;
+.symbol.T {
+  background: #4CAF50;
 }
 
-.code-selector .code-selector-content {
-  display: none;
-  color: #777;
+.symbol.I {
+  background: #009688;
 }
 
-.code-selector input:nth-of-type(1):checked ~ .code-selector-nav label:nth-of-type(1),
-.code-selector input:nth-of-type(2):checked ~ .code-selector-nav label:nth-of-type(2),
-.code-selector input:nth-of-type(3):checked ~ .code-selector-nav label:nth-of-type(3),
-.code-selector input:nth-of-type(4):checked ~ .code-selector-nav label:nth-of-type(4),
-.code-selector input:nth-of-type(5):checked ~ .code-selector-nav label:nth-of-type(5) {
-  border-bottom-color: #fff;
-  border-top-color: #B721FF;
-  background: #fff;
-  color: #222;
+.symbol.C {
+  background: #2196F3;
 }
 
-.code-selector input:nth-of-type(1):checked ~ .code-selector-content:nth-of-type(1),
-.code-selector input:nth-of-type(2):checked ~ .code-selector-content:nth-of-type(2),
-.code-selector input:nth-of-type(3):checked ~ .code-selector-content:nth-of-type(3),
-.code-selector input:nth-of-type(4):checked ~ .code-selector-content:nth-of-type(4),
-.code-selector input:nth-of-type(5):checked ~ .code-selector-content:nth-of-type(5) {
-  display: block !important;
+.symbol.A {
+  background: #FFA000;
 }
 `
   return (
