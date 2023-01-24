@@ -16,13 +16,24 @@ namespace ApiPlatform\Symfony\EventListener;
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResources;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
-use ApiPlatform\Symfony\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Marshaller\Context\Option\PropertyNameFormatterOption;
+use Symfony\Component\Marshaller\Context\Option\PropertyTypeOption;
+use Symfony\Component\Marshaller\Context\Option\PropertyValueFormatterOption;
 use Symfony\Component\Marshaller\MarshallerInterface;
 use Symfony\Component\Marshaller\Output\OutputStreamOutput;
+use Symfony\Component\Marshaller\Context\Context;
+use Symfony\Component\Marshaller\Context\Option\TypeOption;
+use Symfony\Component\Marshaller\Context\Option\HooksOption;
+use Symfony\Component\Marshaller\Context\Option\ValueFormatterOption;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResource;
+use ApiPlatform\Hydra\Collection;
+use function Symfony\Component\Marshaller\marshal_generate;
 
 /**
  * Builds the response object.
@@ -101,14 +112,36 @@ final class RespondListener
             }
         }
 
+        $valueFormatterOption = new PropertyValueFormatterOption([
+            AttributeResource::class => ['identifier' => $this->test(...)]
+        ]);
+
+        $nameFormatterOption = new PropertyNameFormatterOption([
+            AttributeResource::class => ['identifier' => fn() => '@id']
+        ]);
+
+        $propertyTypeOption = new PropertyTypeOption([
+            Collection::class => ['collection' => sprintf('array<int, %s>', AttributeResource::class)]
+        ]);
+
+        // $propertyTypeOption = new ExtendTypeOption([
+        //     AttributeResource::class => 'Item<AttributeResource>'
+        // ]);
+
+        $context = new Context($nameFormatterOption, $valueFormatterOption, $propertyTypeOption);
         $response = new StreamedResponse(
-            function () use ($controllerResult) {
-                $this->marshaller->marshal($controllerResult, 'json', new OutputStreamOutput());
+            function () use ($controllerResult, $context) {
+                $this->marshaller->marshal($controllerResult, 'json', new OutputStreamOutput(), $context);
             },
             $status,
             $headers
         );
 
         $event->setResponse($response);
+    }
+
+    public function test(int $value, array $context): string
+    {
+        return sprintf('/foo/bar/%d', $value);
     }
 }

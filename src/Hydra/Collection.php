@@ -11,27 +11,17 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Hydra;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
 use Symfony\Component\Marshaller\Attribute\Name;
 
-#[ApiResource(
-    '/attribute_resources{._format}',
-    normalizationContext: ['skip_null_values' => true],
-    provider: AttributeResourceProvider::class
-)]
-#[GetCollection]
-#[Post]
-final class AttributeResources implements \IteratorAggregate
+/**
+ * @template T
+ */
+final class Collection implements \IteratorAggregate
 {
-    /**
-     * @var AttributeResource[]
-     */
     #[Name('hydra:member')]
+    /** @var T[] */
     public array $collection;
 
     #[Name('@type')]
@@ -40,9 +30,10 @@ final class AttributeResources implements \IteratorAggregate
     #[Name('hydra:totalItems')]
     public int $totalItems = 0;
 
-    public function __construct(AttributeResource ...$collection)
+    public function __construct(...$collection)
     {
         $this->collection = $collection;
+        $this->totalItems = \count($collection);
     }
 
     public function getIterator(): \Traversable

@@ -34,6 +34,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\ErrorHandler\ErrorRenderer\ErrorRendererInterface;
 use Symfony\Component\HttpFoundation\Session\SessionFactory;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Marshaller\DependencyInjection\MarshallerExtension;
 use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 use Symfony\Component\Security\Core\Authorization\Strategy\AccessDecisionStrategyInterface;
 use Symfony\Component\Security\Core\User\User as SymfonyCoreUser;
@@ -73,7 +74,7 @@ class AppKernel extends Kernel
             new WebProfilerBundle(),
             new FriendsOfBehatSymfonyExtensionBundle(),
             new FrameworkBundle(),
-            new MakerBundle(),
+            new MakerBundle()
         ];
 
         if (class_exists(DoctrineMongoDBBundle::class)) {
@@ -102,6 +103,17 @@ class AppKernel extends Kernel
             $routes->import('@NelmioApiDocBundle/Resources/config/routing.yml', '/nelmioapidoc');
         }
     }
+
+    protected function build(ContainerBuilder $c): void {
+        parent::build($c);
+
+        $c->registerExtension(new MarshallerExtension());
+        $c->setParameter('marshaller.cache_dir', sprintf('%s/marshaller', $c->getParameter('kernel.cache_dir')));
+        $c->setParameter('marshaller.warmable_paths', []);
+        $c->setParameter('marshaller.warmable_formats', ['json']);
+        $c->setParameter('marshaller.warmable_nullable_data', false);
+    }
+
 
     protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader): void
     {
