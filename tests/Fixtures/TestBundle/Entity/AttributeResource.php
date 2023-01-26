@@ -22,10 +22,11 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProcessor;
 use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
+use Symfony\Component\Marshaller\Attribute\Name;
 
 #[ApiResource(
     normalizationContext: ['skip_null_values' => true],
-    provider: AttributeResourceProvider::class
+    provider: AttributeResourceProvider::class,
 )]
 #[Get]
 #[Put]
@@ -41,13 +42,12 @@ use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
 #[Patch]
 final class AttributeResource
 {
-    /**
-     * @var ?Dummy
-     */
-    #[Link('dummyId')]
-    public $dummy = null;
-
-    public function __construct(#[ApiProperty(identifier: true)] private int $identifier, public string $name)
+    public function __construct(
+        #[ApiProperty(identifier: true)]
+        #[Name('@id')]
+        public ?int $identifier=null,
+        public ?string $name=null,
+    )
     {
     }
 
