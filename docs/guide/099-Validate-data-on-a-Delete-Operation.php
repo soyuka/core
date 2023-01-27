@@ -1,8 +1,8 @@
 <?php
-// --- 
+// ---
 // slug: validate-data-on-a-delete-operation
 // name: Validate Data on a Delete Operation
-// position: 99 
+// position: 99
 // ---
 
 // Let's add a [custom Constraint](https://symfony.com/doc/current/validation/custom_constraint.html).
@@ -20,6 +20,10 @@ namespace App\Validator {
 
 // And a custom validator following Symfony's naming conventions.
 namespace App\Validator {
+
+    use Symfony\Component\Validator\ConstraintValidator;
+    use Symfony\Component\Validator\Constraint;
+
     class AssertCanDeleteValidator extends ConstraintValidator
     {
         public function validate(mixed $value, Constraint $constraint)
@@ -39,7 +43,7 @@ namespace App\ApiResource {
 
     #[ORM\Entity]
     #[Delete(validationContext: ['groups' => ['deleteValidation']], processor: BookRemoveProcessor::class)]
-    // Here we use the previously created constraint on the class directly. 
+    // Here we use the previously created constraint on the class directly.
     #[AssertCanDelete(groups: ['deleteValidation'])]
     class Book
     {
@@ -51,8 +55,8 @@ namespace App\ApiResource {
     }
 }
 
-// Then, we will trigger the validation within a processor. 
-// the removal into the Database. 
+// Then, we will trigger the validation within a processor.
+// the removal into the Database.
 namespace App\State {
     use ApiPlatform\Doctrine\Common\State\RemoveProcessor as DoctrineRemoveProcessor;
     use ApiPlatform\Metadata\Operation;

@@ -92,13 +92,22 @@ namespace App\Entity {
     use ApiPlatform\Metadata\ApiFilter;
     use ApiPlatform\Metadata\ApiResource;
     use App\Filter\RegexpFilter;
+    use Doctrine\ORM\Mapping as ORM;
 
+    #[ORM\Entity]
     #[ApiResource]
     #[ApiFilter(RegexpFilter::class, properties: ['title'])]
     class Book
     {
+        #[ORM\Column(type: 'integer')]
+        #[ORM\Id]
+        #[ORM\GeneratedValue(strategy: 'AUTO')]
+        private $id;
+
+        #[ORM\Column]
         public string $title;
 
+        #[ORM\Column]
         #[ApiFilter(RegexpFilter::class)]
         public string $author;
     }
@@ -113,18 +122,41 @@ namespace App\Playground {
     }
 }
 
+namespace DoctrineMigrations {
+    use Doctrine\DBAL\Schema\Schema;
+    use Doctrine\Migrations\AbstractMigration;
+
+    final class Migration extends AbstractMigration
+    {
+        public function up(Schema $schema): void
+        {
+            $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, author VARCHAR(255) NOT NULL)');
+        }
+
+        public function down(Schema $schema): void
+        {
+            $this->addSql('DROP TABLE book');
+        }
+    }
+}
+
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
 
     final class BookTest extends ApiTestCase
     {
+        protected function setUp(): void
+        {
+            static::createKernel()->executeMigrations();
+        }
+
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {
-            static::createClient()->request('GET', '/books.jsonld');
+            $resp = static::createClient()->request('GET', '/books.jsonld?regexp_title=^[Found]');
 
             $this->assertResponseIsSuccessful();
-            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books.{_format}_get_collection', 'jsonld');
+            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books{._format}_get_collection');
             $this->assertJsonContains([
                 'hydra:search' => [
                     '@type' => 'hydra:IriTemplate',
