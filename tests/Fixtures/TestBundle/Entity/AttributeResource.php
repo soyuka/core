@@ -19,6 +19,7 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProcessor;
 use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
@@ -29,6 +30,7 @@ use Symfony\Component\Marshaller\Attribute\Name;
     provider: AttributeResourceProvider::class,
 )]
 #[Get]
+#[Post]
 #[Put]
 #[Delete]
 #[ApiResource(

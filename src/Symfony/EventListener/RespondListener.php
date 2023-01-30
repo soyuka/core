@@ -111,7 +111,7 @@ final class RespondListener
         }
 
         if(
-            \gettype($controllerResult) === 'string'
+            \is_string($controllerResult)
             || !$this->marshaller
         ){
             $event->setResponse(new Response(
@@ -131,7 +131,13 @@ final class RespondListener
 
         $response = new StreamedResponse(
             function () use ($controllerResult, $context): void {
-                $this->marshaller->marshal($controllerResult, 'json', new OutputStream(), $context);
+                $this->marshaller->marshal(
+                    $controllerResult,
+                    // TODO: How to use jsonld
+                    'json',
+                    new OutputStream(),
+                    $context
+                );
             },
             $status,
             $headers

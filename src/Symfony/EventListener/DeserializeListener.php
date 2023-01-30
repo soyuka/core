@@ -18,11 +18,17 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResource;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
+use Symfony\Component\Marshaller\Context\Context;
+use Symfony\Component\Marshaller\Context\Option\TypeOption;
+use Symfony\Component\Marshaller\MarshallerInterface;
+use Symfony\Component\Marshaller\Stream\InputStream;
+use Symfony\Component\Marshaller\Stream\OutputStream;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -45,7 +51,13 @@ final class DeserializeListener
 
     public const OPERATION_ATTRIBUTE_KEY = 'deserialize';
 
-    public function __construct(private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private ?TranslatorInterface $translator = null)
+    public function __construct(
+        private readonly SerializerInterface $serializer, 
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder, 
+        ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, 
+        private ?TranslatorInterface $translator = null,
+        private readonly ?MarshallerInterface $marshaller = null
+    )
     {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
         if (null === $this->translator) {
@@ -96,10 +108,36 @@ final class DeserializeListener
             $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $data;
         }
         try {
-            $request->attributes->set(
-                'data',
-                $this->serializer->deserialize($request->getContent(), $context['resource_class'], $format, $context)
+            if(!$this->marshaller){
+                $request->attributes->set(
+                    'data',
+                    $this->serializer->deserialize($request->getContent(), $context['resource_class'], $format, $context)
+                );
+
+                
+                return;
+            }
+
+            $context = new Context(
+                new TypeOption(
+                    $request->attributes->get('_api_resource_class'),
+                ),
             );
+
+            $input = new InputStream();
+            fwrite($input->resource(), $request->getContent());
+            rewind($input->resource());
+
+            $dataDeserialized = $this->marshaller->unmarshal(
+                $input,
+                $request->attributes->get('_api_resource_class'),
+                // TODO: How to use jsonld
+                'json',
+                $context
+            );
+
+            $request->attributes->set('data', $dataDeserialized);
+
         } catch (PartialDenormalizationException $e) {
             $violations = new ConstraintViolationList();
             foreach ($e->getErrors() as $exception) {
