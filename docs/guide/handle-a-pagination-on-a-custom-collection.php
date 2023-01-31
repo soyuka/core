@@ -10,13 +10,19 @@
 // The following example shows how to handle it using a custom Provider. You will need to use the Doctrine Paginator and pass it to the API Platform Paginator.
 
 namespace App\Entity {
+
+    use ApiPlatform\Metadata\ApiResource;
     use ApiPlatform\Metadata\GetCollection;
     use App\Repository\BookRepository;
     use App\State\BooksListProvider;
     use Doctrine\ORM\Mapping as ORM;
 
     /* Use custom Provider on operation to retrieve the custom collection */
-    #[GetCollection(provider: BooksListProvider::class)]
+    #[ApiResource(
+        operations: [
+            new GetCollection(provider: BooksListProvider::class)
+        ]
+    )]
     #[ORM\Entity(repositoryClass: BookRepository::class)]
     class Book
     {
@@ -63,6 +69,7 @@ namespace App\Repository {
 }
 
 namespace App\State {
+
     use ApiPlatform\Doctrine\Orm\Paginator;
     use ApiPlatform\Metadata\Operation;
     use ApiPlatform\State\Pagination\Pagination;
@@ -96,11 +103,13 @@ namespace App\Playground {
 }
 
 namespace DoctrineMigrations {
+
+    use Doctrine\DBAL\Schema\Schema;
     use Doctrine\Migrations\AbstractMigration;
 
     final class Migration extends AbstractMigration
     {
-        public function up(): void
+        public function up(Schema $schema): void
         {
             $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, is_published SMALLINT NOT NULL)');
         }
@@ -110,15 +119,28 @@ namespace DoctrineMigrations {
 namespace App\Fixtures {
     use App\Entity\Book;
     use Doctrine\Bundle\FixturesBundle\Fixture;
+    use Doctrine\Persistence\ObjectManager;
     use Zenstruck\Foundry\AnonymousFactory;
+    use function Zenstruck\Foundry\faker;
 
     final class BookFixtures extends Fixture
     {
-        public function load(): void
+        public function load(ObjectManager $manager): void
         {
             /* Create books published or not */
-            AnonymousFactory::new(Book::class)::createMany(35, ['published' => true]);
-            AnonymousFactory::new(Book::class)::createMany(5, ['published' => false]);
+            $factory = AnonymousFactory::new(Book::class);
+            $factory->many(5)->create(static function (int $i): array {
+                return [
+                    'title' => faker()->title(),
+                    'published' => false,
+                ];
+            });
+            $factory->many(35)->create(static function (int $i): array {
+                return [
+                    'title' => faker()->title(),
+                    'published' => true,
+                ];
+            });
         }
     }
 }
@@ -129,12 +151,18 @@ namespace App\Tests {
 
     final class BookTest extends ApiTestCase
     {
+        protected function setUp(): void
+        {
+            static::createKernel()->executeMigrations();
+            static::createKernel()->loadFixtures();
+        }
+
         public function testTheCustomCollectionIsPaginated(): void
         {
             $response = static::createClient()->request('GET', '/books.jsonld');
 
             $this->assertResponseIsSuccessful();
-            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books.{_format}_get_collection', 'jsonld');
+            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books{._format}_get_collection', 'jsonld');
             $this->assertNotSame(0, $response->toArray(false)['hydra:totalItems'], 'The collection is empty.');
             $this->assertJsonContains([
                 'hydra:totalItems' => 35,

@@ -160,6 +160,32 @@ namespace App\EventSubscriber {
     }
 }
 
+ namespace App\DependencyInjection {
+
+     use App\EventSubscriber\UserAwareEventSubscriber;
+     use App\Filter\UserFilter;
+     use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+     use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+
+     function configure(ContainerConfigurator $configurator) {
+         $services = $configurator->services();
+         $services->set(UserAwareEventSubscriber::class)
+             ->args([service('doctrine.orm.default_entity_manager')])
+         ;
+         $configurator->extension('doctrine', [
+             'orm' => [
+                 'filters' => [
+                     'user_filter' => [
+                         'class' => UserFilter::class,
+                         'enabled' => true,
+                     ],
+                 ],
+             ],
+         ]);
+
+     }
+ }
+
 namespace App\Configurator {
     use App\Filter\UserFilter;
     use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -188,11 +214,13 @@ namespace App\Playground {
 }
 
 namespace DoctrineMigrations {
+
+    use Doctrine\DBAL\Schema\Schema;
     use Doctrine\Migrations\AbstractMigration;
 
     final class Migration extends AbstractMigration
     {
-        public function up(): void
+        public function up(Schema $schema): void
         {
             $this->addSql('CREATE TABLE user (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username VARCHAR(255) NOT NULL)');
             $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL)');
@@ -204,11 +232,12 @@ namespace App\Fixtures {
     use App\Entity\Book;
     use App\Entity\User;
     use Doctrine\Bundle\FixturesBundle\Fixture;
+    use Doctrine\Persistence\ObjectManager;
     use Zenstruck\Foundry\AnonymousFactory;
 
     final class BookFixtures extends Fixture
     {
-        public function load(): void
+        public function load(ObjectManager $manager): void
         {
             $johnDoe = AnonymousFactory::new(User::class)::createOne(['username' => 'john.doe']);
             $janeDoe = AnonymousFactory::new(User::class)::createOne(['username' => 'jane.doe']);
@@ -224,6 +253,11 @@ namespace App\Tests {
 
     final class BookTest extends ApiTestCase
     {
+        protected function setUp(): void
+        {
+            static::createKernel()->executeMigrations();
+        }
+
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {
             $response = static::createClient()->request('GET', '/books.jsonld');

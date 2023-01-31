@@ -728,3 +728,4 @@ jobs:
         run: tests/Fixtures/app/console cache:clear --ansi
       - name: Run Behat tests
         run: vendor/bin/behat --out=std --format=progress --profile=default --no-interaction
+
