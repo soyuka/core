@@ -33,27 +33,6 @@ class ApiResource extends Metadata
 {
     use WithResourceTrait;
 
-    /**
-     * Operations is a list of [HttpOperation](./HttpOperation).
-     *
-     * By default API Platform declares operations representing CRUD routes if you don't specify this parameter:
-     *
-     * ```php
-     * #[ApiResource(
-     *     operations: [
-     *         new Get(uriTemplate: '/books/{id}'),
-     *         // The GetCollection operation returns a list of Books.
-     *         new GetCollection(uriTemplate: '/books'),
-     *         new Post(uriTemplate: '/books'),
-     *         new Patch(uriTemplate: '/books/{id}'),
-     *         new Delete(uriTemplate: '/books/{id}'),
-     *     ]
-     * )]
-     *
-     * ```
-     *
-     * Try this live at [play.api-platform.com/api-resource](play.api-platform.com).
-     */
     protected ?Operations $operations;
 
     /**
@@ -78,15 +57,18 @@ class ApiResource extends Metadata
          * API Platform generates this URL for you if you leave this empty.
          */
         protected ?string $uriTemplate = null,
+
         /**
          * The short name of your resource is a unique name that identifies your resource.
          * It is used within the documentation and for url generation if the `uriTemplate` is not filled. By default, this will be the name of your PHP class.
          */
         protected ?string $shortName = null,
+
         /**
          * A description for this resource that will show on documentations.
          */
         protected ?string $description = null,
+
         /**
          * The RDF types of this resource.
          * An RDF type is usually a URI referencing how your resource is structured for the outside world. Values can be a string `https://schema.org/Book`
@@ -94,7 +76,29 @@ class ApiResource extends Metadata
          */
         protected string|array|null $types = null,
 
+        /**
+         * Operations is a list of [HttpOperation](./HttpOperation).
+         *
+         * By default API Platform declares operations representing CRUD routes if you don't specify this parameter:
+         *
+         * ```php
+         * #[ApiResource(
+         *     operations: [
+         *         new Get(uriTemplate: '/books/{id}'),
+         *         // The GetCollection operation returns a list of Books.
+         *         new GetCollection(uriTemplate: '/books'),
+         *         new Post(uriTemplate: '/books'),
+         *         new Patch(uriTemplate: '/books/{id}'),
+         *         new Delete(uriTemplate: '/books/{id}'),
+         *     ]
+         * )]
+         *
+         * ```
+         *
+         * Try this live at [play.api-platform.com/api-resource](play.api-platform.com).
+         */
         $operations = null,
+
         /**
          * The `formats` option allows you to customize content negotiation. By default API Platform supports JsonLd, Hal, JsonAPI.
          * For other formats we use the Symfony Serializer.
