@@ -150,13 +150,11 @@ namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
     use Symfony\Component\HttpFoundation\Response;
+    use PhpDocumentGenerator\Playground\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
-        protected function setUp(): void
-        {
-            static::createKernel()->executeMigrations();
-        }
+        use TestGuideTrait;
 
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {

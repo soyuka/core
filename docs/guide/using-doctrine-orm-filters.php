@@ -43,7 +43,6 @@ namespace App\Entity {
      * Each Book is related to a User, supposedly allowed to authenticate.
      */
     #[ApiResource]
-    #[ApiFilter(UserFilter::class)]
     #[ORM\Entity]
     /*
      * This entity is restricted by current user: only current user books will be shown (cf. UserFilter).
@@ -171,6 +170,7 @@ namespace App\EventSubscriber {
          $services = $configurator->services();
          $services->set(UserAwareEventSubscriber::class)
              ->args([service('doctrine.orm.default_entity_manager')])
+             ->tag('kernel.event_subscriber')
          ;
          $configurator->extension('doctrine', [
              'orm' => [
@@ -185,24 +185,6 @@ namespace App\EventSubscriber {
 
      }
  }
-
-namespace App\Configurator {
-    use App\Filter\UserFilter;
-    use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-
-    function configure(ContainerConfigurator $configurator) {
-        $configurator->extension('doctrine', [
-            'orm' => [
-                'filters' => [
-                    'user_filter' => [
-                        'class' => UserFilter::class,
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-    }
-}
 
 namespace App\Playground {
     use Symfony\Component\HttpFoundation\Request;
@@ -223,7 +205,7 @@ namespace DoctrineMigrations {
         public function up(Schema $schema): void
         {
             $this->addSql('CREATE TABLE user (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username VARCHAR(255) NOT NULL)');
-            $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL)');
+            $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES user (id))');
         }
     }
 }
@@ -239,10 +221,19 @@ namespace App\Fixtures {
     {
         public function load(ObjectManager $manager): void
         {
-            $johnDoe = AnonymousFactory::new(User::class)::createOne(['username' => 'john.doe']);
-            $janeDoe = AnonymousFactory::new(User::class)::createOne(['username' => 'jane.doe']);
-            AnonymousFactory::new(Book::class)::createMany(10, ['user' => $johnDoe]);
-            AnonymousFactory::new(Book::class)::createMany(10, ['user' => $janeDoe]);
+            $userFactory = AnonymousFactory::new(User::class);
+            $johnDoe = $userFactory->create(['username' => 'john.doe']);
+            $janeDoe = $userFactory->create(['username' => 'jane.doe']);
+
+            $bookFactory = AnonymousFactory::new(Book::class);
+            $bookFactory->many(10)->create([
+                'title' => 'title',
+                'user' => $johnDoe
+            ]);
+            $bookFactory->many(10)->create([
+                'title' => 'title',
+                'user' => $janeDoe
+            ]);
         }
     }
 }
@@ -250,20 +241,18 @@ namespace App\Fixtures {
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
+    use PhpDocumentGenerator\Playground\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
-        protected function setUp(): void
-        {
-            static::createKernel()->executeMigrations();
-        }
+        use TestGuideTrait;
 
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {
             $response = static::createClient()->request('GET', '/books.jsonld');
 
             $this->assertResponseIsSuccessful();
-            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books.{_format}_get_collection', 'jsonld');
+            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books{._format}_get_collection', 'jsonld');
             $this->assertNotSame(0, $response->toArray(false)['hydra:totalItems'], 'The collection is empty.');
             $this->assertJsonContains([
                 'hydra:totalItems' => 10,

@@ -143,17 +143,15 @@ namespace DoctrineMigrations {
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
+    use PhpDocumentGenerator\Playground\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
-        protected function setUp(): void
-        {
-            static::createKernel()->executeMigrations();
-        }
+        use TestGuideTrait;
 
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {
-            $resp = static::createClient()->request('GET', '/books.jsonld?regexp_title=^[Found]');
+            static::createClient()->request('GET', '/books.jsonld?regexp_title=^[Found]');
 
             $this->assertResponseIsSuccessful();
             $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books{._format}_get_collection');

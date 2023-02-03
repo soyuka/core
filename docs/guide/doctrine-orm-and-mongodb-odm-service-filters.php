@@ -30,15 +30,19 @@ namespace App\Entity {
     }
 }
 
-namespace App\Configurator {
+namespace App\DependencyInjection {
     use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
     function configure(ContainerConfigurator $configurator) {
         $configurator->services()
             ->set('book.search_filter')
             ->parent('api_platform.doctrine.orm.search_filter')
-            ->args(['title' => null])
-            ->tag('api_platform.filter');
+            ->args([['title' => null]])
+            ->tag('api_platform.filter')
+            ->autowire(false)
+            ->autoconfigure(false)
+            ->public(false)
+        ;
     }
 }
 
@@ -51,18 +55,39 @@ namespace App\Playground {
     }
 }
 
+namespace DoctrineMigrations {
+    use Doctrine\DBAL\Schema\Schema;
+    use Doctrine\Migrations\AbstractMigration;
+
+    final class Migration extends AbstractMigration
+    {
+        public function up(Schema $schema): void
+        {
+            $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title VARCHAR(255) NOT NULL)');
+        }
+
+        public function down(Schema $schema): void
+        {
+            $this->addSql('DROP TABLE book');
+        }
+    }
+}
+
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
+    use PhpDocumentGenerator\Playground\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
+        use TestGuideTrait;
+
         public function testAsAnonymousICanAccessTheDocumentation(): void
         {
             static::createClient()->request('GET', '/books.jsonld');
 
             $this->assertResponseIsSuccessful();
-            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books.{_format}_get_collection', 'jsonld');
+            $this->assertMatchesResourceCollectionJsonSchema(Book::class, '_api_/books{._format}_get_collection', 'jsonld');
             $this->assertJsonContains([
                 'hydra:search' => [
                     '@type' => 'hydra:IriTemplate',

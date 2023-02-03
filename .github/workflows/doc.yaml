@@ -31,9 +31,9 @@ jobs:
             -   name: Global require pdg
                 run: |
                     cd $(composer -n config --global home)
-                    echo "{\"repositories\":[{\"type\":\"vcs\",\"url\":\"https://github.com/JacquesDurand/php-documentation-generator\"}]}" > composer.json
+                    echo "{\"repositories\":[{\"type\":\"vcs\",\"url\":\"https://github.com/php-documentation-generator/php-documentation-generator\"}]}" > composer.json
                     composer global config --no-plugins allow-plugins.symfony/runtime true
-                    composer global require api-platform/pdg:dev-main
+                    composer global require php-documentation-generator/php-documentation-generator:dev-main
             -   name: Cache dependencies
                 uses: actions/cache@v3
                 with:

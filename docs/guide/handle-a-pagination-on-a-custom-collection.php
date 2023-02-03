@@ -148,14 +148,11 @@ namespace App\Fixtures {
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
+    use PhpDocumentGenerator\Playground\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
-        protected function setUp(): void
-        {
-            static::createKernel()->executeMigrations();
-            static::createKernel()->loadFixtures();
-        }
+        use TestGuideTrait;
 
         public function testTheCustomCollectionIsPaginated(): void
         {
