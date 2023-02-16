@@ -53,6 +53,14 @@
             <tag name="serializer.normalizer" priority="-800" />
         </service>
 
+        <service id="api_platform.hydra.normalizer.error_exception" class="ApiPlatform\Hydra\Serializer\ErrorExceptionNormalizer" public="false">
+            <argument type="service" id="api_platform.router" />
+            <argument type="service" id="api_platform.symfony.iri_converter" />
+            <argument>%kernel.debug%</argument>
+
+            <tag name="serializer.normalizer" priority="-700" />
+        </service>
+
         <service id="api_platform.hydra.normalizer.collection" class="ApiPlatform\Hydra\Serializer\CollectionNormalizer" public="false">
             <argument type="service" id="api_platform.jsonld.context_builder" />
             <argument type="service" id="api_platform.resource_class_resolver" />

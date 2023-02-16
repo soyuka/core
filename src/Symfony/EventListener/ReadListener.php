@@ -84,11 +84,19 @@ final class ReadListener
             $request->attributes->set('_api_normalization_context', $normalizationContext);
         }
 
+        if ($exception = $request->attributes->get('data')) {
+            $context['previous_data'] = $exception;
+        }
+
         $parameters = $request->attributes->all();
         $resourceClass = $operation->getClass() ?? $attributes['resource_class'];
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $parameters, $resourceClass);
-            $data = $this->provider->provide($operation, $uriVariables, $context);
+            if ($exception) {
+                $data = $operation->getProvider() ? $this->provider->provide($operation, $uriVariables, $context) : $exception;
+            } else {
+                $data = $this->provider->provide($operation, $uriVariables, $context);
+            }
         } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }

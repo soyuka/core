@@ -75,5 +75,10 @@
         <service id="api_platform.cache.metadata.resource_collection" parent="cache.system" public="false">
             <tag name="cache.pool" />
         </service>
+
+        <service id="api_platform.metadata.error_resource.metadata_collection_factory.attributes" class="ApiPlatform\Metadata\Resource\Factory\AttributesErrorResourceMetadataCollectionFactory" public="false">
+            <argument type="service" id="logger" on-invalid="null" />
+            <argument>%api_platform.defaults%</argument>
+        </service>
     </services>
 </container>

@@ -24,6 +24,12 @@
 
             <tag name="serializer.normalizer" priority="-810" />
         </service>
+        <service id="api_platform.problem.normalizer.error_exception" class="ApiPlatform\Problem\Serializer\ErrorExceptionNormalizer" public="false">
+            <argument type="service" id="api_platform.symfony.iri_converter"/>
+            <argument>%kernel.debug%</argument>
+
+            <tag name="serializer.normalizer" priority="-710" />
+        </service>
     </services>
 
 </container>

@@ -21,6 +21,7 @@ use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * Builds the response object.
@@ -101,6 +102,13 @@ final class RespondListener
 
             if ((Response::HTTP_CREATED === $status || (300 <= $status && $status < 400)) && 'POST' === $method) {
                 $headers['Location'] = $request->attributes->get('_api_write_item_iri');
+            }
+        }
+
+        if (($request->attributes->get('data')) instanceof \Exception) {
+            $status = $request->attributes->get('_exception_status');
+            if (($exception = $request->attributes->get('_original_exception')) instanceof HttpExceptionInterface) {
+                $headers = array_merge($headers, $exception->getHeaders());
             }
         }
 

@@ -53,6 +53,16 @@
             <tag name="api_platform.state_provider" key="ApiPlatform\State\ObjectProvider" />
             <tag name="api_platform.state_provider" key="api_platform.state_provider.object" />
         </service>
+        <service id="api_platform.state_provider.default_error" class="ApiPlatform\State\DefaultErrorProvider" >
+            <tag name="api_platform.state_provider" key="ApiPlatform\State\DefaultErrorProvider" />
+            <tag name="api_platform.state_provider" key="api_platform.state_provider.default_error" />
+        </service>
+        <service id="api_platform.state_provider.default_problem_error" class="ApiPlatform\State\DefaultProblemErrorProvider" >
+            <argument type="service" id="api_platform.symfony.iri_converter" />
+            <tag name="api_platform.state_provider" key="ApiPlatform\State\DefaultProblemErrorProvider" />
+            <tag name="api_platform.state_provider" key="api_platform.state_provider.default_problem_error" />
+        </service>
+
         <service id="ApiPlatform\State\ObjectProvider" alias="api_platform.state_provider.object" />
     </services>
 </container>

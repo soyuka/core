@@ -40,8 +40,12 @@ final class SerializeListener
 
     public const OPERATION_ATTRIBUTE_KEY = 'serialize';
 
-    public function __construct(private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null)
-    {
+    public function __construct(
+        private readonly SerializerInterface $serializer,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null,
+        private readonly array $errorFormats = []
+    ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
 
@@ -66,6 +70,13 @@ final class SerializeListener
         $operation = $this->initializeOperation($request);
         if (!($operation?->canSerialize() ?? true)) {
             return;
+        }
+
+        $format = $request->getRequestFormat();
+        if ($request->attributes->get('data') instanceof \Exception) {
+            $errorResourceFormats = array_merge($operation?->getOutputFormats() ?? [], $operation?->getFormats() ?? [], $this->errorFormats);
+
+            $format = array_key_first($errorResourceFormats) ?? $request->getRequestFormat();
         }
 
         if (!$attributes) {
@@ -96,7 +107,7 @@ final class SerializeListener
         }
 
         $request->attributes->set('_api_normalization_context', $context);
-        $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
+        $event->setControllerResult($this->serializer->serialize($controllerResult, $format, $context));
 
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
         if (!\count($resourcesToPush)) {

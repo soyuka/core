@@ -15,6 +15,8 @@ namespace ApiPlatform\Symfony\Bundle\DependencyInjection;
 
 use ApiPlatform\Api\FilterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\ApiResource\Error;
+use ApiPlatform\ApiResource\ProblemError;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Extension\AggregationItemExtensionInterface;
 use ApiPlatform\Doctrine\Odm\Filter\AbstractFilter as DoctrineMongoDbOdmAbstractFilter;
@@ -247,6 +249,9 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     {
         [$xmlResources, $yamlResources] = $this->getResourcesToWatch($container, $config);
 
+        // TODO only when hydra
+        $container->setParameter('api_platform.class_name_resources', $this->getClassNameResources());
+
         $loader->load('metadata/resource_name.xml');
         $loader->load('metadata/property_name.xml');
 
@@ -275,6 +280,14 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $container->getDefinition('api_platform.metadata.resource_extractor.yaml')->replaceArgument(0, $yamlResources);
             $container->getDefinition('api_platform.metadata.property_extractor.yaml')->replaceArgument(0, $yamlResources);
         }
+    }
+
+    private function getClassNameResources(): array
+    {
+        return [
+            Error::class,
+            ProblemError::class,
+        ];
     }
 
     private function getBundlesResourcesPaths(ContainerBuilder $container, array $config): array
