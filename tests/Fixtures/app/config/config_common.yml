@@ -12,6 +12,10 @@ doctrine:
             TestBundle:
                 type: 'attribute'
 
+framework: 
+    session:
+        enabled: false
+
 web_profiler:
     toolbar: true
     intercept_redirects: false
