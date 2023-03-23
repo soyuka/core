@@ -23,6 +23,7 @@ use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Marshaller\MarshallerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -40,8 +41,12 @@ final class SerializeListener
 
     public const OPERATION_ATTRIBUTE_KEY = 'serialize';
 
-    public function __construct(private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null)
-    {
+    public function __construct(
+        private readonly SerializerInterface $serializer,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null,
+        private readonly ?MarshallerInterface $marshaller = null,
+    ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
 
@@ -96,7 +101,12 @@ final class SerializeListener
         }
 
         $request->attributes->set('_api_normalization_context', $context);
-        $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
+
+        if ($this->marshaller) {
+            $event->setControllerResult($controllerResult);
+        } else {
+            $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
+        }
 
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
         if (!\count($resourcesToPush)) {

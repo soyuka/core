@@ -21,7 +21,12 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\Marshaller\Context\Context;
+use Symfony\Component\Marshaller\Context\Option\TypeOption;
+use Symfony\Component\Marshaller\MarshallerInterface;
+use Symfony\Component\Marshaller\Stream\OutputStream;
 
 /**
  * Builds the response object.
@@ -40,6 +45,7 @@ final class RespondListener
     public function __construct(
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null,
         private readonly ?IriConverterInterface $iriConverter = null,
+        private readonly ?MarshallerInterface $marshaller = null
     ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
@@ -81,7 +87,7 @@ final class RespondListener
         if ($acceptPatch = $operation?->getAcceptPatch()) {
             $headers['Accept-Patch'] = $acceptPatch;
         }
-
+        
         $method = $request->getMethod();
         if (
             $this->iriConverter &&
@@ -105,10 +111,44 @@ final class RespondListener
             }
         }
 
-        $event->setResponse(new Response(
-            $controllerResult,
+        if(
+            \is_string($controllerResult)
+            || !$this->marshaller
+        ){
+            $event->setResponse(new Response(
+                $controllerResult, $status, $headers
+            ));
+
+            return;
+        }
+
+        $context = new Context(
+            new TypeOption(
+                \is_scalar($controllerResult)
+                    ? \gettype($controllerResult)
+                    : \get_class($controllerResult)
+            ),
+        );
+
+        $response = new StreamedResponse(
+            function () use ($controllerResult, $context): void {
+                $this->marshaller->marshal(
+                    $controllerResult,
+                    // TODO: How to use jsonld
+                    'json',
+                    new OutputStream(),
+                    $context
+                );
+            },
             $status,
             $headers
-        ));
+        );
+
+        $event->setResponse($response);
+    }
+
+    public function test(int $value, array $context): string
+    {
+        return sprintf('/foo/bar/%d', $value);
     }
 }

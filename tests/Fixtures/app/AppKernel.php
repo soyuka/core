@@ -22,6 +22,7 @@ use Doctrine\Common\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle;
 use Nelmio\ApiDocBundle\NelmioApiDocBundle;
+use Symfony\Bundle\DebugBundle\DebugBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MakerBundle\MakerBundle;
@@ -34,6 +35,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\ErrorHandler\ErrorRenderer\ErrorRendererInterface;
 use Symfony\Component\HttpFoundation\Session\SessionFactory;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Marshaller\DependencyInjection\MarshallerExtension;
 use Symfony\Component\PasswordHasher\Hasher\NativePasswordHasher;
 use Symfony\Component\Security\Core\Authorization\Strategy\AccessDecisionStrategyInterface;
 use Symfony\Component\Security\Core\User\User as SymfonyCoreUser;
@@ -74,6 +76,7 @@ class AppKernel extends Kernel
             new FriendsOfBehatSymfonyExtensionBundle(),
             new FrameworkBundle(),
             new MakerBundle(),
+            new DebugBundle(),
         ];
 
         if (class_exists(DoctrineMongoDBBundle::class)) {
@@ -103,6 +106,17 @@ class AppKernel extends Kernel
         }
     }
 
+    protected function build(ContainerBuilder $c): void
+    {
+        parent::build($c);
+
+        $c->registerExtension(new MarshallerExtension());
+        $c->setParameter('marshaller.cache_dir', sprintf('%s/marshaller', $c->getParameter('kernel.cache_dir')));
+        $c->setParameter('marshaller.marshallable_paths', []);
+        $c->setParameter('marshaller.marshallable_formats', ['json']);
+        $c->setParameter('marshaller.marshallable_nullable_data', false);
+    }
+
     protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader): void
     {
         $c->setParameter('kernel.project_dir', __DIR__);
@@ -126,7 +140,7 @@ class AppKernel extends Kernel
             'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] : ['storage_id' => 'session.storage.mock_file'],
             'profiler' => [
                 'enabled' => true,
-                'collect' => false,
+                'collect' => true,
             ],
             'messenger' => $messengerConfig,
             'router' => ['utf8' => true],

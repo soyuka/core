@@ -24,7 +24,6 @@ use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
     provider: AttributeResourceProvider::class
 )]
 #[GetCollection]
-#[Post]
 final class AttributeResources implements \IteratorAggregate
 {
     /**
