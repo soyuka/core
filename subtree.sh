@@ -15,5 +15,5 @@ git push $package $sha:$2
 
 if [[ $2 == "refs/tags"*  ]]; then
     tag=${2//refs\/tags\//}
-    echo gh release create -R $package $tag
+    gh release create -R $package $tag
 fi
