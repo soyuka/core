@@ -425,6 +425,40 @@ class ApiResource extends Metadata
         protected $messenger = null,
         protected $input = null,
         protected $output = null,
+        /**
+         * Override the default order of items in your collection. Note that this is handled by our doctrine filters such as          
+         * the [OrderFilter](/docs/reference/Doctrine/Orm/Filter/OrderFilter).
+         *
+         * By default, items in the collection are ordered in ascending (ASC) order by their resource identifier(s). If you want to
+         * customize this order, you must add an `order` attribute on your ApiResource annotation:
+         *
+         * <CodeSelector>
+         *
+         * ```php
+         * <?php
+         * // api/src/Entity/Book.php
+         * namespace App\Entity;
+         *
+         * use ApiPlatform\Metadata\ApiResource;
+         *
+         * #[ApiResource(order: ['foo' => 'ASC'])]
+         * class Book
+         * {
+         * }
+         * ```
+         *
+         * ```yaml
+         * # api/config/api_platform/resources/Book.yaml
+         * App\Entity\Book:
+         *     order:
+         *         foo: ASC
+         * ```
+         *
+         * </CodeSelector>
+         *
+         * This `order` attribute is used as an array: the key defines the order field, the values defines the direction.
+         * If you only specify the key, `ASC` direction will be used as default. 
+         */
         protected ?array $order = null,
         protected ?bool $fetchPartial = null,
         protected ?bool $forceEager = null,

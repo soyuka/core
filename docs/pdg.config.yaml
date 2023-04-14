@@ -4,6 +4,7 @@ pdg:
         base_url: '/docs/reference'
         tags_to_ignore: ['@experimental', '@internal']
         exclude: ['*Factory.php', '*.tpl.php']
+        exclude_path: ['JsonSchema/Tests', 'Metadata/Tests', 'OpenApi/Tests'],
         namespace: 'ApiPlatform'
         output: '~/forks/api-platform-website-next/pwa/data/docs/reference'
         src: '../src'
