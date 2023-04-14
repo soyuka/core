@@ -263,9 +263,9 @@ Then bind it to the ORM persist processor:
 ```yaml
 # api/config/services.yaml
 
-    App\State\UserPasswordHasher:
-        bind:
-            $processor: '@api_platform.doctrine.orm.state.persist_processor'
+App\State\UserPasswordHasher:
+  bind:
+    $processor: "@api_platform.doctrine.orm.state.persist_processor"
 ```
 
 You may have wondered about the following lines in our entity file we created before:

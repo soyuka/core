@@ -23,15 +23,15 @@ to make it look like this.
 ```yaml
 # api/config/packages/vich_uploader.yaml
 vich_uploader:
-    db_driver: orm
-    metadata:
-        type: attribute
-    mappings:
-        media_object:
-            uri_prefix: /media
-            upload_destination: '%kernel.project_dir%/public/media'
-            # Will rename uploaded files using a uniqueid as a prefix.
-            namer: Vich\UploaderBundle\Naming\OrignameNamer
+  db_driver: orm
+  metadata:
+    type: attribute
+  mappings:
+    media_object:
+      uri_prefix: /media
+      upload_destination: "%kernel.project_dir%/public/media"
+      # Will rename uploaded files using a uniqueid as a prefix.
+      namer: Vich\UploaderBundle\Naming\OrignameNamer
 ```
 
 ## Uploading to a Dedicated Resource
@@ -71,24 +71,24 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[Vich\Uploadable]
 #[ORM\Entity]
 #[ApiResource(
-    normalizationContext: ['groups' => ['media_object:read']], 
+    normalizationContext: ['groups' => ['media_object:read']],
     types: ['https://schema.org/MediaObject'],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
-            controller: CreateMediaObjectAction::class, 
-            deserialize: false, 
-            validationContext: ['groups' => ['Default', 'media_object_create']], 
+            controller: CreateMediaObjectAction::class,
+            deserialize: false,
+            validationContext: ['groups' => ['Default', 'media_object_create']],
             openapi: new Model\Operation(
                 requestBody: new Model\RequestBody(
                     content: new \ArrayObject([
                         'multipart/form-data' => [
                             'schema' => [
-                                'type' => 'object', 
+                                'type' => 'object',
                                 'properties' => [
                                     'file' => [
-                                        'type' => 'string', 
+                                        'type' => 'string',
                                         'format' => 'binary'
                                     ]
                                 ]
@@ -113,7 +113,7 @@ class MediaObject
     #[Assert\NotNull(groups: ['media_object_create'])]
     public ?File $file = null;
 
-    #[ORM\Column(nullable: true)] 
+    #[ORM\Column(nullable: true)]
     public ?string $filePath = null;
 
     public function getId(): ?int
@@ -264,7 +264,7 @@ class Book
     #[ORM\JoinColumn(nullable: true)]
     #[ApiProperty(types: ['https://schema.org/image'])]
     public ?MediaObject $image = null;
-    
+
     // ...
 }
 ```
@@ -359,8 +359,8 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
  */
 #[ORM\Entity]
 #[ApiResource(
-    normalizationContext: ['groups' => ['book:read']], 
-    denormalizationContext: ['groups' => ['book:write']], 
+    normalizationContext: ['groups' => ['book:read']],
+    denormalizationContext: ['groups' => ['book:write']],
     types: ['https://schema.org/Book'],
     operations: [
         new GetCollection(),
@@ -381,9 +381,9 @@ class Book
     #[Groups(['book:write'])]
     public ?File $file = null;
 
-    #[ORM\Column(nullable: true)] 
+    #[ORM\Column(nullable: true)]
     public ?string $filePath = null;
-    
+
     // ...
 }
 ```
@@ -409,7 +409,7 @@ final class MultipartDecoder implements DecoderInterface
     public function __construct(private RequestStack $requestStack) {}
 
     /**
-     * {@inheritdoc}
+     * \{@inheritdoc}
      */
     public function decode(string $data, string $format, array $context = []): ?array
     {
@@ -428,7 +428,7 @@ final class MultipartDecoder implements DecoderInterface
     }
 
     /**
-     * {@inheritdoc}
+     * \{@inheritdoc}
      */
     public function supportsDecoding(string $format): bool
     {
@@ -453,7 +453,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 final class UploadedFileDenormalizer implements DenormalizerInterface
 {
     /**
-     * {@inheritdoc}
+     * \{@inheritdoc}
      */
     public function denormalize($data, string $type, string $format = null, array $context = []): UploadedFile
     {
@@ -461,7 +461,7 @@ final class UploadedFileDenormalizer implements DenormalizerInterface
     }
 
     /**
-     * {@inheritdoc}
+     * \{@inheritdoc}
      */
     public function supportsDenormalization($data, $type, $format = null): bool
     {

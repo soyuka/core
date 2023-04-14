@@ -1,6 +1,6 @@
 ## Collection Relation
 
-This is a special case where, in an entity, you have a `toMany` relation. By default, Doctrine will use an `ArrayCollection` to store your values. This is fine when you have a *read* operation, but when you try to *write* you can observe an issue where the response is not reflecting the changes correctly. It can lead to client errors even though the update was correct.
+This is a special case where, in an entity, you have a `toMany` relation. By default, Doctrine will use an `ArrayCollection` to store your values. This is fine when you have a _read_ operation, but when you try to _write_ you can observe an issue where the response is not reflecting the changes correctly. It can lead to client errors even though the update was correct.
 Indeed, after an update on this relation, the collection looks wrong because `ArrayCollection`'s indexes are not sequential. To change this, we recommend to use a getter that returns `$collectionRelation->getValues()`. Thanks to this, the relation is now a real array which is sequentially indexed.
 
 ```php
@@ -53,4 +53,3 @@ final class Brand
 ```
 
 For reference please check [#1534](https://github.com/api-platform/core/pull/1534).
-
