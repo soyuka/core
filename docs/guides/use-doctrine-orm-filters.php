@@ -241,7 +241,7 @@ namespace App\Fixtures {
 namespace App\Tests {
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
-    use PhpDocumentGenerator\Playground\TestGuideTrait;
+    use ApiPlatform\Playground\Test\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
