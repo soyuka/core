@@ -182,14 +182,9 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
                         continue;
                     }
 
-                    $entityClass = $operation->getClass();
-                    if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
-                        $entityClass = $options->getEntityClass();
-                    }
-
                     $newUriVariables[$variable] = (new Link())
-                        ->withFromClass($entityClass)
-                        ->withIdentifiers([property_exists($entityClass, $variable) ? $variable : 'id'])
+                        ->withFromClass($operation->getClass())
+                        ->withIdentifiers([property_exists($operation->getClass(), $variable) ? $variable : 'id'])
                         ->withParameterName($variable);
                 }
 
@@ -225,9 +220,6 @@ final class UriTemplateResourceMetadataCollectionFactory implements ResourceMeta
 
         $normalizedUriVariables = [];
         $resourceClass = $operation->getClass();
-        if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
-            $resourceClass = $options->getEntityClass();
-        }
 
         foreach ($uriVariables as $parameterName => $uriVariable) {
             $normalizedParameterName = $parameterName;
