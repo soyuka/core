@@ -45,7 +45,7 @@ final class ErrorExceptionNormalizer implements NormalizerInterface, NormalizerA
         return $data;
     }
 
-    public function supportsNormalization(mixed $data, string $format = null): bool
+    public function supportsNormalization(mixed $data, string $format = null, array $context = []): bool
     {
         return self::FORMAT === $format && $data instanceof \Exception;
     }
