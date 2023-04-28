@@ -105,11 +105,8 @@ final class RespondListener
             }
         }
 
-        if (($request->attributes->get('data')) instanceof \Exception) {
-            $status = $request->attributes->get('_exception_status');
-            if (($exception = $request->attributes->get('_original_exception')) instanceof HttpExceptionInterface) {
-                $headers = array_merge($headers, $exception->getHeaders());
-            }
+        if ($request->attributes->get('data') instanceof SymfonyHttpExceptionInterface || ApiPlatform\Metadata\Exception\HttpExceptionInterface) {
+            $headers = array_merge($headers, $exception->getHeaders());
         }
 
         $event->setResponse(new Response(

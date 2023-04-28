@@ -69,24 +69,40 @@ final class ErrorListener extends SymfonyErrorListener
             return $dup;
         }
 
-        $resourceClass = $this->getResourceClass($exception, $request);
+        // 1) chercher l'operation sur $exception::class
+        $errorOperation = $this->resourceMetadataCollectionFactory->create($exception::class)->getOperation();
+
+        if (!$errorOperation) {
+            $resourceClass = $this->getResourceClass($exception, $request);
+            $errorOperation = $this->resourceMetadataCollectionFactory->create($resourceClass)->getOperation();
+            $errorOperation = $errorOperation->withStatusCode($this->getStatusCode());
+            // $identifiers = match (true) {
+            //     $resourceClass === $exception::class => $this->identifiersExtractor->getIdentifiersFromItem($exception, $operation),
+            //         // problemecverptioninterface
+            //     ProblemError::class === $resourceClass => $this->identifiersExtractor->getIdentifiersFromItem(ProblemError::createFromException($exception, $statusCode), $operation),
+            //     default => $this->identifiersExtractor->getIdentifiersFromItem(Error::createFromException($exception, $statusCode), $operation),
+            // };
+            $data = ($resourceClass)::createFromException();
+            // $this->identifiersExtractor->getIdentifiersFromItem(Error::createFromException($exception, $statusCode), $operation);
+        }
+
         $dup->attributes->set('_api_resource_class', $resourceClass);
-        $operation = $this->initializeOperation($dup);
         $dup->attributes->set('_api_operation', $operation);
         $dup->attributes->set('_api_operation_name', $operation?->getName());
         $dup->attributes->remove('exception');
         $dup->attributes->set('data', $exception);
-        $dup->attributes->set('_original_exception', $exception);
+        // $dup->attributes->set('_original_exception', $exception);
 
-        $statusCode = $this->getStatusCode($apiOperation, $request, $operation, $exception);
+        // $statusCode = $this->getStatusCode($apiOperation, $request, $operation, $exception);
 
-        $dup->attributes->set('_exception_status', $statusCode);
+        // $dup->attributes->set('_exception_status', $statusCode);
 
-        $identifiers = match (true) {
-            $resourceClass === $exception::class => $this->identifiersExtractor->getIdentifiersFromItem($exception, $operation),
-            ProblemError::class === $resourceClass => $this->identifiersExtractor->getIdentifiersFromItem(ProblemError::createFromException($exception, $statusCode), $operation),
-            default => $this->identifiersExtractor->getIdentifiersFromItem(Error::createFromException($exception, $statusCode), $operation),
-        };
+        // $identifiers = match (true) {
+        //     $resourceClass === $exception::class => $this->identifiersExtractor->getIdentifiersFromItem($exception, $operation),
+        //         // problemecverptioninterface
+        //     ProblemError::class === $resourceClass => $this->identifiersExtractor->getIdentifiersFromItem(ProblemError::createFromException($exception, $statusCode), $operation),
+        //     default => $this->identifiersExtractor->getIdentifiersFromItem(Error::createFromException($exception, $statusCode), $operation),
+        // };
 
         foreach ($identifiers as $name => $value) {
             $dup->attributes->set($name, $value);
@@ -118,13 +134,14 @@ final class ErrorListener extends SymfonyErrorListener
 
     private function getResourceClass(\Throwable $exception, Request $request): string
     {
-        $reflectionClass = new \ReflectionClass($exception);
-
-        foreach ($reflectionClass->getAttributes() as $attribute) {
-            if (is_a($attribute->getName(), ErrorResource::class, true)) {
-                return $exception::class;
-            }
-        }
+        // $reflectionClass = new \ReflectionClass($exception);
+        //
+        // foreach ($reflectionClass->getAttributes() as $attribute) {
+        //     if (is_a($attribute->getName(), ErrorResource::class, true)) {
+        //         return $exception::class;
+        //     }
+        // }
+        //
         $format = ErrorFormatGuesser::guessErrorFormat($request, $this->errorFormats);
 
         return match ($format['key']) {
