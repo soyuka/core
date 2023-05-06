@@ -1,5 +1,5 @@
 <?php
-// --- 
+// ---
 // slug: provide-the-resource-state
 // name: Provide the Resource State
 // position: 2
@@ -9,12 +9,13 @@
 
 // # Provide the Resource State
 // Our model is the same then in the previous guide ([Declare a Resource](./declare-a-resource). API Platform will declare
-// CRUD operations if we don't declare them. 
+// CRUD operations if we don't declare them.
 namespace App\ApiResource {
+
     use ApiPlatform\Metadata\ApiResource;
     use App\State\BookProvider;
 
-    // We use a `BookProvider` as the [ApiResource::provider](/reference/Metadata/ApiResource#provider) option. 
+    // We use a `BookProvider` as the [ApiResource::provider](/reference/Metadata/ApiResource#provider) option.
     #[ApiResource(provider: BookProvider::class)]
     class Book
     {
@@ -23,16 +24,17 @@ namespace App\ApiResource {
 }
 
 namespace App\State {
+
     use ApiPlatform\Metadata\CollectionOperationInterface;
     use ApiPlatform\Metadata\Operation;
     use ApiPlatform\State\ProviderInterface;
     use App\ApiResource\Book;
 
-    // The BookProvider is where we retrieve the data in our persistence layer. 
+    // The BookProvider is where we retrieve the data in our persistence layer.
     // In this provider we choose to handle the retrieval of a single Book but also a list of Books.
     final class BookProvider implements ProviderInterface
     {
-        public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable|object|null
+        public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|null|array
         {
             if ($operation instanceof CollectionOperationInterface) {
                 $book = new Book();
@@ -46,6 +48,19 @@ namespace App\State {
             $book->id = $uriVariables['id'];
             return $book;
         }
+    }
+}
+
+namespace App\Playground {
+
+    use Symfony\Component\HttpFoundation\Request;
+
+    function request(): Request
+    {
+        return Request::create('/books/42', 'GET', server: [
+            'HTTP_ACCEPT' => 'application/ld+json',
+            'CONTENT_TYPE' => 'application/json'
+        ]);
     }
 }
 

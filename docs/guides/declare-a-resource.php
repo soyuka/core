@@ -1,5 +1,5 @@
 <?php
-// --- 
+// ---
 // slug: declare-a-resource
 // name: Declare a Resource
 // position: 1
@@ -34,7 +34,7 @@ use ApiPlatform\Validator\Exception\ValidationException;
         new Patch(uriTemplate: '/books/{id}'),
         new Delete(uriTemplate: '/books/{id}'),
     ],
-    // This is a configuration that is shared accross every operations. More details are available at [ApiResource::exceptionToStatus](/reference/Metadata/ApiResource#exceptionToStatus).
+    // This is a configuration that is shared across every operation. More details are available at [ApiResource::exceptionToStatus](/reference/Metadata/ApiResource#exceptionToStatus).
     exceptionToStatus: [
         ValidationException::class => 422
     ]

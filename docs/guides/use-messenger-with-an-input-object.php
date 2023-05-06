@@ -59,6 +59,7 @@ namespace App\Entity {
 }
 
 namespace DoctrineMigrations {
+
     use Doctrine\DBAL\Schema\Schema;
     use Doctrine\Migrations\AbstractMigration;
 
@@ -77,11 +78,13 @@ namespace DoctrineMigrations {
 }
 
 namespace App\Dto {
+
     use Symfony\Component\Validator\Constraints as Assert;
 
     /*
      * This Input object only aims to import a Book from its ISBN.
      */
+
     final class ImportBookRequest
     {
         #[Assert\NotBlank]
@@ -90,6 +93,7 @@ namespace App\Dto {
 }
 
 namespace App\Handler {
+
     use App\Dto\ImportBookRequest;
     use App\Entity\Book;
     use Doctrine\ORM\EntityManagerInterface;
@@ -128,29 +132,27 @@ namespace App\Handler {
 }
 
 namespace App\Playground {
+
     use Symfony\Component\HttpFoundation\Request;
 
     function request(): Request
     {
-        return Request::create('/books/import', 'POST', [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-        ], [], [], [], [
-            'json' => <<<JSON
-{
+        return Request::create('/books/import', 'POST', server: [
+            'HTTP_ACCEPT' => 'application/ld+json',
+            'CONTENT_TYPE' => 'application/json'
+        ], content: '{
   "isbn": "9782330113551"
-}
-JSON
-        ]);
+}'
+        );
     }
 }
 
 namespace App\Tests {
+
     use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
     use App\Entity\Book;
     use Symfony\Component\HttpFoundation\Response;
-    use PhpDocumentGenerator\Playground\TestGuideTrait;
+    use ApiPlatform\Playground\Test\TestGuideTrait;
 
     final class BookTest extends ApiTestCase
     {
