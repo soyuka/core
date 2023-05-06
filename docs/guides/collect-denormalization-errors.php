@@ -25,7 +25,7 @@ namespace App\ApiResource {
 // If the submitted data has denormalization errors, the HTTP status code will be set to `422 Unprocessable Content` and the response body will contain the list of errors:
 // ```json
 // {
-//   "@context": "\/contexts\/ConstraintViolationList",
+//   "@context": "\contexts\ConstraintViolationList",
 //   "@type": "ConstraintViolationList",
 //   "hydra:title": "An error occurred",
 //   "hydra:description": "boolean: This value should be of type bool.\nproperty1: This value should be of type string.",
