@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Symfony\Processor;
 
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\Util\ClassInfoTrait;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProcessorInterface;
@@ -31,6 +34,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\WebLink\GenericLinkProvider;
 use Symfony\Component\WebLink\Link;
+use ApiPlatform\Exception\InvalidArgumentException;
 
 /**
  * Serializes data.
@@ -39,24 +43,23 @@ use Symfony\Component\WebLink\Link;
  */
 final class RespondProcessor implements ProcessorInterface
 {
+    use ClassInfoTrait;
+
     public const METHOD_TO_CODE = [
         'POST' => Response::HTTP_CREATED,
         'DELETE' => Response::HTTP_NO_CONTENT,
     ];
 
-    public function __construct(private readonly ProcessorInterface $processor, private readonly RequestStack $requestStack)
+    public function __construct(private readonly RequestStack $requestStack, private readonly ResourceClassResolverInterface $resourceClassResolver, private IriConverterInterface $iriConverter)
     {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        $data = $this->processor->process($data, $operation, $uriVariables, $context);
-
         if ($data instanceof Response) {
             return $data;
         }
 
-        $request = $this->requestStack->getCurrentRequest();
         $headers = [
             'Content-Type' => sprintf('%s; charset=utf-8', $context['request_mime_type']),
             'Vary' => 'Accept',
@@ -74,7 +77,7 @@ final class RespondProcessor implements ProcessorInterface
             $headers['Accept-Patch'] = $acceptPatch;
         }
 
-        $method = $request->getMethod();
+        $method = $operation->getMethod();
         // if (
         //     $this->iriConverter
         //     && $operation
@@ -89,13 +92,15 @@ final class RespondProcessor implements ProcessorInterface
 
         $status ??= self::METHOD_TO_CODE[$method] ?? Response::HTTP_OK;
 
-        // if ($request->attributes->has('_api_write_item_iri')) {
-        //     $headers['Content-Location'] = $request->attributes->get('_api_write_item_iri');
-        //
-        //     if ((Response::HTTP_CREATED === $status || (300 <= $status && $status < 400)) && HttpOperation::METHOD_POST === $method) {
-        //         $headers['Location'] = $request->attributes->get('_api_write_item_iri');
-        //     }
-        // }
+        $originalData = $context['original_data'] ?? null;
+        if ($originalData && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData))) {
+            $iri = $this->iriConverter->getIriFromResource($originalData);
+            $headers['Content-Location'] = $iri;
+
+            if ((201 === $status || (300 <= $status && $status < 400)) && 'POST' === $method) {
+                $headers['Location'] = $iri;
+            }
+        }
 
         return new Response(
             $data,

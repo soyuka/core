@@ -28,10 +28,10 @@ final class MainController
     use OperationRequestInitiatorTrait;
 
     public function __construct(
-        ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, 
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ProviderInterface $provider,
         private readonly ProcessorInterface $processor,
-        private readonly Negotiator $negotiator, 
+        private readonly Negotiator $negotiator,
         private readonly array $formats = [],
     )
     {
@@ -41,7 +41,6 @@ final class MainController
     public function __invoke(Request $request)
     {
         $operation = $this->initializeOperation($request);
-        
         $requestFormat = $this->getRequestFormat($operation, $request);
         $context = [
             'request_format' => $requestFormat,
@@ -49,6 +48,7 @@ final class MainController
             'request_content' => $request->getContent(),
             'request_mime_type' => $request->getMimeType($requestFormat)
         ]; // todo StateContextBuilder ?
+
         $uriVariables = [];
         $parameters = $request->attributes->all();
         foreach ($operation->getUriVariables() ?? [] as $parameterName => $uriVariableDefinition) {

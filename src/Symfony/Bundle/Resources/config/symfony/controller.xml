@@ -9,7 +9,7 @@
         <service id="api_platform.symfony.main_controller" class="ApiPlatform\Symfony\Controller\MainController" public="true">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="api_platform.symfony.state_provider" />
-            <argument type="service" id="api_platform.state_processor" />
+            <argument type="service" id="api_platform.symfony.state_processor" />
             <argument type="service" id="api_platform.negotiator" />
             <argument>%api_platform.formats%</argument>
         </service>

@@ -56,17 +56,11 @@ final class SerializeProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        $data = $this->processor->process($data, $operation, $uriVariables, $context);
-
-        if ($data instanceof Response) {
+        if ($data instanceof Response || !($operation?->canSerialize() ?? true)) {
             return $data;
         }
 
-        if (!($operation?->canSerialize() ?? true)) {
-            return $data;
-        }
-
-        $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, true);
+        $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, normalization: true);
         if (isset($serializerContext['output']) && \array_key_exists('class', $serializerContext['output']) && null === $serializerContext['output']['class']) {
             return null;
         }
@@ -87,7 +81,8 @@ final class SerializeProcessor implements ProcessorInterface
         //     $context['force_resource_class'] = $operation->getClass();
         // }
 
-        return $this->serializer->serialize($data, 'jsonld', $context);
+        $context['original_data'] = $data;
+        return $this->processor->process($this->serializer->serialize($data, $context['request_format'], $serializerContext), $operation, $uriVariables, $context);
     }
 
     /**
