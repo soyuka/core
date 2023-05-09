@@ -86,7 +86,7 @@ final class ApiLoader extends Loader
                     $route = new Route(
                         $path,
                         [
-                            '_controller' => $controller ?? 'api_platform.action.placeholder',
+                            '_controller' => $controller ?? 'api_platform.symfony.main_controller',
                             '_format' => null,
                             '_stateless' => $operation->getStateless(),
                             '_api_resource_class' => $resourceClass,

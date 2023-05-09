@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +27,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-final class SerializerContextBuilder implements SerializerContextBuilderInterface
+final class SerializerContextBuilder implements OperationAwareSerializerContextBuilderInterface
 {
     public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory)
     {
@@ -57,17 +58,17 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             $context['types'] = $operation->getTypes();
         }
 
-        if ($operation->getUriVariables()) {
-            $context['uri_variables'] = [];
-
-            foreach (array_keys($operation->getUriVariables()) as $parameterName) {
-                $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
-            }
-        }
+        // if ($operation->getUriVariables()) {
+        //     $context['uri_variables'] = [];
+        //
+        //     foreach (array_keys($operation->getUriVariables()) as $parameterName) {
+        //         $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
+        //     }
+        // }
 
         if (!$normalization) {
             if (!isset($context['api_allow_update'])) {
-                $context['api_allow_update'] = \in_array($method = $request->getMethod(), ['PUT', 'PATCH'], true);
+                $context['api_allow_update'] = \in_array($method = $operation->getMethod(), ['PUT', 'PATCH'], true);
 
                 if ($context['api_allow_update'] && 'PATCH' === $method) {
                     $context['deep_object_to_populate'] ??= true;
@@ -78,6 +79,53 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
                 $context[CsvEncoder::AS_COLLECTION_KEY] = false;
             }
         }
+        if ($operation->getCollectDenormalizationErrors() ?? false) {
+            $context[DenormalizerInterface::COLLECT_DENORMALIZATION_ERRORS] = true;
+        }
+
+        // to keep the cache computation smaller, we have "operation_name" and "iri" anyways
+        $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'root_operation';
+        $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'operation';
+
+        return $context;
+    }
+
+    public function createFromOperation(Operation $operation, bool $normalization = true): array
+    {
+        $context = $normalization ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
+        $context['operation_name'] = $operation->getName();
+        $context['operation'] = $operation;
+        $context['resource_class'] = $operation->getClass();
+        $context['skip_null_values'] ??= true;
+        $context['iri_only'] ??= false;
+        $context['input'] = $operation->getInput();
+        $context['output'] = $operation->getOutput();
+
+        if ($operation->getTypes()) {
+            $context['types'] = $operation->getTypes();
+        }
+
+        // if ($operation->getUriVariables()) {
+        //     $context['uri_variables'] = [];
+        //
+        //     foreach (array_keys($operation->getUriVariables()) as $parameterName) {
+        //         $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
+        //     }
+        // }
+        if (!$normalization) {
+            if (!isset($context['api_allow_update'])) {
+                $context['api_allow_update'] = \in_array($method = $operation->getMethod(), ['PUT', 'PATCH'], true);
+
+                if ($context['api_allow_update'] && 'PATCH' === $method) {
+                    $context['deep_object_to_populate'] ??= true;
+                }
+            }
+
+            // if ('csv' === (method_exists(Request::class, 'getContentTypeFormat') ? $request->getContentTypeFormat() : $request->getContentType())) {
+            //     $context[CsvEncoder::AS_COLLECTION_KEY] = false;
+            // }
+        }
+
         if ($operation->getCollectDenormalizationErrors() ?? false) {
             $context[DenormalizerInterface::COLLECT_DENORMALIZATION_ERRORS] = true;
         }

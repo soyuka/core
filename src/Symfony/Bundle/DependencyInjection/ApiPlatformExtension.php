@@ -146,6 +146,8 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     private function registerCommonConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader, array $formats, array $patchFormats, array $errorFormats): void
     {
         $loader->load('symfony/events.xml');
+        $loader->load('symfony/controller.xml');
+        $loader->load('symfony/state.xml');
         $loader->load('api.xml');
         $loader->load('state.xml');
         $loader->load('filter.xml');

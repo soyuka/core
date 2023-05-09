@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\Filter\FilterInterface;
 use ApiPlatform\Util\RequestAttributesExtractor;
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * @author Baptiste Meyer <baptiste.meyer@gmail.com>
  */
-final class SerializerFilterContextBuilder implements SerializerContextBuilderInterface
+final class SerializerFilterContextBuilder implements OperationAwareSerializerContextBuilderInterface 
 {
     public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory, private readonly ContainerInterface $filterLocator, private readonly SerializerContextBuilderInterface $decorated)
     {
@@ -55,5 +56,10 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
         }
 
         return $context;
+    }
+
+    public function createFromOperation(Operation $operation, bool $normalization = true): array
+    {
+        return $this->decorated->createFromOperation($operation, $normalization);
     }
 }
