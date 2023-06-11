@@ -82,6 +82,7 @@ final class SerializeProcessor implements ProcessorInterface
         // }
 
         $context['original_data'] = $data;
+        $serializerContext['uri_variables'] = $uriVariables;
         return $this->processor->process($this->serializer->serialize($data, $context['request_format'], $serializerContext), $operation, $uriVariables, $context);
     }
 

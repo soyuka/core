@@ -41,7 +41,7 @@ final class WriteProcessor implements ProcessorInterface
             // || $request->isMethodSafe()
             // || !($attributes = RequestAttributesExtractor::extractAttributes($request))
         ) {
-            return $data;
+            return $this->processor->process($data, $operation, $uriVariables, $context);
         }
 
         return $this->processor->process($this->callableProcessor->process($data, $operation, $uriVariables, $context), $operation, $uriVariables, $context);

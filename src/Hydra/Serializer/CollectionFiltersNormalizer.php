@@ -78,7 +78,9 @@ final class CollectionFiltersNormalizer implements NormalizerInterface, Normaliz
         if (!$resourceFilters) {
             return $data;
         }
-        $requestParts = parse_url($context['request_uri'] ?? '');
+        // TODO: we'll probably keep _format in 4.x, add a flag?
+        // also this whole class should be removed, we can do this in a metadata layer
+        $requestParts = parse_url(str_replace(['{._format}', '.{_format}'], '', $operation->getUriTemplate()) ?? $context['request_uri'] ?? '');
         if (!\is_array($requestParts)) {
             return $data;
         }

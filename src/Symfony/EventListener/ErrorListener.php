@@ -106,6 +106,7 @@ final class ErrorListener extends SymfonyErrorListener
         $dup->attributes->set('_api_operation_name', $operation->getName());
         $dup->attributes->remove('exception');
         $dup->attributes->set('data', $errorResource);
+        $dup->attributes->set('t', $exception->getTrace());
         // Once we get rid of the SwaggerUiAction we'll be able to do this properly
         $dup->attributes->set('_api_exception_swagger_data', [
             '_route' => $request->attributes->get('_route'),

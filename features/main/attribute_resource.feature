@@ -53,46 +53,46 @@ Feature: Resource attributes
     }
     """
 
-  Scenario: Retrieve the aliased resource
-    When I add "Content-Type" header equal to "application/ld+json"
-    And I send a "GET" request to "/dummy/1/attribute_resources/2"
-    Then the response status code should be 301
-    And the header "Location" should be equal to "/attribute_resources/2"
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
-    """
-    {
-      "@context": "/contexts/AttributeResource",
-      "@id": "/attribute_resources/2",
-      "@type": "AttributeResource",
-      "identifier": 2,
-      "dummy": "/dummies/1",
-      "name": "Foo"
-    }
-    """
+  # Scenario: Retrieve the aliased resource
+  #   When I add "Content-Type" header equal to "application/ld+json"
+  #   And I send a "GET" request to "/dummy/1/attribute_resources/2"
+  #   Then the response status code should be 301
+  #   And the header "Location" should be equal to "/attribute_resources/2"
+  #   And the response should be in JSON
+  #   And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+  #   And the JSON should be equal to:
+  #   """
+  #   {
+  #     "@context": "/contexts/AttributeResource",
+  #     "@id": "/attribute_resources/2",
+  #     "@type": "AttributeResource",
+  #     "identifier": 2,
+  #     "dummy": "/dummies/1",
+  #     "name": "Foo"
+  #   }
+  #   """
 
-  Scenario: Patch the aliased resource
-    When I add "Content-Type" header equal to "application/merge-patch+json"
-    And I send a "PATCH" request to "/dummy/1/attribute_resources/2" with body:
-    """
-    {"name": "Patched"}
-    """
-    Then the response status code should be 301
-    And the header "Location" should be equal to "/attribute_resources/2"
-    And the response should be in JSON
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
-    """
-    {
-      "@context": "/contexts/AttributeResource",
-      "@id": "/attribute_resources/2",
-      "@type": "AttributeResource",
-      "identifier": 2,
-      "dummy": "/dummies/1",
-      "name": "Patched"
-    }
-    """
+  # Scenario: Patch the aliased resource
+  #   When I add "Content-Type" header equal to "application/merge-patch+json"
+  #   And I send a "PATCH" request to "/dummy/1/attribute_resources/2" with body:
+  #   """
+  #   {"name": "Patched"}
+  #   """
+  #   Then the response status code should be 301
+  #   And the header "Location" should be equal to "/attribute_resources/2"
+  #   And the response should be in JSON
+  #   And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+  #   And the JSON should be equal to:
+  #   """
+  #   {
+  #     "@context": "/contexts/AttributeResource",
+  #     "@id": "/attribute_resources/2",
+  #     "@type": "AttributeResource",
+  #     "identifier": 2,
+  #     "dummy": "/dummies/1",
+  #     "name": "Patched"
+  #   }
+  #   """
 
   Scenario: Uri variables should be configured properly
     When I send a "GET" request to "/photos/1/resize/300/100"

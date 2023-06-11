@@ -39,8 +39,7 @@ class Error extends \Exception implements ProblemExceptionInterface, HttpExcepti
         private readonly string $title,
         private readonly string $detail,
         #[ApiProperty(identifier: true)] private readonly int $status,
-        #[Groups(['trace'])]
-        public readonly array $trace,
+        private readonly array $originalTrace,
         private ?string $instance = null,
         private string $type = 'about:blank',
         private array $headers = []
@@ -53,6 +52,12 @@ class Error extends \Exception implements ProblemExceptionInterface, HttpExcepti
     public function getHydraTitle(): string
     {
         return $this->title;
+    }
+
+    #[SerializedName('trace')]
+    #[Groups(['trace'])]
+    public function getOriginalTrace(): array {
+        return $this->originalTrace;
     }
 
     #[SerializedName('hydra:description')]

@@ -29,7 +29,7 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  */
 final class SerializerContextBuilder implements OperationAwareSerializerContextBuilderInterface
 {
-    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory)
+    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly bool $debug = false)
     {
     }
 
@@ -93,6 +93,12 @@ final class SerializerContextBuilder implements OperationAwareSerializerContextB
     public function createFromOperation(Operation $operation, bool $normalization = true): array
     {
         $context = $normalization ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
+
+        // TODO: test if this is an error resource
+        if ($this->debug && isset($context['groups'])) {
+            $context['groups'][] = 'trace';
+        }
+
         $context['operation_name'] = $operation->getName();
         $context['operation'] = $operation;
         $context['resource_class'] = $operation->getClass();
@@ -104,6 +110,7 @@ final class SerializerContextBuilder implements OperationAwareSerializerContextB
         if ($operation->getTypes()) {
             $context['types'] = $operation->getTypes();
         }
+        $context['skip_deprecated_exception_normalizers'] = true;
 
         // if ($operation->getUriVariables()) {
         //     $context['uri_variables'] = [];

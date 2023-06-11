@@ -46,7 +46,8 @@ final class MainController
             'request_format' => $requestFormat,
             'input_format' => $this->getInputFormat($operation, $request),
             'request_content' => $request->getContent(),
-            'request_mime_type' => $request->getMimeType($requestFormat)
+            'request_mime_type' => $request->getMimeType($requestFormat),
+            'previous_data' => $request->attributes->get('_api_error', false) ? $request->attributes->get('data') : null
         ]; // todo StateContextBuilder ?
 
         $uriVariables = [];

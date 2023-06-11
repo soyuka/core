@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace ApiPlatform\Symfony\Processor;
 
 use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
@@ -85,7 +87,7 @@ final class RespondProcessor implements ProcessorInterface
         //     && 301 === $operation->getStatus()
         // ) {
         //     $status = 301;
-        //     $headers['Location'] = $this->iriConverter->getIriFromResource($request->attributes->get('data'), UrlGeneratorInterface::ABS_PATH, $operation);
+        //     $headers['Location'] = $this->iriConverter->getIriFromResource($data, UrlGeneratorInterface::ABS_PATH, $operation);
         // } elseif (HttpOperation::METHOD_PUT === $method && !($attributes['previous_data'] ?? null) && null === $status && ($operation instanceof Put && ($operation->getAllowCreate() ?? false))) {
         //     $status = Response::HTTP_CREATED;
         // }

@@ -26,6 +26,7 @@
 
         <service id="api_platform.serializer.context_builder" class="ApiPlatform\Serializer\SerializerContextBuilder" public="false">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
+            <argument key="$debug">%kernel.debug%</argument>
         </service>
         <service id="ApiPlatform\Serializer\SerializerContextBuilderInterface" alias="api_platform.serializer.context_builder" />
 
@@ -178,7 +179,7 @@
         <service id="ApiPlatform\Api\IriConverterInterface" alias="api_platform.symfony.iri_converter" />
 
         <service id="api_platform.error_listener" class="ApiPlatform\Symfony\EventListener\ErrorListener">
-            <argument key="$controller">api_platform.action.placeholder</argument>
+            <argument key="$controller">api_platform.symfony.main_controller</argument>
             <argument key="$logger" type="service" id="logger" on-invalid="null" />
             <argument key="$debug">%kernel.debug%</argument>
             <argument key="$resourceMetadataCollectionFactory" type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
