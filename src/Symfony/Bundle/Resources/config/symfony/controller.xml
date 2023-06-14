@@ -12,6 +12,8 @@
             <argument type="service" id="api_platform.symfony.state_processor" />
             <argument type="service" id="api_platform.negotiator" />
             <argument>%api_platform.formats%</argument>
+            <argument>%api_platform.error_formats%</argument>
+            <argument type="service" id="api_platform.uri_variables.converter" on-invalid="ignore" />
         </service>
     </services>
 </container>

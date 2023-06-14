@@ -27,14 +27,15 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-#[ErrorResource(uriTemplate: '/validation_errors/{id}', provider: 'api_platform.state_provider.default_error',
+#[ErrorResource(
+    uriTemplate: '/validation_errors/{id}',
     status: 422,
     uriVariables: ['id'],
     shortName: 'ConstraintViolationList',
     operations: [
         new Get(name: '_api_validation_errors_hydra', outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => 'jsonld', 'skip_null_values' => true]),
         new Get(name: '_api_validation_errors_problem', outputFormats: ['jsonproblem' => ['application/problem+json']], normalizationContext: ['groups' => 'json', 'skip_null_values' => true]),
-        new Get(name: '_api_validation_errors_jsonapi', outputFormats: ['jsonapi' => ['application/vnd.api+json']], normalizationContext: ['groups' => 'jsonapi', 'skip_null_values' => true], provider: 'api_platform.json_api.state_provider.default_error'),
+        new Get(name: '_api_validation_errors_jsonapi', outputFormats: ['jsonapi' => ['application/vnd.api+json']], normalizationContext: ['groups' => 'jsonapi', 'skip_null_values' => true]),
     ]
 )]
 final class ValidationException extends BaseValidationException implements ConstraintViolationListAwareExceptionInterface, \Stringable, ProblemExceptionInterface

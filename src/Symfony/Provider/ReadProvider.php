@@ -18,9 +18,11 @@ use ApiPlatform\Exception\InvalidIdentifierException;
 use ApiPlatform\Exception\InvalidUriVariableException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Error;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\State\Exception\ProviderNotFoundException;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\Util\CloneTrait;
@@ -57,19 +59,29 @@ final class ReadProvider implements ProviderInterface
         // if ($filters) {
         //     $context['filters'] = $filters;
         // }
-        if (!$operation instanceof HttpOperation && !($operation->canRead() ?? true) || !$operation->getUriVariables()) {
-            // not sure we should call something here...
-            return $this->provider->provide($operation, $uriVariables, $context);
+
+        if (!$operation instanceof HttpOperation) {
+            return null;
         }
+
+        if (!($operation->canRead() ?? true) || (!$operation->getUriVariables() && !($context['safe_method'] ?? false))) {
+            return null;
+        }
+
 
         try {
             $data = $this->provider->provide($operation, $uriVariables, $context);
-        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
-            throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
+            if (isset($context['request'])) {
+                $context['request'] = $context['request']->withAttribute('previous_data', $data);
+            }
+        } catch (ProviderNotFoundException $e) {
+            $data = null;
         }
+
 
         if (
             null === $data
+            && 'POST' !== $operation->getMethod()
             && (
                 'PUT' !== $operation->getMethod()
                 || ($operation instanceof Put && !($operation->getAllowCreate() ?? false))

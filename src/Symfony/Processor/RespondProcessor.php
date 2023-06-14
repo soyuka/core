@@ -62,8 +62,12 @@ final class RespondProcessor implements ProcessorInterface
             return $data;
         }
 
+        if (!($request = $context['request'] ?? null)) {
+            return $data;
+        }
+
         $headers = [
-            'Content-Type' => sprintf('%s; charset=utf-8', $context['request_mime_type']),
+            'Content-Type' => sprintf('%s; charset=utf-8', $request->getAttribute('request_mime_type')),
             'Vary' => 'Accept',
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'deny',
@@ -95,7 +99,7 @@ final class RespondProcessor implements ProcessorInterface
         $status ??= self::METHOD_TO_CODE[$method] ?? Response::HTTP_OK;
 
         $originalData = $context['original_data'] ?? null;
-        if ($originalData && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData))) {
+        if ($originalData && is_object($originalData) && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData))) {
             $iri = $this->iriConverter->getIriFromResource($originalData);
             $headers['Content-Location'] = $iri;
 

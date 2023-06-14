@@ -15,11 +15,11 @@ namespace ApiPlatform\Symfony\EventListener;
 
 use ApiPlatform\Api\IdentifiersExtractorInterface;
 use ApiPlatform\ApiResource\Error;
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Symfony\Validator\Exception\ConstraintViolationListAwareExceptionInterface;
 use ApiPlatform\Util\ErrorFormatGuesser;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
@@ -61,7 +61,7 @@ final class ErrorListener extends SymfonyErrorListener
         $apiOperation = $this->initializeOperation($request);
 
         $resourceClass = $exception::class;
-        $format = ErrorFormatGuesser::guessErrorFormat($request, $this->errorFormats);
+        $format = $this->getErrorFormat($request, $this->errorFormats);
 
         if ($this->resourceClassResolver?->isResourceClass($exception::class)) {
             $resourceCollection = $this->resourceMetadataCollectionFactory->create($exception::class);
@@ -70,7 +70,7 @@ final class ErrorListener extends SymfonyErrorListener
             foreach ($resourceCollection as $resource) {
                 foreach ($resource->getOperations() as $op) {
                     foreach ($op->getOutputFormats() as $key => $value) {
-                        if ($key === $format['key']) {
+                        if ($key === $format) {
                             $operation = $op;
                             break 3;
                         }
@@ -86,34 +86,31 @@ final class ErrorListener extends SymfonyErrorListener
         } elseif ($this->resourceMetadataCollectionFactory) {
             // Create a generic, rfc7807 compatible error according to the wanted format
             /** @var HttpOperation $operation */
-            $operation = $this->resourceMetadataCollectionFactory->create(Error::class)->getOperation($this->getFormatOperation($format['key'] ?? null));
+            $operation = $this->resourceMetadataCollectionFactory->create(Error::class)->getOperation($this->getFormatOperation($format ?? null));
             $operation = $operation->withStatus($this->getStatusCode($apiOperation, $request, $operation, $exception));
             $errorResource = Error::createFromException($exception, $operation->getStatus());
-            $resourceClass = Error::class;
         } else {
-            $operation = new Get(name: '_api_errors_problem', class: Error::class, outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]);
+            $operation = new ErrorOperation(name: '_api_errors_problem', class: Error::class, outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]);
             $operation = $operation->withStatus($this->getStatusCode($apiOperation, $request, $operation, $exception));
             $errorResource = Error::createFromException($exception, $operation->getStatus());
-            $resourceClass = Error::class;
+        }
+
+        if (!$operation->getProvider()) {
+            $operation = $operation->withProvider(provider: fn() => $format === 'jsonapi' && $errorResource instanceof ConstraintViolationListAwareExceptionInterface ? $errorResource->getConstraintViolationList() : $errorResource);
         }
 
         $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
 
-        $dup->attributes->set('_api_error', true);
-        $dup->attributes->set('_api_resource_class', $resourceClass);
+        dump($errorResource);
+        // $dup->attributes->set('_api_error', true);
+        // $dup->attributes->set('_api_resource_class', $resourceClass);
         $dup->attributes->set('_api_previous_operation', $apiOperation);
         $dup->attributes->set('_api_operation', $operation);
-        $dup->attributes->set('_api_operation_name', $operation->getName());
+        //$dup->attributes->set('_api_operation_name', $operation->getName());
         $dup->attributes->remove('exception');
-        $dup->attributes->set('data', $errorResource);
-        $dup->attributes->set('t', $exception->getTrace());
-        // Once we get rid of the SwaggerUiAction we'll be able to do this properly
-        $dup->attributes->set('_api_exception_swagger_data', [
-            '_route' => $request->attributes->get('_route'),
-            '_route_params' => $request->attributes->get('_route_params'),
-            '_api_resource_class' => $request->attributes->get('_api_resource_class'),
-            '_api_operation_name' => $request->attributes->get('_api_operation_name'),
-        ]);
+        // $dup->attributes->set('data', $errorResource);
+        $dup->attributes->set('_api_original_route', $request->attributes->get('_route'));
+        $dup->attributes->set('_api_original_route_params', $request->attributes->get('_route_params'));
 
         foreach ($identifiers as $name => $value) {
             $dup->attributes->set($name, $value);
@@ -182,7 +179,32 @@ final class ErrorListener extends SymfonyErrorListener
             'jsonproblem' => '_api_errors_problem',
             'jsonld' => '_api_errors_hydra',
             'jsonapi' => '_api_errors_jsonapi',
+            'html' => '_api_errors_swagger_ui',
             default => null
         };
+    }
+
+    private function getErrorFormat(Request $request, array $errorFormats = []): string {
+        $flattened = $this->flattenMimeTypes($errorFormats);
+        if ($flattened[$accept = $request->headers->get('Accept')] ?? false) {
+            return $flattened[$accept];
+        }
+
+        return array_key_first($errorFormats);
+    }
+
+    /**
+     * Retries the flattened list of MIME types.
+     */
+    private function flattenMimeTypes(array $formats): array
+    {
+        $flattenedMimeTypes = [];
+        foreach ($formats as $format => $mimeTypes) {
+            foreach ($mimeTypes as $mimeType) {
+                $flattenedMimeTypes[$mimeType] = $format;
+            }
+        }
+
+        return $flattenedMimeTypes;
     }
 }

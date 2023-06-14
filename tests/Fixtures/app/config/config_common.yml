@@ -37,9 +37,10 @@ api_platform:
         graphql:                       ['application/graphql']
         multipart:                     ['multipart/form-data']
     error_formats:
-        jsonproblem:                   ['application/problem+json']
         jsonld:                        ['application/ld+json']
+        jsonproblem:                   ['application/problem+json']
         jsonapi:                       ['application/vnd.api+json']
+        html:                          ['text/html']
     graphql:
         enabled: true
         nesting_separator: __

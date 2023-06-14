@@ -1,35 +1,25 @@
 <?php
 
-/*
- * This file is part of the API Platform project.
- *
- * (c) Kévin Dunglas <dunglas@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-declare(strict_types=1);
-
 namespace ApiPlatform\Symfony\Bundle\SwaggerUi;
 
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Options;
 use ApiPlatform\OpenApi\Serializer\NormalizeOperationNameTrait;
-use Symfony\Component\HttpFoundation\Request;
+use ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiContext;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment as TwigEnvironment;
 
+
 /**
- * Displays the swaggerui interface.
- * @deprecated
- * @author Antoine Bluchet <soyuka@gmail.com>
+ * @internal
  */
-final class SwaggerUiAction
+final class ErrorProcessor implements ProcessorInterface
 {
     use NormalizeOperationNameTrait;
 
@@ -40,13 +30,10 @@ final class SwaggerUiAction
         }
     }
 
-    public function __invoke(Request $request): Response
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
-        $openApi = $this->openApiFactory->__invoke(['base_url' => $request->getBaseUrl() ?: '/']);
-
-        foreach ($request->attributes->get('_api_exception_swagger_data') ?? [] as $key => $value) {
-            $request->attributes->set($key, $value);
-        }
+        $request = $context['request'] ?? null;
+        $openApi = $this->openApiFactory->__invoke(['base_url' => $request?->getAttribute('base_url') ?: '/']);
 
         $swaggerContext = [
             'formats' => $this->formats,
@@ -59,6 +46,8 @@ final class SwaggerUiAction
             'graphiQlEnabled' => $this->swaggerUiContext->isGraphiQlEnabled(),
             'graphQlPlaygroundEnabled' => $this->swaggerUiContext->isGraphQlPlaygroundEnabled(),
             'assetPackage' => $this->swaggerUiContext->getAssetPackage(),
+            'originalRoute' => $request->getAttribute('originalRoute', 'api_doc'),
+            'originalRouteParams' => $request->getAttribute('originalRouteParams', []),
         ];
 
         $swaggerData = [
@@ -78,14 +67,12 @@ final class SwaggerUiAction
             'extraConfiguration' => $this->swaggerUiContext->getExtraConfiguration(),
         ];
 
-        if ($request->isMethodSafe() && null !== $resourceClass = $request->attributes->get('_api_resource_class')) {
-            $swaggerData['id'] = $request->attributes->get('id');
-            $swaggerData['queryParameters'] = $request->query->all();
+        if (($context['safe_method'] ?? false) && null !== $resourceClass = $operation->getClass() && $request) {
+            $swaggerData['id'] = $request->getAttribute('id');
+            $swaggerData['queryParameters'] = $request->getAttribute('query_parameters');
 
-            $metadata = $this->resourceMetadataFactory->create($resourceClass)->getOperation($request->attributes->get('_api_operation_name'));
-
-            $swaggerData['shortName'] = $metadata->getShortName();
-            $swaggerData['operationId'] = $this->normalizeOperationName($metadata->getName());
+            $swaggerData['shortName'] = $operation->getShortName();
+            $swaggerData['operationId'] = $this->normalizeOperationName($operation->getName());
 
             [$swaggerData['path'], $swaggerData['method']] = $this->getPathAndMethod($swaggerData);
         }
@@ -93,6 +80,9 @@ final class SwaggerUiAction
         return new Response($this->twig->render('@ApiPlatform/SwaggerUi/index.html.twig', $swaggerContext + ['swagger_data' => $swaggerData]));
     }
 
+    /**
+     * @param array<string, mixed> $swaggerData
+     */
     private function getPathAndMethod(array $swaggerData): array
     {
         foreach ($swaggerData['spec']['paths'] as $path => $operations) {

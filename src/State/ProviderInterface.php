@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\State;
 
 use ApiPlatform\Metadata\Operation;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Retrieves data from a persistence layer.
@@ -26,6 +27,9 @@ interface ProviderInterface
 {
     /**
      * Provides data.
+     *
+     * @param array<string, mixed> $uriVariables
+     * @param array<string, mixed>&array{request?: ServerRequestInterface} $context
      *
      * @return T|Pagination\PartialPaginatorInterface<T>|iterable<T>|null
      */

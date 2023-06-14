@@ -15,6 +15,7 @@ namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,13 +59,13 @@ final class SerializerContextBuilder implements OperationAwareSerializerContextB
             $context['types'] = $operation->getTypes();
         }
 
-        // if ($operation->getUriVariables()) {
-        //     $context['uri_variables'] = [];
-        //
-        //     foreach (array_keys($operation->getUriVariables()) as $parameterName) {
-        //         $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
-        //     }
-        // }
+        if ($operation->getUriVariables()) {
+            $context['uri_variables'] = [];
+
+            foreach (array_keys($operation->getUriVariables()) as $parameterName) {
+                $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
+            }
+        }
 
         if (!$normalization) {
             if (!isset($context['api_allow_update'])) {
@@ -94,8 +95,11 @@ final class SerializerContextBuilder implements OperationAwareSerializerContextB
     {
         $context = $normalization ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
 
-        // TODO: test if this is an error resource
-        if ($this->debug && isset($context['groups'])) {
+        if ($this->debug && isset($context['groups']) && $operation instanceof ErrorOperation) {
+            if (!is_array($context['groups'])) {
+                $context['groups'] = (array) $context['groups'];
+            }
+
             $context['groups'][] = 'trace';
         }
 
@@ -128,9 +132,9 @@ final class SerializerContextBuilder implements OperationAwareSerializerContextB
                 }
             }
 
-            // if ('csv' === (method_exists(Request::class, 'getContentTypeFormat') ? $request->getContentTypeFormat() : $request->getContentType())) {
-            //     $context[CsvEncoder::AS_COLLECTION_KEY] = false;
-            // }
+            if (isset($operation->getOutputFormats()['csv'])) {
+                $context[CsvEncoder::AS_COLLECTION_KEY] = false;
+            }
         }
 
         if ($operation->getCollectDenormalizationErrors() ?? false) {

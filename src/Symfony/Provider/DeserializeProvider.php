@@ -36,19 +36,26 @@ final class DeserializeProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $data = $this->inner->provide($operation, $uriVariables, $context);
-        $method = $operation->getMethod();
+
+        if (!$operation instanceof HttpOperation) {
+            return $data;
+        }
 
         if (
             !($operation->canDeserialize() ?? true)
-            || !in_array($method, ['POST', 'PUT', 'PATCH'], true)
+            || !in_array(($method = $operation->getMethod()), ['POST', 'PUT', 'PATCH'], true)
         ) {
+            return $data;
+        }
+
+        if (!($request = $context['request'] ?? null)) {
             return $data;
         }
 
         // TODO: this interface need a change and use Operation instead
         /// $serializerContext = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
         $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, normalization: false);
-        if (!$format = $context['input_format'] ?? null) {
+        if (!$format = $request->getAttribute('input_format') ?? null) {
             throw new UnsupportedMediaTypeHttpException('Format not supported.');
         }
 
@@ -60,11 +67,11 @@ final class DeserializeProvider implements ProviderInterface
                 || ('PUT' === $method && !($operation->getExtraProperties()['standard_put'] ?? false))
             )
         ) {
-            $context[AbstractNormalizer::OBJECT_TO_POPULATE] = $data;
+            $serializerContext[AbstractNormalizer::OBJECT_TO_POPULATE] = $data;
         }
 
         try {
-            return $this->serializer->deserialize($context['request_content'], $operation->getClass(), $format, $serializerContext);
+            return $this->serializer->deserialize((string) $request->getBody(), $operation->getClass(), $format, $serializerContext);
         } catch (PartialDenormalizationException $e) {
             $violations = new ConstraintViolationList();
             foreach ($e->getErrors() as $exception) {

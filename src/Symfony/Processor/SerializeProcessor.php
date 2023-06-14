@@ -65,6 +65,10 @@ final class SerializeProcessor implements ProcessorInterface
             return null;
         }
 
+        if (!($request = $context['request'] ?? null)) {
+            return $data;
+        }
+
         // JSON: API related should not be here
         // if ($included = $request->attributes->get('_api_included')) {
         //     $context['api_included'] = $included;
@@ -82,8 +86,12 @@ final class SerializeProcessor implements ProcessorInterface
         // }
 
         $context['original_data'] = $data;
-        $serializerContext['uri_variables'] = $uriVariables;
-        return $this->processor->process($this->serializer->serialize($data, $context['request_format'], $serializerContext), $operation, $uriVariables, $context);
+        if ($uriVariables) {
+            $serializerContext['uri_variables'] = $uriVariables;
+        }
+        $serializerContext['request_uri'] = (string) $request->getUri();
+
+        return $this->processor->process($this->serializer->serialize($data, $request->getAttribute('request_format'), $serializerContext), $operation, $uriVariables, $context);
     }
 
     /**
