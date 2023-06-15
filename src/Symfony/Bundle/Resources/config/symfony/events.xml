@@ -18,7 +18,7 @@
 
         <!-- kernel.request priority must be < 8 to be executed after the Firewall -->
         <!-- <service id="api_platform.listener.request.read" class="ApiPlatform\Symfony\EventListener\ReadListener"> -->
-        <!--     <argument type="service" id="api_platform.state_provider" /> -->
+        <!--     <argument type="service" id="api_platform.state_provider.locator" /> -->
         <!--     <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" /> -->
         <!--     <argument type="service" id="api_platform.serializer.context_builder" /> -->
         <!--     <argument type="service" id="api_platform.uri_variables.converter" /> -->
@@ -27,7 +27,7 @@
         <!-- </service> -->
 
         <!-- <service id="api_platform.listener.view.write" class="ApiPlatform\Symfony\EventListener\WriteListener"> -->
-        <!--     <argument type="service" id="api_platform.state_processor" /> -->
+        <!--     <argument type="service" id="api_platform.state_processor.locator" /> -->
         <!--     <argument type="service" id="api_platform.iri_converter" /> -->
         <!--     <argument type="service" id="api_platform.resource_class_resolver" /> -->
         <!--     <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" /> -->

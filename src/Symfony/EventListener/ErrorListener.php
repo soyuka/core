@@ -57,10 +57,7 @@ final class ErrorListener extends SymfonyErrorListener
     protected function duplicateRequest(\Throwable $exception, Request $request): Request
     {
         $dup = parent::duplicateRequest($exception, $request);
-
         $apiOperation = $this->initializeOperation($request);
-
-        $resourceClass = $exception::class;
         $format = $this->getErrorFormat($request, $this->errorFormats);
 
         if ($this->resourceClassResolver?->isResourceClass($exception::class)) {
@@ -101,7 +98,6 @@ final class ErrorListener extends SymfonyErrorListener
 
         $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
 
-        dump($errorResource);
         // $dup->attributes->set('_api_error', true);
         // $dup->attributes->set('_api_resource_class', $resourceClass);
         $dup->attributes->set('_api_previous_operation', $apiOperation);
@@ -176,6 +172,7 @@ final class ErrorListener extends SymfonyErrorListener
     private function getFormatOperation(string $format): ?string
     {
         return match ($format) {
+            'json' => '_api_errors_problem',
             'jsonproblem' => '_api_errors_problem',
             'jsonld' => '_api_errors_hydra',
             'jsonapi' => '_api_errors_jsonapi',
@@ -184,17 +181,52 @@ final class ErrorListener extends SymfonyErrorListener
         };
     }
 
+    /**
+     * @param array<string, string|string[]> $errorFormats
+     */
     private function getErrorFormat(Request $request, array $errorFormats = []): string {
-        $flattened = $this->flattenMimeTypes($errorFormats);
-        if ($flattened[$accept = $request->headers->get('Accept')] ?? false) {
-            return $flattened[$accept];
+        $accept = $request->headers->get('Accept');
+
+        if ($accept && $format = $this->getMimeTypeFormat($accept, $errorFormats)) {
+            return $format;
         }
 
         return array_key_first($errorFormats);
     }
 
     /**
-     * Retries the flattened list of MIME types.
+     * Gets the format associated with the mime type.
+     *
+     * Adapted from {@see \Symfony\Component\HttpFoundation\Request::getFormat}.
+     *
+     * @param array<string, string|string[]> $formats
+     */
+    private function getMimeTypeFormat(string $mimeType, array $formats): ?string
+    {
+        $canonicalMimeType = null;
+        $pos = strpos($mimeType, ';');
+        if (false !== $pos) {
+            $canonicalMimeType = trim(substr($mimeType, 0, $pos));
+        }
+
+        foreach ($formats as $format => $mimeTypes) {
+            if (\in_array($mimeType, $mimeTypes, true)) {
+                return $format;
+            }
+            if (null !== $canonicalMimeType && \in_array($canonicalMimeType, $mimeTypes, true)) {
+                return $format;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Flattend mime types
+     *
+     * @param array<string, string|string[]> $formats
+     *
+     * @return string[]
      */
     private function flattenMimeTypes(array $formats): array
     {

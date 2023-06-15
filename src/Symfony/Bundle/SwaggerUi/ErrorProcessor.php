@@ -33,7 +33,7 @@ final class ErrorProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
         $request = $context['request'] ?? null;
-        $openApi = $this->openApiFactory->__invoke(['base_url' => $request?->getAttribute('base_url') ?: '/']);
+        $openApi = $this->openApiFactory->__invoke(['base_url' => $request?->getBaseUrl() ?: '/']);
 
         $swaggerContext = [
             'formats' => $this->formats,
@@ -46,8 +46,8 @@ final class ErrorProcessor implements ProcessorInterface
             'graphiQlEnabled' => $this->swaggerUiContext->isGraphiQlEnabled(),
             'graphQlPlaygroundEnabled' => $this->swaggerUiContext->isGraphQlPlaygroundEnabled(),
             'assetPackage' => $this->swaggerUiContext->getAssetPackage(),
-            'originalRoute' => $request->getAttribute('originalRoute', 'api_doc'),
-            'originalRouteParams' => $request->getAttribute('originalRouteParams', []),
+            'originalRoute' => $request->attributes->get('_api_original_route', $request->attributes->get('_route')),
+            'originalRouteParams' => $request->attributes->get('_api_original_route_params', $request->attributes->get('_route_params', [])),
         ];
 
         $swaggerData = [
@@ -68,8 +68,8 @@ final class ErrorProcessor implements ProcessorInterface
         ];
 
         if (($context['safe_method'] ?? false) && null !== $resourceClass = $operation->getClass() && $request) {
-            $swaggerData['id'] = $request->getAttribute('id');
-            $swaggerData['queryParameters'] = $request->getAttribute('query_parameters');
+            $swaggerData['id'] = $request->get('id');
+            $swaggerData['queryParameters'] = $request->query->all();
 
             $swaggerData['shortName'] = $operation->getShortName();
             $swaggerData['operationId'] = $this->normalizeOperationName($operation->getName());

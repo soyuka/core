@@ -4,49 +4,5 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="api_platform.symfony.state_provider" class="ApiPlatform\State\CallableProvider">
-            <argument type="tagged_locator" tag="api_platform.state_provider" index-by="key" />
-        </service>
-
-        <service id="api_platform.state_provider.read" class="ApiPlatform\Symfony\Provider\ReadProvider" decorates="api_platform.symfony.state_provider" decoration-priority="50">
-            <argument type="service" id="api_platform.state_provider.read.inner" />
-            <argument type="service" id="api_platform.serializer.context_builder" />
-        </service>
-
-        <!-- <service id="api_platform.state_provider.format" class="ApiPlatform\Symfony\Provider\RequestFormatProvider" decorates="api_platform.state_provider.locator" decoration-priority="10"> -->
-        <!--     <argument type="service" id="api_platform.state_provider.format.inner" /> -->
-        <!--     <argument type="service" id="api_platform.negotiator" /> -->
-        <!--     <argument type="service" id="request_stack" /> -->
-        <!--     <argument type="service" id="api_platform.negotiator" /> -->
-        <!--     <argument>%api_platform.formats%</argument> -->
-        <!-- </service> -->
-
-        <!--  -->
-        <service id="api_platform.state_provider.deserialize" class="ApiPlatform\Symfony\Provider\DeserializeProvider" decorates="api_platform.symfony.state_provider" decoration-priority="20">
-            <argument type="service" id="api_platform.state_provider.deserialize.inner" />
-            <argument type="service" id="api_platform.serializer" />
-            <!-- <argument type="service" id="request_stack" /> -->
-            <argument type="service" id="api_platform.serializer.context_builder" />
-            <argument type="service" id="translator" on-invalid="null" />
-        </service>
-
-        <service id="api_platform.state_processor.respond" class="ApiPlatform\Symfony\Processor\RespondProcessor">
-            <argument type="service" id="request_stack" />
-            <argument type="service" id="api_platform.resource_class_resolver" />
-            <argument type="service" id="api_platform.iri_converter" />
-        </service>
-
-        <service id="api_platform.state_processor.serialize" class="ApiPlatform\Symfony\Processor\SerializeProcessor" decorates="api_platform.state_processor.respond" decoration-priority="20">
-            <argument type="service" id="api_platform.state_processor.serialize.inner" />
-            <argument type="service" id="api_platform.serializer" />
-            <argument type="service" id="api_platform.serializer.context_builder" />
-        </service>
-
-        <service id="api_platform.state_processor.write" class="ApiPlatform\Symfony\Processor\WriteProcessor" decorates="api_platform.state_processor.respond" decoration-priority="10">
-            <argument type="service" id="api_platform.state_processor.write.inner" />
-            <argument type="service" id="api_platform.state_processor.locator" />
-        </service>
-
-        <service id="api_platform.symfony.state_processor" alias="api_platform.state_processor.respond" />
     </services>
 </container>

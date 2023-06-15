@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiPlatform\Symfony\Provider;
+namespace ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
@@ -37,6 +37,11 @@ final class DeserializeProvider implements ProviderInterface
     {
         $data = $this->inner->provide($operation, $uriVariables, $context);
 
+        // We need request content
+        if (!($request = $context['request'] ?? null)) {
+            return $data;
+        }
+
         if (!$operation instanceof HttpOperation) {
             return $data;
         }
@@ -48,14 +53,15 @@ final class DeserializeProvider implements ProviderInterface
             return $data;
         }
 
-        if (!($request = $context['request'] ?? null)) {
-            return $data;
+        $contentType = $request->headers->get('CONTENT_TYPE');
+        if (null === $contentType) {
+            throw new UnsupportedMediaTypeHttpException('The "Content-Type" header must exist.');
         }
 
         // TODO: this interface need a change and use Operation instead
         /// $serializerContext = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
         $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, normalization: false);
-        if (!$format = $request->getAttribute('input_format') ?? null) {
+        if (!$format = $request->attributes->get('input_format') ?? null) {
             throw new UnsupportedMediaTypeHttpException('Format not supported.');
         }
 
@@ -71,7 +77,7 @@ final class DeserializeProvider implements ProviderInterface
         }
 
         try {
-            return $this->serializer->deserialize((string) $request->getBody(), $operation->getClass(), $format, $serializerContext);
+            return $this->serializer->deserialize((string) $request->getContent(), $operation->getClass(), $format, $serializerContext);
         } catch (PartialDenormalizationException $e) {
             $violations = new ConstraintViolationList();
             foreach ($e->getErrors() as $exception) {

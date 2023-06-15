@@ -103,6 +103,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             $errorFormats['html'] = ['text/html'];
         }
 
+        if (!isset($errorFormats['json'])) {
+            $errorFormats['json'] = ['application/problem+json', 'application/json'];
+        }
+
         // Backward Compatibility layer
         if (isset($formats['jsonapi']) && !isset($patchFormats['jsonapi'])) {
             $patchFormats['jsonapi'] = ['application/vnd.api+json'];

@@ -5,11 +5,10 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-
         <service id="api_platform.symfony.main_controller" class="ApiPlatform\Symfony\Controller\MainController" public="true">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
-            <argument type="service" id="api_platform.symfony.state_provider" />
-            <argument type="service" id="api_platform.symfony.state_processor" />
+            <argument type="service" id="api_platform.state_provider" />
+            <argument type="service" id="api_platform.state_processor" />
             <argument type="service" id="api_platform.negotiator" />
             <argument>%api_platform.formats%</argument>
             <argument>%api_platform.error_formats%</argument>

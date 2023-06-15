@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Symfony\Processor;
+namespace ApiPlatform\State\Processor;
 
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
@@ -91,7 +91,7 @@ final class SerializeProcessor implements ProcessorInterface
         }
         $serializerContext['request_uri'] = (string) $request->getUri();
 
-        return $this->processor->process($this->serializer->serialize($data, $request->getAttribute('request_format'), $serializerContext), $operation, $uriVariables, $context);
+        return $this->processor->process($this->serializer->serialize($data, $request->getRequestFormat(), $serializerContext), $operation, $uriVariables, $context);
     }
 
     /**

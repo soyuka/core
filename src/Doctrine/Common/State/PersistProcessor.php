@@ -56,7 +56,7 @@ final class PersistProcessor implements ProcessorInterface
             \assert(method_exists($manager, 'getReference'));
             // TODO: the call to getReference is most likely to fail with complex identifiers
             $newData = $data;
-            if ($previousData = $request?->getAttribute('previous_data')) {
+            if ($previousData = $request?->attributes->get('previous_data')) {
                 $newData = 1 === \count($uriVariables) ? $manager->getReference($class, current($uriVariables)) : clone $previousData;
             }
 

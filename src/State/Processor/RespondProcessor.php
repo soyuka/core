@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Symfony\Processor;
+namespace ApiPlatform\State\Processor;
 
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
@@ -28,7 +28,6 @@ use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -52,13 +51,13 @@ final class RespondProcessor implements ProcessorInterface
         'DELETE' => Response::HTTP_NO_CONTENT,
     ];
 
-    public function __construct(private readonly RequestStack $requestStack, private readonly ResourceClassResolverInterface $resourceClassResolver, private IriConverterInterface $iriConverter)
+    public function __construct(private readonly ResourceClassResolverInterface $resourceClassResolver, private IriConverterInterface $iriConverter)
     {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        if ($data instanceof Response) {
+        if ($data instanceof Response || !$operation instanceof HttpOperation) {
             return $data;
         }
 
@@ -67,7 +66,7 @@ final class RespondProcessor implements ProcessorInterface
         }
 
         $headers = [
-            'Content-Type' => sprintf('%s; charset=utf-8', $request->getAttribute('request_mime_type')),
+            'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($request->getRequestFormat())),
             'Vary' => 'Accept',
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'deny',
@@ -83,7 +82,8 @@ final class RespondProcessor implements ProcessorInterface
             $headers['Accept-Patch'] = $acceptPatch;
         }
 
-        $method = $operation->getMethod();
+        $method = $request->getMethod();
+
         // if (
         //     $this->iriConverter
         //     && $operation

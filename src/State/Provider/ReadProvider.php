@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Symfony\Provider;
+namespace ApiPlatform\State\Provider;
 
 use ApiPlatform\Api\UriVariablesConverterInterface;
 use ApiPlatform\Exception\InvalidIdentifierException;
@@ -64,16 +64,15 @@ final class ReadProvider implements ProviderInterface
             return null;
         }
 
-        if (!($operation->canRead() ?? true) || (!$operation->getUriVariables() && !($context['safe_method'] ?? false))) {
+        $request = ($context['request'] ?? null);
+        if (!($operation->canRead() ?? true) || (!$operation->getUriVariables() && !$request?->isMethodSafe())) {
             return null;
         }
 
 
         try {
             $data = $this->provider->provide($operation, $uriVariables, $context);
-            if (isset($context['request'])) {
-                $context['request'] = $context['request']->withAttribute('previous_data', $data);
-            }
+            $request?->attributes->set('previous_data', $data);
         } catch (ProviderNotFoundException $e) {
             $data = null;
         }
