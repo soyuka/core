@@ -98,6 +98,15 @@ final class ErrorListener extends SymfonyErrorListener
 
         $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
 
+        if ($exception instanceof ValidationException) {
+            if (!($apiOperation?->getExtraProperties()['rfc_7807_compliant_errors'] ?? false)) {
+                $operation = $operation->withNormalizationContext([
+                    'groups' => ['legacy_'.$format],
+                    'force_iri_generation' => false
+                ]);
+            }
+        }
+
         // $dup->attributes->set('_api_error', true);
         // $dup->attributes->set('_api_resource_class', $resourceClass);
         $dup->attributes->set('_api_previous_operation', $apiOperation);

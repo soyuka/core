@@ -51,15 +51,6 @@ final class ReadProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        // if (null === $filters = $operation->getFilters()) {
-        //     $queryString = RequestParser::getQueryString($request);
-        //     $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
-        // }
-        //
-        // if ($filters) {
-        //     $context['filters'] = $filters;
-        // }
-
         if (!$operation instanceof HttpOperation) {
             return null;
         }
@@ -69,10 +60,18 @@ final class ReadProvider implements ProviderInterface
             return null;
         }
 
+        if (null === $filters = $request->attributes->get('_api_filters')) {
+            $queryString = RequestParser::getQueryString($request);
+            $filters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
+        }
+
+        if ($filters) {
+            $context['filters'] = $filters;
+        }
 
         try {
             $data = $this->provider->provide($operation, $uriVariables, $context);
-            $request?->attributes->set('previous_data', $data);
+            $request?->attributes->set('previous_data', $this->clone($data));
         } catch (ProviderNotFoundException $e) {
             $data = null;
         }

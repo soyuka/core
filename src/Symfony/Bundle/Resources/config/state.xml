@@ -21,12 +21,12 @@
             <argument>%api_platform.error_formats%</argument>
         </service>
 
-        <service id="api_platform.state_provider.read" class="ApiPlatform\State\Provider\ReadProvider" decorates="api_platform.state_provider" decoration-priority="300">
+        <service id="api_platform.state_provider.read" class="ApiPlatform\State\Provider\ReadProvider" decorates="api_platform.state_provider" decoration-priority="400">
             <argument type="service" id="api_platform.state_provider.read.inner" />
             <argument type="service" id="api_platform.serializer.context_builder" />
         </service>
 
-        <service id="api_platform.state_provider.deserialize" class="ApiPlatform\State\Provider\DeserializeProvider" decorates="api_platform.state_provider" decoration-priority="200">
+        <service id="api_platform.state_provider.deserialize" class="ApiPlatform\State\Provider\DeserializeProvider" decorates="api_platform.state_provider" decoration-priority="300">
             <argument type="service" id="api_platform.state_provider.deserialize.inner" />
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />

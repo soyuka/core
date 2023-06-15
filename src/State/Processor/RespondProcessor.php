@@ -19,12 +19,14 @@ use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\Util\ClassInfoTrait;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\Util\CloneTrait;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,6 +47,7 @@ use ApiPlatform\Exception\InvalidArgumentException;
 final class RespondProcessor implements ProcessorInterface
 {
     use ClassInfoTrait;
+    use CloneTrait;
 
     public const METHOD_TO_CODE = [
         'POST' => Response::HTTP_CREATED,
@@ -84,17 +87,17 @@ final class RespondProcessor implements ProcessorInterface
 
         $method = $request->getMethod();
 
-        // if (
-        //     $this->iriConverter
-        //     && $operation
-        //     && ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
-        //     && 301 === $operation->getStatus()
-        // ) {
-        //     $status = 301;
-        //     $headers['Location'] = $this->iriConverter->getIriFromResource($data, UrlGeneratorInterface::ABS_PATH, $operation);
-        // } elseif (HttpOperation::METHOD_PUT === $method && !($attributes['previous_data'] ?? null) && null === $status && ($operation instanceof Put && ($operation->getAllowCreate() ?? false))) {
-        //     $status = Response::HTTP_CREATED;
-        // }
+        if (
+            $this->iriConverter
+            && $operation
+            && ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
+            && 301 === $operation->getStatus()
+        ) {
+            $status = 301;
+            $headers['Location'] = $this->iriConverter->getIriFromResource($data, UrlGeneratorInterface::ABS_PATH, $operation);
+        } elseif ('PUT' === $method && !$request->attributes->get('previous_data') && null === $status && ($operation instanceof Put && ($operation->getAllowCreate() ?? false))) {
+            $status = Response::HTTP_CREATED;
+        }
 
         $status ??= self::METHOD_TO_CODE[$method] ?? Response::HTTP_OK;
 

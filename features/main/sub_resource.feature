@@ -108,7 +108,7 @@ Feature: Sub-resource support
       "hydra:totalItems": 2,
       "hydra:search": {
         "@type": "hydra:IriTemplate",
-        "hydra:template": "/dummies/1/related_dummies{?relatedToDummyFriend.dummyFriend,relatedToDummyFriend.dummyFriend[],name,age,age[],id,id[],symfony,symfony[],dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after]}",
+        "hydra:template": "/dummies/{id}/related_dummies{?relatedToDummyFriend.dummyFriend,relatedToDummyFriend.dummyFriend[],name,age,age[],id,id[],symfony,symfony[],dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after]}",
         "hydra:variableRepresentation": "BasicRepresentation",
         "hydra:mapping": [
           {
@@ -233,7 +233,7 @@ Feature: Sub-resource support
       },
       "hydra:search": {
         "@type": "hydra:IriTemplate",
-        "hydra:template": "/dummies/1/related_dummies{?relatedToDummyFriend.dummyFriend,relatedToDummyFriend.dummyFriend[],name,age,age[],id,id[],symfony,symfony[],dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after]}",
+        "hydra:template": "/dummies/{id}/related_dummies{?relatedToDummyFriend.dummyFriend,relatedToDummyFriend.dummyFriend[],name,age,age[],id,id[],symfony,symfony[],dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after]}",
         "hydra:variableRepresentation": "BasicRepresentation",
         "hydra:mapping": [
           {
