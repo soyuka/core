@@ -27,8 +27,8 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
     uriTemplate: '/errors/{status}',
     types: ['hydra:Error'],
     operations: [
-        new ErrorOperation(name: '_api_errors_hydra', outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]),
         new ErrorOperation(name: '_api_errors_problem', outputFormats: ['json' => ['application/problem+json']], normalizationContext: ['groups' => ['jsonproblem'], 'skip_null_values' => true]),
+        new ErrorOperation(name: '_api_errors_hydra', outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]),
         new ErrorOperation(name: '_api_errors_jsonapi', outputFormats: ['jsonapi' => ['application/vnd.api+json']], normalizationContext: ['groups' => ['jsonapi'], 'skip_null_values' => true]),
         // TODO: add only if swagger ui is installed
         new ErrorOperation(name: '_api_errors_swagger_ui', outputFormats: ['html' => ['text/html']], processor: 'api_platform.swagger_ui.error_processor')

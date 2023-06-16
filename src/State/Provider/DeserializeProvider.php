@@ -3,10 +3,10 @@
 namespace ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProviderInterface;
 use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use ApiPlatform\Serializer\OperationAwareSerializerContextBuilderInterface;
 use ApiPlatform\Api\FormatMatcher;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
@@ -23,7 +23,7 @@ use Symfony\Contracts\Translation\TranslatorTrait;
 
 final class DeserializeProvider implements ProviderInterface
 {
-    public function __construct(private readonly ProviderInterface $inner, private readonly SerializerInterface $serializer, private readonly OperationAwareSerializerContextBuilderInterface $serializerContextBuilder, private ?TranslatorInterface $translator = null)
+    public function __construct(private readonly ProviderInterface $inner, private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder, private ?TranslatorInterface $translator = null)
     {
         if (null === $this->translator) {
             $this->translator = new class() implements TranslatorInterface, LocaleAwareInterface {
@@ -58,9 +58,7 @@ final class DeserializeProvider implements ProviderInterface
             throw new UnsupportedMediaTypeHttpException('The "Content-Type" header must exist.');
         }
 
-        // TODO: this interface need a change and use Operation instead
-        /// $serializerContext = $this->serializerContextBuilder->createFromRequest($request, false, $attributes);
-        $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, normalization: false);
+        $serializerContext = $this->serializerContextBuilder->createFromRequest($request, normalization: false);
         if (!$format = $request->attributes->get('input_format') ?? null) {
             throw new UnsupportedMediaTypeHttpException('Format not supported.');
         }

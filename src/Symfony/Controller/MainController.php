@@ -16,19 +16,12 @@ namespace ApiPlatform\Symfony\Controller;
 use ApiPlatform\Api\UriVariablesConverterInterface;
 use ApiPlatform\Exception\InvalidIdentifierException;
 use ApiPlatform\Exception\InvalidUriVariableException;
-use ApiPlatform\Metadata\HttpOperation;
-use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
-use Nyholm\Psr7\ServerRequest;
 use Symfony\Component\HttpFoundation\Request;
-use ApiPlatform\Api\FormatMatcher;
-use Negotiation\Negotiator;
-use Symfony\Component\HttpKernel\Exception\NotAcceptableHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class MainController
@@ -40,12 +33,8 @@ final class MainController
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ProviderInterface $provider,
         private readonly ProcessorInterface $processor,
-        private readonly Negotiator $negotiator,
-        private readonly array $formats = [],
-        private readonly array $errorFormats = [],
         ?UriVariablesConverterInterface $uriVariablesConverter = null,
-    )
-    {
+    ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->uriVariablesConverter = $uriVariablesConverter;
     }
@@ -56,7 +45,7 @@ final class MainController
         $uriVariables = [];
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
-        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
+        } catch (InvalidIdentifierException | InvalidUriVariableException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
 
@@ -68,5 +57,4 @@ final class MainController
         $body = $this->provider->provide($operation, $uriVariables, $context);
         return $this->processor->process($body, $operation, $uriVariables, $context);
     }
-
 }

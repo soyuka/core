@@ -26,7 +26,7 @@ final class ValidateProvider implements ProviderInterface
             return $body;
         }
 
-        if (!($operation->canValidate() ?? true)) {
+        if (!($operation->canValidate() ?? false)) {
             return $body;
         }
 

@@ -18,6 +18,7 @@ use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Symfony\Controller\MainController;
 use ApiPlatform\Util\ErrorFormatGuesser;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
@@ -57,8 +58,12 @@ final class SerializeListener
      */
     public function onKernelView(ViewEvent $event): void
     {
-        $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
+        if ('api_platform.symfony.main_controller' === $request->attributes->get('_controller')) {
+            return;
+        }
+
+        $controllerResult = $event->getControllerResult();
 
         if ($controllerResult instanceof Response) {
             return;

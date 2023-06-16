@@ -33,7 +33,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Retrieves data from the applicable data provider and sets it as a request parameter called data.
+ * Retrieves data from the applicable data provider, based on the current IRI, and sets it as a request parameter called data.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
@@ -69,9 +69,13 @@ final class ReadProvider implements ProviderInterface
             $context['filters'] = $filters;
         }
 
+        if ($this->serializerContextBuilder) {
+            // Builtin data providers are able to use the serialization context to automatically add join clauses
+            $context += $this->serializerContextBuilder->createFromRequest($request, normalization: true);
+        }
+
         try {
             $data = $this->provider->provide($operation, $uriVariables, $context);
-            $request?->attributes->set('previous_data', $this->clone($data));
         } catch (ProviderNotFoundException $e) {
             $data = null;
         }
@@ -87,6 +91,9 @@ final class ReadProvider implements ProviderInterface
         ) {
             throw new NotFoundHttpException('Not Found');
         }
+
+        $request->attributes->set('data', $data);
+        $request->attributes->set('previous_data', $this->clone($data));
 
         return $data;
     }

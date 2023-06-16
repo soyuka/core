@@ -7,14 +7,14 @@
     <services>
         <!-- Event listeners -->
 
-        <!-- <service id="api_platform.listener.request.add_format" class="ApiPlatform\Symfony\EventListener\AddFormatListener"> -->
-        <!--     <argument type="service" id="api_platform.negotiator" /> -->
-        <!--     <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" /> -->
-        <!--     <argument>%api_platform.formats%</argument> -->
-        <!--     <argument>%api_platform.error_formats%</argument> -->
-        <!--  -->
-        <!--     <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="28" /> -->
-        <!-- </service> -->
+        <service id="api_platform.listener.request.add_format" class="ApiPlatform\Symfony\EventListener\AddFormatListener">
+            <argument type="service" id="api_platform.negotiator" />
+            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
+            <argument>%api_platform.formats%</argument>
+            <argument>%api_platform.error_formats%</argument>
+
+            <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="28" />
+        </service>
 
         <!-- kernel.request priority must be < 8 to be executed after the Firewall -->
         <!-- <service id="api_platform.listener.request.read" class="ApiPlatform\Symfony\EventListener\ReadListener"> -->
@@ -49,16 +49,16 @@
         <!--     <argument type="service" id="api_platform.serializer" /> -->
         <!--     <argument type="service" id="api_platform.serializer.context_builder" /> -->
         <!--     <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" /> -->
-        <!--  -->
+        <!---->
         <!--     <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="16" /> -->
         <!-- </service> -->
-        <!--  -->
+        <!---->
         <!-- <service id="api_platform.listener.view.respond" class="ApiPlatform\Symfony\EventListener\RespondListener"> -->
         <!--     <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" /> -->
         <!--     <argument type="service" id="api_platform.symfony.iri_converter" on-invalid="null" /> -->
         <!--     <tag name="kernel.event_listener" event="kernel.view" method="onKernelView" priority="8" /> -->
         <!-- </service> -->
-        <!--  -->
+
         <!-- <service id="api_platform.listener.exception.validation" class="ApiPlatform\Symfony\Validator\EventListener\ValidationExceptionListener"> -->
         <!--     <argument type="service" id="api_platform.serializer" /> -->
         <!--     <argument>%api_platform.error_formats%</argument> -->

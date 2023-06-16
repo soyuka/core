@@ -67,7 +67,7 @@ final class ErrorProcessor implements ProcessorInterface
             'extraConfiguration' => $this->swaggerUiContext->getExtraConfiguration(),
         ];
 
-        if (($context['safe_method'] ?? false) && null !== $resourceClass = $operation->getClass() && $request) {
+        if (($context['safe_method'] ?? false) && null !== ($resourceClass = $operation->getClass()) && $request) {
             $swaggerData['id'] = $request->get('id');
             $swaggerData['queryParameters'] = $request->query->all();
 

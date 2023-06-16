@@ -538,29 +538,29 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
-        $requestStack = new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE);
-        $collectionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-            ->setDecoratedService('api_platform.graphql.resolver.factory.collection')
-            ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.collection.inner'), $requestStack]);
-
-        $itemDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-            ->setDecoratedService('api_platform.graphql.resolver.factory.item')
-            ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item.inner'), $requestStack]);
-
-        $itemMutationDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-            ->setDecoratedService('api_platform.graphql.resolver.factory.item_mutation')
-            ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_mutation.inner'), $requestStack]);
-
-        $itemSubscriptionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-            ->setDecoratedService('api_platform.graphql.resolver.factory.item_subscription')
-            ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_subscription.inner'), $requestStack]);
-
-        $container->addDefinitions([
-            'api_platform.graphql.data_collector.resolver.factory.collection' => $collectionDataCollectorResolverFactory,
-            'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
-            'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
-            'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
-        ]);
+        // $requestStack = new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+        // $collectionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+        //     ->setDecoratedService('api_platform.graphql.resolver.factory.collection')
+        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.collection.inner'), $requestStack]);
+        //
+        // $itemDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item')
+        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item.inner'), $requestStack]);
+        //
+        // $itemMutationDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item_mutation')
+        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_mutation.inner'), $requestStack]);
+        //
+        // $itemSubscriptionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item_subscription')
+        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_subscription.inner'), $requestStack]);
+        //
+        // $container->addDefinitions([
+        //     'api_platform.graphql.data_collector.resolver.factory.collection' => $collectionDataCollectorResolverFactory,
+        //     'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
+        //     'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
+        //     'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
+        // ]);
     }
 
     private function registerCacheConfiguration(ContainerBuilder $container): void

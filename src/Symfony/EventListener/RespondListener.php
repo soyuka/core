@@ -18,6 +18,7 @@ use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Symfony\Controller\MainController;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,8 +50,12 @@ final class RespondListener
      */
     public function onKernelView(ViewEvent $event): void
     {
-        $controllerResult = $event->getControllerResult();
         $request = $event->getRequest();
+        if ('api_platform.symfony.main_controller' === $request->attributes->get('_controller')) {
+            return;
+        }
+
+        $controllerResult = $event->getControllerResult();
         $operation = $this->initializeOperation($request);
 
         $attributes = RequestAttributesExtractor::extractAttributes($request);

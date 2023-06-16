@@ -39,7 +39,7 @@ use Symfony\Component\WebLink\Link;
  */
 final class SerializeProcessor implements ProcessorInterface
 {
-    public function __construct(private readonly ProcessorInterface $processor, private readonly SerializerInterface $serializer, private readonly OperationAwareSerializerContextBuilderInterface $serializerContextBuilder)
+    public function __construct(private readonly ProcessorInterface $processor, private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder)
     {
     }
 
@@ -56,17 +56,13 @@ final class SerializeProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        if ($data instanceof Response || !($operation?->canSerialize() ?? true)) {
+        if ($data instanceof Response || !($operation?->canSerialize() ?? true) || !($request = $context['request'] ?? null)) {
             return $data;
         }
 
-        $serializerContext = $this->serializerContextBuilder->createFromOperation($operation, normalization: true);
+        $serializerContext = $this->serializerContextBuilder->createFromRequest($request, normalization: true);
         if (isset($serializerContext['output']) && \array_key_exists('class', $serializerContext['output']) && null === $serializerContext['output']['class']) {
             return null;
-        }
-
-        if (!($request = $context['request'] ?? null)) {
-            return $data;
         }
 
         // JSON: API related should not be here

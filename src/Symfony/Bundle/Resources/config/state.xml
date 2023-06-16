@@ -21,7 +21,7 @@
             <argument>%api_platform.error_formats%</argument>
         </service>
 
-        <service id="api_platform.state_provider.read" class="ApiPlatform\State\Provider\ReadProvider" decorates="api_platform.state_provider" decoration-priority="400">
+        <service id="api_platform.state_provider.read" class="ApiPlatform\State\Provider\ReadProvider" decorates="api_platform.state_provider" decoration-priority="500">
             <argument type="service" id="api_platform.state_provider.read.inner" />
             <argument type="service" id="api_platform.serializer.context_builder" />
         </service>

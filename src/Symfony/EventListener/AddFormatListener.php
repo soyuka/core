@@ -16,6 +16,7 @@ namespace ApiPlatform\Symfony\EventListener;
 use ApiPlatform\Api\FormatMatcher;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Symfony\Controller\MainController;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,6 +47,11 @@ final class AddFormatListener
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
+
+        if ('api_platform.symfony.main_controller' === $request->attributes->get('_controller')) {
+            return;
+        }
+
         $operation = $this->initializeOperation($request);
 
         if (!($request->attributes->has('_api_resource_class')
