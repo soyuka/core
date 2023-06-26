@@ -16,7 +16,6 @@ namespace ApiPlatform\Symfony\EventListener;
 use ApiPlatform\Api\FormatMatcher;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Symfony\Controller\MainController;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;

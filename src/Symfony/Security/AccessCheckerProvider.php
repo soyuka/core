@@ -1,11 +1,31 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\Symfony\Security;
 
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
+/**
+ * Allows access to content the resourceAccessChecker.
+ *
+ * @see ResourceAccessCheckerInterface
+ */
 final class AccessCheckerProvider implements ProviderInterface
 {
     /**
@@ -34,16 +54,33 @@ final class AccessCheckerProvider implements ProviderInterface
                 $message = $operation->getSecurityMessage();
         }
 
-
-        if (null === $isGranted || !($request = $context['request'] ?? null)) {
-            return $this->inner->provide($operation, $uriVariables, $context);;
+        $body = $this->inner->provide($operation, $uriVariables, $context);
+        if (null === $isGranted) {
+            return $body;
         }
 
-        $body = $this->inner->provide($operation, $uriVariables, $context);
+        // On a GraphQl QueryCollection we want to perform security stage only on the top-level query
+        if ($operation instanceof QueryCollection && null !== ($context['source'] ?? null)) {
+            return $body;
+        }
 
-        $resourceAccessCheckerContext = ['object' => $request->attributes->get('data'), 'previous_object' => $request->attributes->get('previous_data'), 'request' => $request];
+        if ($operation instanceof HttpOperation) {
+            $request = $context['request'] ?? null;
+
+            $resourceAccessCheckerContext = [
+                'object' => $body,
+                'previous_object' => $request->attributes->get('previous_data'),
+                'request' => $request,
+            ];
+        } else {
+            $resourceAccessCheckerContext = [
+                'object' => $body,
+                'previous_object' => $context['graphql_context']['previous_object'] ?? null,
+            ];
+        }
+
         if (!$this->resourceAccessChecker->isGranted($operation->getClass(), $isGranted, $resourceAccessCheckerContext)) {
-            throw new AccessDeniedException($message ?? 'Access Denied.');
+            throw $operation instanceof GraphQlOperation ? new AccessDeniedHttpException($message ?? 'Access Denied.') : throw new AccessDeniedException($message ?? 'Access Denied.');
         }
 
         return $body;

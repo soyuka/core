@@ -25,9 +25,8 @@ interface ProcessorInterface
     /**
      * Handle the state.
      *
-     * @param array<string, mixed> $uriVariables
+     * @param array<string, mixed>                                         $uriVariables
      * @param array<string, mixed>&array{request?: ServerRequestInterface} $context
-     *
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []);
 }

@@ -45,7 +45,6 @@ final class WriteProcessor implements ProcessorInterface
         }
 
         return $this->processor->process($this->callableProcessor->process($data, $operation, $uriVariables, $context), $operation, $uriVariables, $context);
-
         // if ($this->resourceClassResolver->isResourceClass($this->getObjectClass($data))) {
         //     $request->attributes->set('_api_write_item_iri', $this->iriConverter->getIriFromResource($data));
         // }
@@ -68,10 +67,10 @@ final class WriteProcessor implements ProcessorInterface
         //     $request->attributes->set('_api_write_item_iri', $this->iriConverter->getIriFromResource($controllerResult));
         // }
 
-                // break;
-            // case 'DELETE':
-            //     $this->processor->process($controllerResult, $operation, $uriVariables, $context);
-            //     $event->setControllerResult(null);
-            //     break;
+        // break;
+        // case 'DELETE':
+        //     $this->processor->process($controllerResult, $operation, $uriVariables, $context);
+        //     $event->setControllerResult(null);
+        //     break;
     }
 }

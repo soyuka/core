@@ -1,17 +1,26 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\State\Provider;
 
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProviderInterface;
-use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use ApiPlatform\Api\FormatMatcher;
-use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Symfony\Validator\Exception\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
+use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Constraints\Type;
@@ -38,17 +47,13 @@ final class DeserializeProvider implements ProviderInterface
         $data = $this->inner->provide($operation, $uriVariables, $context);
 
         // We need request content
-        if (!($request = $context['request'] ?? null)) {
-            return $data;
-        }
-
-        if (!$operation instanceof HttpOperation) {
+        if (!$operation instanceof HttpOperation || !($request = $context['request'] ?? null)) {
             return $data;
         }
 
         if (
             !($operation->canDeserialize() ?? true)
-            || !in_array(($method = $operation->getMethod()), ['POST', 'PUT', 'PATCH'], true)
+            || !\in_array($method = $operation->getMethod(), ['POST', 'PUT', 'PATCH'], true)
         ) {
             return $data;
         }
@@ -95,4 +100,3 @@ final class DeserializeProvider implements ProviderInterface
         }
     }
 }
-

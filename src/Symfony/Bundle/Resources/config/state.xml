@@ -38,13 +38,13 @@
             <argument type="service" id="api_platform.iri_converter" />
         </service>
 
-        <service id="api_platform.state_processor.serialize" class="ApiPlatform\State\Processor\SerializeProcessor" decorates="api_platform.state_processor.respond" decoration-priority="20">
+        <service id="api_platform.state_processor.serialize" class="ApiPlatform\State\Processor\SerializeProcessor" decorates="api_platform.state_processor.respond" decoration-priority="200">
             <argument type="service" id="api_platform.state_processor.serialize.inner" />
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
         </service>
 
-        <service id="api_platform.state_processor.write" class="ApiPlatform\State\Processor\WriteProcessor" decorates="api_platform.state_processor.respond" decoration-priority="10">
+        <service id="api_platform.state_processor.write" class="ApiPlatform\State\Processor\WriteProcessor" decorates="api_platform.state_processor.respond" decoration-priority="100">
             <argument type="service" id="api_platform.state_processor.write.inner" />
             <argument type="service" id="api_platform.state_processor.locator" />
         </service>

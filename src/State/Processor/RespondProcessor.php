@@ -15,29 +15,14 @@ namespace ApiPlatform\State\Processor;
 
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
-use ApiPlatform\Doctrine\Orm\State\Options;
-use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\Util\ClassInfoTrait;
-use ApiPlatform\Serializer\ResourceList;
-use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Util\CloneTrait;
-use ApiPlatform\Util\OperationRequestInitiatorTrait;
-use ApiPlatform\Util\RequestAttributesExtractor;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\Serializer\Encoder\EncoderInterface;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\WebLink\GenericLinkProvider;
-use Symfony\Component\WebLink\Link;
-use ApiPlatform\Exception\InvalidArgumentException;
 
 /**
  * Serializes data.
@@ -102,7 +87,7 @@ final class RespondProcessor implements ProcessorInterface
         $status ??= self::METHOD_TO_CODE[$method] ?? Response::HTTP_OK;
 
         $originalData = $context['original_data'] ?? null;
-        if ($originalData && is_object($originalData) && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData))) {
+        if ($originalData && \is_object($originalData) && $this->resourceClassResolver->isResourceClass($this->getObjectClass($originalData))) {
             $iri = $this->iriConverter->getIriFromResource($originalData);
             $headers['Content-Location'] = $iri;
 

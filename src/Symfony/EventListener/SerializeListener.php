@@ -18,7 +18,6 @@ use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
-use ApiPlatform\Symfony\Controller\MainController;
 use ApiPlatform\Util\ErrorFormatGuesser;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;

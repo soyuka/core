@@ -28,7 +28,7 @@ interface ProviderInterface
     /**
      * Provides data.
      *
-     * @param array<string, mixed> $uriVariables
+     * @param array<string, mixed>                                         $uriVariables
      * @param array<string, mixed>&array{request?: ServerRequestInterface} $context
      *
      * @return T|Pagination\PartialPaginatorInterface<T>|iterable<T>|null

@@ -13,23 +13,16 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Provider;
 
-use ApiPlatform\Api\UriVariablesConverterInterface;
-use ApiPlatform\Exception\InvalidIdentifierException;
-use ApiPlatform\Exception\InvalidUriVariableException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Error;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\Exception\ProviderNotFoundException;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\Util\CloneTrait;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
-use ApiPlatform\Util\RequestAttributesExtractor;
 use ApiPlatform\Util\RequestParser;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -80,7 +73,6 @@ final class ReadProvider implements ProviderInterface
             $data = null;
         }
 
-
         if (
             null === $data
             && 'POST' !== $operation->getMethod()
@@ -98,4 +90,3 @@ final class ReadProvider implements ProviderInterface
         return $data;
     }
 }
-

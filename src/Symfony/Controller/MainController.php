@@ -33,7 +33,7 @@ final class MainController
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ProviderInterface $provider,
         private readonly ProcessorInterface $processor,
-        ?UriVariablesConverterInterface $uriVariablesConverter = null,
+        UriVariablesConverterInterface $uriVariablesConverter = null,
     ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
         $this->uriVariablesConverter = $uriVariablesConverter;
@@ -45,16 +45,17 @@ final class MainController
         $uriVariables = [];
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
-        } catch (InvalidIdentifierException | InvalidUriVariableException $e) {
+        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
 
         $context = [
             'request' => &$request,
-            'uri_variables' => $uriVariables
+            'uri_variables' => $uriVariables,
         ];
 
         $body = $this->provider->provide($operation, $uriVariables, $context);
+
         return $this->processor->process($body, $operation, $uriVariables, $context);
     }
 }

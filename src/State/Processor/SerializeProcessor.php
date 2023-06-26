@@ -16,13 +16,9 @@ namespace ApiPlatform\State\Processor;
 use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Serializer\OperationAwareSerializerContextBuilderInterface;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\State\ProcessorInterface;
-use ApiPlatform\Util\OperationRequestInitiatorTrait;
-use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -90,7 +86,7 @@ final class SerializeProcessor implements ProcessorInterface
         return $this->processor->process($this->serializer->serialize($data, $request->getRequestFormat(), $serializerContext), $operation, $uriVariables, $context);
     }
 
-    /**
+    /*
      * Tries to serialize data that are not API resources (e.g. the entrypoint or data returned by a custom controller).
      *
      * @throws RuntimeException

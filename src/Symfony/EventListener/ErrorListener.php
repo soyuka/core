@@ -20,7 +20,6 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Symfony\Validator\Exception\ConstraintViolationListAwareExceptionInterface;
-use ApiPlatform\Util\ErrorFormatGuesser;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use ApiPlatform\Validator\Exception\ValidationException;
@@ -58,7 +57,7 @@ final class ErrorListener extends SymfonyErrorListener
     {
         $dup = parent::duplicateRequest($exception, $request);
         $apiOperation = $this->initializeOperation($request);
-        $format = $this->getErrorFormat($request, $apiOperation->getOutputFormats(), $this->errorFormats);
+        $format = $this->getErrorFormat($request, $apiOperation instanceof HttpOperation ? $apiOperation->getOutputFormats() : [], $this->errorFormats);
 
         if ($this->resourceClassResolver?->isResourceClass($exception::class)) {
             $resourceCollection = $this->resourceMetadataCollectionFactory->create($exception::class);
@@ -94,7 +93,7 @@ final class ErrorListener extends SymfonyErrorListener
         }
 
         if (!$operation->getProvider()) {
-            $operation = $operation->withProvider(provider: fn() => $format === 'jsonapi' && $errorResource instanceof ConstraintViolationListAwareExceptionInterface ? $errorResource->getConstraintViolationList() : $errorResource);
+            $operation = $operation->withProvider(provider: fn () => 'jsonapi' === $format && $errorResource instanceof ConstraintViolationListAwareExceptionInterface ? $errorResource->getConstraintViolationList() : $errorResource);
         }
 
         $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
@@ -103,7 +102,7 @@ final class ErrorListener extends SymfonyErrorListener
             if (!($apiOperation?->getExtraProperties()['rfc_7807_compliant_errors'] ?? false)) {
                 $operation = $operation->withNormalizationContext([
                     'groups' => ['legacy_'.$format],
-                    'force_iri_generation' => false
+                    'force_iri_generation' => false,
                 ]);
             }
         }
@@ -194,7 +193,8 @@ final class ErrorListener extends SymfonyErrorListener
     /**
      * @param array<string, string|string[]> $errorFormats
      */
-    private function getErrorFormat(Request $request, array $outputFormats = [], array $errorFormats = []): string {
+    private function getErrorFormat(Request $request, array $outputFormats = [], array $errorFormats = []): string
+    {
         $accept = $request->headers->get('Accept');
         $contentType = $request->headers->get('Content-Type');
 
@@ -223,6 +223,7 @@ final class ErrorListener extends SymfonyErrorListener
                 return $format;
             }
         }
+
         return array_key_first($errorFormats);
     }
 
@@ -254,7 +255,7 @@ final class ErrorListener extends SymfonyErrorListener
     }
 
     /**
-     * Flattend mime types
+     * Flattend mime types.
      *
      * @param array<string, string|string[]> $formats
      *

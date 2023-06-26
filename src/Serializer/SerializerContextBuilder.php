@@ -14,9 +14,8 @@ declare(strict_types=1);
 namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Exception\RuntimeException;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Error as ErrorOperation;
-use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,7 +57,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         $context['skip_deprecated_exception_normalizers'] = true;
 
         if ($this->debug && isset($context['groups']) && $operation instanceof ErrorOperation) {
-            if (!is_array($context['groups'])) {
+            if (!\is_array($context['groups'])) {
                 $context['groups'] = (array) $context['groups'];
             }
 

@@ -1,10 +1,21 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\State\Provider;
 
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
@@ -81,7 +92,8 @@ final class ContentNegotiationProvider implements ProviderInterface
     /**
      * @param array<string, string|string[]> $formats
      */
-    private function getRequestFormat(Request $request, array $formats): string {
+    private function getRequestFormat(Request $request, array $formats): string
+    {
         if (($routeFormat = $request->attributes->get('_format') ?: null) && !isset($formats[$routeFormat])) {
             throw new NotFoundHttpException(sprintf('Format "%s" is not supported', $routeFormat));
         }
@@ -184,21 +196,21 @@ final class ContentNegotiationProvider implements ProviderInterface
             }
         }
 
-        if (!$request->isMethodSafe() && $request->getMethod() !== 'DELETE') {
+        if (!$request->isMethodSafe() && 'DELETE' !== $request->getMethod()) {
             throw new UnsupportedMediaTypeHttpException(sprintf('The content-type "%s" is not supported. Supported MIME types are "%s".', $contentType, implode('", "', $supportedMimeTypes)));
         }
 
         return null;
     }
 }
-        // if ($operation instanceof HttpOperation) {
-        //     $request->attributes->set('input_format', $this->getInputFormat($operation, $request));
-        // }
-        // $serverRequest = (new ServerRequest(method: $request->getMethod(), uri: $request->getUri(), body: $request->getContent()))
-        //     ->withAttribute('request_format', $requestFormat)
-        //     ->withAttribute('input_format', $this->getInputFormat($operation, $request))
-        //     ->withAttribute('request_mime_type', $this->errorFormats[$requestFormat][0] ?? $request->getMimeType($requestFormat))
-        //     ->withAttribute('previous_data', $request->attributes->get('data'))
-        //     ->withAttribute('previous_operation', $request->attributes->get('_api_previous_operation'))
-        //
-        // ;
+// if ($operation instanceof HttpOperation) {
+//     $request->attributes->set('input_format', $this->getInputFormat($operation, $request));
+// }
+// $serverRequest = (new ServerRequest(method: $request->getMethod(), uri: $request->getUri(), body: $request->getContent()))
+//     ->withAttribute('request_format', $requestFormat)
+//     ->withAttribute('input_format', $this->getInputFormat($operation, $request))
+//     ->withAttribute('request_mime_type', $this->errorFormats[$requestFormat][0] ?? $request->getMimeType($requestFormat))
+//     ->withAttribute('previous_data', $request->attributes->get('data'))
+//     ->withAttribute('previous_operation', $request->attributes->get('_api_previous_operation'))
+//
+// ;

@@ -26,7 +26,9 @@ use Twig\Environment as TwigEnvironment;
 
 /**
  * Displays the swaggerui interface.
+ *
  * @deprecated
+ *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
 final class SwaggerUiAction
