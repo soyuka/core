@@ -72,6 +72,8 @@ final class EntrypointAction
 
     /**
      * @throws BadRequestHttpException
+     *
+     * @return array{query: array<string, mixed>, operationName: string, variables: array<string, mixed>}
      */
     private function parseRequest(Request $request): array
     {
@@ -103,7 +105,11 @@ final class EntrypointAction
     }
 
     /**
+     * @param array<string,mixed> $variables
+     *
      * @throws BadRequestHttpException
+     *
+     * @return array{query: array<string,mixed>, operationName: string, variables: array<string,mixed>}
      */
     private function parseData(?string $query, ?string $operationName, array $variables, string $jsonContent): array
     {
@@ -127,7 +133,13 @@ final class EntrypointAction
     }
 
     /**
+     * @param array<string,mixed> $variables
+     * @param array<string,mixed> $bodyParameters
+     * @param array<string,mixed> $files
+     *
      * @throws BadRequestHttpException
+     *
+     * @return array{query: array<string, mixed>, operationName: string, variables: array<string, mixed>}
      */
     private function parseMultipartRequest(?string $query, ?string $operationName, array $variables, array $bodyParameters, array $files): array
     {
@@ -148,6 +160,10 @@ final class EntrypointAction
     }
 
     /**
+     * @param array<string,mixed> $map
+     * @param array<string,mixed> $variables
+     * @param array<string,mixed> $files
+     *
      * @throws BadRequestHttpException
      */
     private function applyMapToVariables(array $map, array $variables, array $files): array
@@ -185,6 +201,8 @@ final class EntrypointAction
 
     /**
      * @throws BadRequestHttpException
+     *
+     * @return array<string, mixed>
      */
     private function decodeVariables(string $variables): array
     {

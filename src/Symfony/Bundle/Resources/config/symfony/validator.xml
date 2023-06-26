@@ -30,10 +30,16 @@
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="16" />
         </service>
 
-        <service id="api_platform.state_provider.validate" class="ApiPlatform\State\Provider\ValidateProvider" decorates="api_platform.state_provider" decoration-priority="200">
+        <service id="api_platform.state_provider.validate" class="ApiPlatform\Symfony\Validator\State\ValidateProvider" decorates="api_platform.state_provider" decoration-priority="200">
             <argument type="service" id="api_platform.state_provider.validate.inner" />
             <argument type="service" id="api_platform.validator" />
         </service>
+
+        <service id="api_platform.graphql.state_provider.validate" class="ApiPlatform\Symfony\Validator\State\ValidateProvider" decorates="api_platform.graphql.state_provider" decoration-priority="200">
+            <argument type="service" id="api_platform.graphql.state_provider.validate.inner" />
+            <argument type="service" id="api_platform.validator" />
+        </service>
+
     </services>
 
 </container>
