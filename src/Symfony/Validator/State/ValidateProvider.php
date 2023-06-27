@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Symfony\Validator\State;
 
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
@@ -48,7 +49,7 @@ final class ValidateProvider implements ProviderInterface
             }
         }
 
-        if (!($operation->canValidate() ?? ($operation instanceof Mutation))) {
+        if (!($operation->canValidate() ?? ($operation instanceof GraphQlOperation ? $operation instanceof Mutation : true))) {
             return $body;
         }
 

@@ -14,8 +14,8 @@
         </service>
         <service id="api_platform.state_processor" alias="api_platform.state_processor.locator" />
 
-        <service id="api_platform.state_provider.format" class="ApiPlatform\State\Provider\ContentNegotiationProvider" decorates="api_platform.state_provider" decoration-priority="100">
-            <argument type="service" id="api_platform.state_provider.format.inner" />
+        <service id="api_platform.state_provider.content_negotiation" class="ApiPlatform\State\Provider\ContentNegotiationProvider" decorates="api_platform.state_provider" decoration-priority="100">
+            <argument type="service" id="api_platform.state_provider.content_negotiation.inner" />
             <argument type="service" id="api_platform.negotiator" />
             <argument>%api_platform.formats%</argument>
             <argument>%api_platform.error_formats%</argument>

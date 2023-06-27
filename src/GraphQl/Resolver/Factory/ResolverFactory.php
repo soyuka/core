@@ -21,6 +21,9 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 class ResolverFactory implements ResolverFactoryInterface
 {
+    /**
+     * @param ProviderInterface<mixed> $provider
+     */
     public function __construct(
         private readonly ProviderInterface $provider,
         private readonly ProcessorInterface $processor
@@ -30,23 +33,12 @@ class ResolverFactory implements ResolverFactoryInterface
     public function __invoke(string $resourceClass = null, string $rootClass = null, Operation $operation = null): callable
     {
         return function (?array $source, array $args, $context, ResolveInfo $info) use ($resourceClass, $rootClass, $operation) {
-            // If authorization has failed for a relation field (e.g. via ApiProperty security), the field is not present in the source: null can be returned directly to ensure the collection isn't in the response.
-            // if ((null === $resourceClass || null === $rootClass || (null !== $source && !\array_key_exists($info->fieldName, $source)))) {
-            //     if ($source && \array_key_exists($info->fieldName, $source)) {
-            //         return $source[$info->fieldName];
-            //     }
-            //
-            //     return null;
-            // }
-
             // Data already fetched and normalized (field or nested resource)
-            $body = null;
-            $dataExists = $source && \array_key_exists($info->fieldName, $source);
-            if ($dataExists && $body = $source[$info->fieldName]) {
+            if ($body = $source[$info->fieldName] ?? null) {
                 return $body;
             }
 
-            if (null === $resourceClass && $dataExists) {
+            if (null === $resourceClass && array_key_exists($info->fieldName, $source ?? [])) {
                 return $body;
             }
 
@@ -63,7 +55,6 @@ class ResolverFactory implements ResolverFactoryInterface
             $graphQlContext = [];
             $context = ['source' => $source, 'args' => $args, 'info' => $info, 'root_class' => $rootClass, 'graphql_context' => &$graphQlContext];
             $body = $this->provider->provide($operation, [], $context);
-
             return $this->processor->process($body, $operation, [], $context);
         };
     }

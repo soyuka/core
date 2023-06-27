@@ -96,7 +96,10 @@ final class ErrorListener extends SymfonyErrorListener
             $operation = $operation->withProvider(provider: fn () => 'jsonapi' === $format && $errorResource instanceof ConstraintViolationListAwareExceptionInterface ? $errorResource->getConstraintViolationList() : $errorResource);
         }
 
-        $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
+        $identifiers = [];
+        try {
+            $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
+        } catch (\Exception $e) {}
 
         if ($exception instanceof ValidationException) {
             if (!($apiOperation?->getExtraProperties()['rfc_7807_compliant_errors'] ?? false)) {

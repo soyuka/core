@@ -61,10 +61,6 @@ final class SerializeProcessor implements ProcessorInterface
             return null;
         }
 
-        // JSON: API related should not be here
-        // if ($included = $request->attributes->get('_api_included')) {
-        //     $context['api_included'] = $included;
-        // }
         // why not context builder?
         // $resources = new ResourceList();
         // $context['resources'] = &$resources;

@@ -16,7 +16,7 @@ namespace ApiPlatform\Symfony\Bundle\SwaggerUi;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
+use ApiPlatform\OpenApi\OpenApi;
 use ApiPlatform\OpenApi\Options;
 use ApiPlatform\OpenApi\Serializer\NormalizeOperationNameTrait;
 use ApiPlatform\State\ProcessorInterface;
@@ -28,21 +28,23 @@ use Twig\Environment as TwigEnvironment;
 /**
  * @internal
  */
-final class ErrorProcessor implements ProcessorInterface
+final class SwaggerUiProcessor implements ProcessorInterface
 {
     use NormalizeOperationNameTrait;
 
-    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly ?TwigEnvironment $twig, private readonly UrlGeneratorInterface $urlGenerator, private readonly NormalizerInterface $normalizer, private readonly OpenApiFactoryInterface $openApiFactory, private readonly Options $openApiOptions, private readonly SwaggerUiContext $swaggerUiContext, private readonly array $formats = [], private readonly ?string $oauthClientId = null, private readonly ?string $oauthClientSecret = null, private readonly bool $oauthPkce = false)
+    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly ?TwigEnvironment $twig, private readonly UrlGeneratorInterface $urlGenerator, private readonly NormalizerInterface $normalizer, private readonly Options $openApiOptions, private readonly SwaggerUiContext $swaggerUiContext, private readonly array $formats = [], private readonly ?string $oauthClientId = null, private readonly ?string $oauthClientSecret = null, private readonly bool $oauthPkce = false)
     {
         if (null === $this->twig) {
             throw new \RuntimeException('The documentation cannot be displayed since the Twig bundle is not installed. Try running "composer require symfony/twig-bundle".');
         }
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Response
+    /**
+     * @param OpenApi $openApi
+     */
+    public function process(mixed $openApi, Operation $operation, array $uriVariables = [], array $context = []): Response
     {
         $request = $context['request'] ?? null;
-        $openApi = $this->openApiFactory->__invoke(['base_url' => $request?->getBaseUrl() ?: '/']);
 
         $swaggerContext = [
             'formats' => $this->formats,
@@ -76,12 +78,13 @@ final class ErrorProcessor implements ProcessorInterface
             'extraConfiguration' => $this->swaggerUiContext->getExtraConfiguration(),
         ];
 
-        if (($context['safe_method'] ?? false) && null !== ($resourceClass = $operation->getClass()) && $request) {
+        $requestedOperation = $request?->attributes->get('_api_requested_operation') ?? null;
+        if ($request?->isMethodSafe() && $requestedOperation) {
             $swaggerData['id'] = $request->get('id');
             $swaggerData['queryParameters'] = $request->query->all();
 
-            $swaggerData['shortName'] = $operation->getShortName();
-            $swaggerData['operationId'] = $this->normalizeOperationName($operation->getName());
+            $swaggerData['shortName'] = $requestedOperation->getShortName();
+            $swaggerData['operationId'] = $this->normalizeOperationName($requestedOperation->getName());
 
             [$swaggerData['path'], $swaggerData['method']] = $this->getPathAndMethod($swaggerData);
         }

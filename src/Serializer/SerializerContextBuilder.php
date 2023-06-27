@@ -97,6 +97,11 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'root_operation';
         $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'operation';
 
+        // JSON API see JsonApiProvider
+        if ($included = $request->attributes->get('_api_included')) {
+            $context['api_included'] = $included;
+        }
+
         return $context;
     }
 }

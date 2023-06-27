@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\ErrorResource;
 use ApiPlatform\Metadata\Exception\HttpExceptionInterface;
+use ApiPlatform\OpenApi\OpenApi;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface as SymfonyHttpExceptionInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
@@ -31,7 +32,7 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
         new ErrorOperation(name: '_api_errors_hydra', outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]),
         new ErrorOperation(name: '_api_errors_jsonapi', outputFormats: ['jsonapi' => ['application/vnd.api+json']], normalizationContext: ['groups' => ['jsonapi'], 'skip_null_values' => true]),
         // TODO: add only if swagger ui is installed
-        new ErrorOperation(name: '_api_errors_swagger_ui', outputFormats: ['html' => ['text/html']], processor: 'api_platform.swagger_ui.error_processor'),
+        new ErrorOperation(class: OpenApi::class, name: '_api_errors_swagger_ui', outputFormats: ['html' => ['text/html']], processor: 'api_platform.swagger_ui.error_processor'),
     ]
 )]
 class Error extends \Exception implements ProblemExceptionInterface, HttpExceptionInterface

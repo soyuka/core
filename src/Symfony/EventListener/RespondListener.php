@@ -69,6 +69,8 @@ final class RespondListener
             return;
         }
 
+        trigger_deprecation('api-platform/core', '3.2', sprintf('The custom controller should return an instance of "%s", not doing so in API Platform 4 will result in an exception.', Response::class));
+
         $headers = [
             'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($request->getRequestFormat())),
             'Vary' => 'Accept',
