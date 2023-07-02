@@ -27,6 +27,7 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 #[ErrorResource(
     uriTemplate: '/errors/{status}',
     types: ['hydra:Error'],
+    openapi: false,
     operations: [
         new ErrorOperation(name: '_api_errors_problem', outputFormats: ['json' => ['application/problem+json']], normalizationContext: ['groups' => ['jsonproblem'], 'skip_null_values' => true]),
         new ErrorOperation(name: '_api_errors_hydra', outputFormats: ['jsonld' => ['application/ld+json']], normalizationContext: ['groups' => ['jsonld'], 'skip_null_values' => true]),

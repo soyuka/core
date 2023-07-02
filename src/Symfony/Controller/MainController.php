@@ -45,9 +45,7 @@ final class MainController
         $uriVariables = [];
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
-        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
-            throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
-        }
+        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {}
 
         $context = [
             'request' => &$request,
