@@ -78,8 +78,9 @@ final class SwaggerUiProcessor implements ProcessorInterface
             'extraConfiguration' => $this->swaggerUiContext->getExtraConfiguration(),
         ];
 
+        $status = 200;
         $requestedOperation = $request?->attributes->get('_api_requested_operation') ?? null;
-        if ($request?->isMethodSafe() && $requestedOperation) {
+        if ($request?->isMethodSafe() && $requestedOperation && $requestedOperation->getName()) {
             $swaggerData['id'] = $request->get('id');
             $swaggerData['queryParameters'] = $request->query->all();
 
@@ -87,9 +88,10 @@ final class SwaggerUiProcessor implements ProcessorInterface
             $swaggerData['operationId'] = $this->normalizeOperationName($requestedOperation->getName());
 
             [$swaggerData['path'], $swaggerData['method']] = $this->getPathAndMethod($swaggerData);
+            $status = $requestedOperation->getStatus() ?? $status;
         }
 
-        return new Response($this->twig->render('@ApiPlatform/SwaggerUi/index.html.twig', $swaggerContext + ['swagger_data' => $swaggerData]));
+        return new Response($this->twig->render('@ApiPlatform/SwaggerUi/index.html.twig', $swaggerContext + ['swagger_data' => $swaggerData]), $status);
     }
 
     /**

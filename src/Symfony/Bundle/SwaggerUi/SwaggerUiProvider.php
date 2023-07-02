@@ -2,7 +2,9 @@
 
 namespace ApiPlatform\Symfony\Bundle\SwaggerUi;
 
+use ApiPlatform\Metadata\Error;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\OpenApi;
@@ -10,6 +12,7 @@ use ApiPlatform\State\ProviderInterface;
 
 /**
  * When an HTML request is sent we provide a swagger ui documentation.
+ * @internal
  */
 final class SwaggerUiProvider implements ProviderInterface
 {
@@ -22,19 +25,34 @@ final class SwaggerUiProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        $request = $context['request'] ?? null;
-
-        if (!$request || 'html' !== $request->getRequestFormat()) {
+        if (
+            !($operation instanceof HttpOperation)
+            || !($request = $context['request'] ?? null)
+            || 'html' !== $request->getRequestFormat()
+        ) {
             return $this->inner->provide($operation, $uriVariables, $context);
         }
 
-        $request->attributes->set('_api_requested_operation', $operation);
-        $operation = new Get(
-            class: OpenApi::class,
-            processor: 'api_platform.swagger_ui.processor'
-        );
+        if (!$request->attributes->has('_api_requested_operation')) {
+            $request->attributes->set('_api_requested_operation', $operation);
+        }
 
+        if ($operation instanceof Error) {
+            $operation  = new Get(
+                class: OpenApi::class,
+                processor: 'api_platform.swagger_ui.processor',
+                validate: false,
+                read: false,
+                status: $operation->getStatus()
+            );
+            $body = $this->inner->provide($operation, $uriVariables, $context);
+        } else {
+            $body = $this->inner->provide($operation, $uriVariables, $context);
+        }
+
+        // save our operation
         $request->attributes->set('_api_operation', $operation);
+
         return $this->openApiFactory->__invoke($context);
     }
 }

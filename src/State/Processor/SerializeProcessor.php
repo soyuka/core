@@ -39,22 +39,14 @@ final class SerializeProcessor implements ProcessorInterface
     {
     }
 
-        // $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
-        // if (!\count($resourcesToPush)) {
-        //     return;
-        // }
-        //
-        // $linkProvider = $request->attributes->get('_links', new GenericLinkProvider());
-        // foreach ($resourcesToPush as $resourceToPush) {
-        //     $linkProvider = $linkProvider->withLink((new Link('preload', $resourceToPush))->withAttribute('as', 'fetch'));
-        // }
-        // $request->attributes->set('_links', $linkProvider);
-
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         if ($data instanceof Response || !($operation?->canSerialize() ?? true) || !($request = $context['request'] ?? null)) {
             return $data;
         }
+
+        // @see ApiPlatform\State\Processor\RespondProcessor
+        $context['original_data'] = $data;
 
         $serializerContext = $this->serializerContextBuilder->createFromRequest($request, normalization: true);
         if (isset($serializerContext['output']) && \array_key_exists('class', $serializerContext['output']) && null === $serializerContext['output']['class']) {
@@ -62,43 +54,31 @@ final class SerializeProcessor implements ProcessorInterface
         }
 
         // why not context builder?
-        // $resources = new ResourceList();
-        // $context['resources'] = &$resources;
-        // $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources';
+        $resources = new ResourceList();
+        $serializerContext['resources'] = &$resources;
+        $serializerContext[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources';
 
-        // $resourcesToPush = new ResourceList();
-        // $context['resources_to_push'] = &$resourcesToPush;
-        // $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources_to_push';
-        // if (($options = $operation?->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
-        //     $context['force_resource_class'] = $operation->getClass();
-        // }
+        $resourcesToPush = new ResourceList();
+        $serializerContext['resources_to_push'] = &$resourcesToPush;
+        $serializerContext[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources_to_push';
+        if (($options = $operation?->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
+            $serializerContext['force_resource_class'] = $operation->getClass();
+        }
 
-        $context['original_data'] = $data;
         if ($uriVariables) {
             $serializerContext['uri_variables'] = $uriVariables;
         }
-        $serializerContext['request_uri'] = (string) $request->getUri();
 
-        return $this->processor->process($this->serializer->serialize($data, $request->getRequestFormat(), $serializerContext), $operation, $uriVariables, $context);
+        $serialized = $this->serializer->serialize($data, $request->getRequestFormat(), $serializerContext);
+        $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
+        if ($resourcesToPush) {
+            $linkProvider = $request->attributes->get('_links', new GenericLinkProvider());
+            foreach ($resourcesToPush as $resourceToPush) {
+                $linkProvider = $linkProvider->withLink((new Link('preload', $resourceToPush))->withAttribute('as', 'fetch'));
+            }
+            $request->attributes->set('_links', $linkProvider);
+        }
+
+        return $this->processor->process($serialized, $operation, $uriVariables, $context);
     }
-
-    /*
-     * Tries to serialize data that are not API resources (e.g. the entrypoint or data returned by a custom controller).
-     *
-     * @throws RuntimeException
-     */
-    // private function serializeRawData(ViewEvent $event, Request $request, $controllerResult): void
-    // {
-    //     if (\is_object($controllerResult)) {
-    //         $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $request->attributes->get('_api_normalization_context', [])));
-    //
-    //         return;
-    //     }
-    //
-    //     if (!$this->serializer instanceof EncoderInterface) {
-    //         throw new RuntimeException(sprintf('The serializer must implement the "%s" interface.', EncoderInterface::class));
-    //     }
-    //
-    //     $event->setControllerResult($this->serializer->encode($controllerResult, $request->getRequestFormat()));
-    // }
 }
