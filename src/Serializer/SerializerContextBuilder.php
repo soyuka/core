@@ -39,6 +39,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
      */
     public function createFromRequest(Request $request, bool $normalization, array $attributes = null): array
     {
+        // TODO: I'd like that to not throw so that we can use providers and processors without serialization context nor request attributes
         if (null === $attributes && !$attributes = RequestAttributesExtractor::extractAttributes($request)) {
             throw new RuntimeException('Request attributes are not valid.');
         }
