@@ -114,7 +114,7 @@ Feature: Content Negotiation support
     When I add "Accept" header equal to "text/plain"
     And I send a "GET" request to "/dummies/1"
     Then the response status code should be 406
-    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Type" should be equal to "application/problem+json; charset=utf-8"
 
   Scenario: If the request format is HTML, the error should be in HTML
     When I add "Accept" header equal to "text/html"

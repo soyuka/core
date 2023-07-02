@@ -20,9 +20,11 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Symfony\Validator\Exception\ConstraintViolationListAwareExceptionInterface;
+use ApiPlatform\Util\ContentNegotiationTrait;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use ApiPlatform\Validator\Exception\ValidationException;
+use Negotiation\Negotiator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,6 +38,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface as SymfonyHttp
  */
 final class ErrorListener extends SymfonyErrorListener
 {
+    use ContentNegotiationTrait;
     use OperationRequestInitiatorTrait;
 
     public function __construct(
@@ -47,17 +50,19 @@ final class ErrorListener extends SymfonyErrorListener
         private readonly array $errorFormats = [],
         private readonly array $exceptionToStatus = [],
         private readonly ?IdentifiersExtractorInterface $identifiersExtractor = null,
-        private readonly ?ResourceClassResolverInterface $resourceClassResolver = null
+        private readonly ?ResourceClassResolverInterface $resourceClassResolver = null,
+        ?Negotiator $negotiator = null
     ) {
         parent::__construct($controller, $logger, $debug, $exceptionsMapping);
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
+        $this->negotiator = $negotiator ?? new Negotiator();
     }
 
     protected function duplicateRequest(\Throwable $exception, Request $request): Request
     {
         $dup = parent::duplicateRequest($exception, $request);
         $apiOperation = $this->initializeOperation($request);
-        $format = $this->getErrorFormat($request, $apiOperation instanceof HttpOperation ? $apiOperation->getOutputFormats() : [], $this->errorFormats);
+        $format = $this->getRequestFormat($request, $this->errorFormats, false);
 
         if ($this->resourceClassResolver?->isResourceClass($exception::class)) {
             $resourceCollection = $this->resourceMetadataCollectionFactory->create($exception::class);
@@ -191,88 +196,5 @@ final class ErrorListener extends SymfonyErrorListener
             'html' => '_api_errors_swagger_ui',
             default => '_api_errors_problem'
         };
-    }
-
-    /**
-     * @param array<string, string|string[]> $errorFormats
-     */
-    private function getErrorFormat(Request $request, array $outputFormats = [], array $errorFormats = []): string
-    {
-        $accept = $request->headers->get('Accept');
-        $contentType = $request->headers->get('Content-Type');
-
-        if (!$accept && !$contentType) {
-            // None found, defaults to the first error format
-            return array_key_first($errorFormats);
-        }
-
-        if ($accept && $format = $this->getMimeTypeFormat($accept, $outputFormats)) {
-            return $format;
-        }
-
-        // TODO: IMO this should find the first supported format and not give an arbitrary format
-        // this means that if the accept is wrong we use jsonproblem, but if its another error we'll use jsonld at
-        // features/security/validate_response_types.feature:20
-        if ($accept && !$format) {
-            return array_key_first($errorFormats);
-        }
-
-        if ($contentType && $format = $this->getMimeTypeFormat($contentType, $outputFormats)) {
-            return $format;
-        }
-
-        foreach ($outputFormats as $format => $_) {
-            if (isset($errorFormats[$format])) {
-                return $format;
-            }
-        }
-
-        return array_key_first($errorFormats);
-    }
-
-    /**
-     * Gets the format associated with the mime type.
-     *
-     * Adapted from {@see \Symfony\Component\HttpFoundation\Request::getFormat}.
-     *
-     * @param array<string, string|string[]> $formats
-     */
-    private function getMimeTypeFormat(string $mimeType, array $formats): ?string
-    {
-        $canonicalMimeType = null;
-        $pos = strpos($mimeType, ';');
-        if (false !== $pos) {
-            $canonicalMimeType = trim(substr($mimeType, 0, $pos));
-        }
-
-        foreach ($formats as $format => $mimeTypes) {
-            if (\in_array($mimeType, $mimeTypes, true)) {
-                return $format;
-            }
-            if (null !== $canonicalMimeType && \in_array($canonicalMimeType, $mimeTypes, true)) {
-                return $format;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Flattend mime types.
-     *
-     * @param array<string, string|string[]> $formats
-     *
-     * @return string[]
-     */
-    private function flattenMimeTypes(array $formats): array
-    {
-        $flattenedMimeTypes = [];
-        foreach ($formats as $format => $mimeTypes) {
-            foreach ($mimeTypes as $mimeType) {
-                $flattenedMimeTypes[$mimeType] = $format;
-            }
-        }
-
-        return $flattenedMimeTypes;
     }
 }

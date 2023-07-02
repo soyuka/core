@@ -17,20 +17,23 @@ use ApiPlatform\Metadata\Error as ErrorOperation;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\ContentNegotiationTrait;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotAcceptableHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
 final class ContentNegotiationProvider implements ProviderInterface
 {
+    use ContentNegotiationTrait;
+
     /**
      * @param array<string, string[]> $formats
      * @param array<string, string[]> $errorFormats
+     * @param ProviderInterface<mixed> $inner
      */
-    public function __construct(private readonly ProviderInterface $inner, private readonly Negotiator $negotiator, private readonly array $formats = [], private readonly array $errorFormats = [])
+    public function __construct(private readonly ProviderInterface $inner, Negotiator $negotiator, private readonly array $formats = [], private readonly array $errorFormats = [])
     {
+        $this->negotiator = $negotiator;
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -49,7 +52,7 @@ final class ContentNegotiationProvider implements ProviderInterface
         if (!$isErrorOperation) {
             $request->setRequestFormat($this->getRequestFormat($request, $formats));
         } else {
-            $request->setRequestFormat(array_key_first($operation->getOutputFormats()));
+            $request->setRequestFormat($this->getRequestFormat($request, $formats, false));
         }
 
         return $this->inner->provide($operation, $uriVariables, $context);
@@ -87,89 +90,6 @@ final class ContentNegotiationProvider implements ProviderInterface
         }
 
         return $flattenedMimeTypes;
-    }
-
-    /**
-     * @param array<string, string|string[]> $formats
-     */
-    private function getRequestFormat(Request $request, array $formats): string
-    {
-        if (($routeFormat = $request->attributes->get('_format') ?: null) && !isset($formats[$routeFormat])) {
-            throw new NotFoundHttpException(sprintf('Format "%s" is not supported', $routeFormat));
-        }
-
-        if ($routeFormat) {
-            $mimeTypes = Request::getMimeTypes($routeFormat);
-            $flattenedMimeTypes = $this->flattenMimeTypes([$routeFormat => $mimeTypes]);
-        } else {
-            $flattenedMimeTypes = $this->flattenMimeTypes($formats);
-            $mimeTypes = array_keys($flattenedMimeTypes);
-        }
-
-        // First, try to guess the format from the Accept header
-        /** @var string|null $accept */
-        $accept = $request->headers->get('Accept');
-        if (null !== $accept) {
-            if (null === $mediaType = $this->negotiator->getBest($accept, $mimeTypes)) {
-                throw $this->getNotAcceptableHttpException($accept, $flattenedMimeTypes);
-            }
-
-            return $this->getMimeTypeFormat($mediaType->getType(), $formats);
-        }
-
-        // Then use the Symfony request format if available and applicable
-        $requestFormat = $request->getRequestFormat('') ?: null;
-        if (null !== $requestFormat) {
-            $mimeType = $request->getMimeType($requestFormat);
-
-            if (isset($flattenedMimeTypes[$mimeType])) {
-                return $requestFormat;
-            }
-
-            throw $this->getNotAcceptableHttpException($mimeType, $flattenedMimeTypes);
-        }
-
-        // Finally, if no Accept header nor Symfony request format is set, return the default format
-        return array_key_first($formats);
-    }
-
-    /**
-     * Gets the format associated with the mime type.
-     *
-     * Adapted from {@see \Symfony\Component\HttpFoundation\Request::getFormat}.
-     *
-     * @param array<string, string|string[]> $formats
-     */
-    private function getMimeTypeFormat(string $mimeType, array $formats): ?string
-    {
-        $canonicalMimeType = null;
-        $pos = strpos($mimeType, ';');
-        if (false !== $pos) {
-            $canonicalMimeType = trim(substr($mimeType, 0, $pos));
-        }
-
-        foreach ($formats as $format => $mimeTypes) {
-            if (\in_array($mimeType, $mimeTypes, true)) {
-                return $format;
-            }
-            if (null !== $canonicalMimeType && \in_array($canonicalMimeType, $mimeTypes, true)) {
-                return $format;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieves an instance of NotAcceptableHttpException.
-     */
-    private function getNotAcceptableHttpException(string $accept, array $mimeTypes): NotAcceptableHttpException
-    {
-        return new NotAcceptableHttpException(sprintf(
-            'Requested format "%s" is not supported. Supported MIME types are "%s".',
-            $accept,
-            implode('", "', array_keys($mimeTypes))
-        ));
     }
 
     /**
