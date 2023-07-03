@@ -39,7 +39,7 @@ class ResolverFactory implements ResolverFactoryInterface
                 return $body;
             }
 
-            if (null === $resourceClass && array_key_exists($info->fieldName, $source ?? [])) {
+            if (null === $resourceClass && \array_key_exists($info->fieldName, $source ?? [])) {
                 return $body;
             }
 
@@ -65,6 +65,7 @@ class ResolverFactory implements ResolverFactoryInterface
             if (null === $operation->canWrite()) {
                 $operation = $operation->withWrite($operation instanceof Mutation && null !== $body);
             }
+
             return $this->processor->process($body, $operation, [], $context);
         };
     }

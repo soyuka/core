@@ -44,9 +44,8 @@ final class NormalizeProcessor implements ProcessorInterface
     }
 
     /**
-     *
-     * @param array<string, mixed>                                         $uriVariables
-     * @param array<string, mixed>                                         $context
+     * @param array<string, mixed> $uriVariables
+     * @param array<string, mixed> $context
      *
      * @return array<string, mixed>
      */

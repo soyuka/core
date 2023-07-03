@@ -31,7 +31,8 @@ final class EntrypointAction
     public function __construct(
         private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
         private readonly ?ProviderInterface $provider = null,
-        private readonly ?ProcessorInterface $processor = null) {
+        private readonly ?ProcessorInterface $processor = null)
+    {
     }
 
     /**
@@ -41,9 +42,10 @@ final class EntrypointAction
     {
         if ($this->provider && $this->processor) {
             $context = ['request' => &$request];
-            $operation = new Get(class: Entrypoint::class, provider: fn() => new Entrypoint($this->resourceNameCollectionFactory->create()));
+            $operation = new Get(class: Entrypoint::class, provider: fn () => new Entrypoint($this->resourceNameCollectionFactory->create()));
             $request->attributes->set('_api_operation', $operation);
             $body = $this->provider->provide($operation, [], $context);
+
             return $this->processor->process($body, $operation, [], $context);
         }
 

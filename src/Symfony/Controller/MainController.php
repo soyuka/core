@@ -56,7 +56,7 @@ final class MainController
         $context = [
             'request' => &$request,
             'uri_variables' => $uriVariables,
-            'resource_class' => $operation->getClass()
+            'resource_class' => $operation->getClass(),
         ];
 
         if (null === $operation->canValidate()) {

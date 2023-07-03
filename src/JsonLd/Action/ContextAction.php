@@ -45,8 +45,7 @@ final class ContextAction
         private readonly ?ProviderInterface $provider = null,
         private readonly ?ProcessorInterface $processor = null,
         private readonly ?SerializerInterface $serializer = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -56,7 +55,7 @@ final class ContextAction
      *
      * @return array{context: array<string, mixed>}|Response
      */
-    public function __invoke(string $shortName, ?Request $request = null): array | Response
+    public function __invoke(string $shortName, Request $request = null): array|Response
     {
         if (null !== $request && $this->provider && $this->processor && $this->serializer) {
             $operation = new Get(
@@ -67,6 +66,7 @@ final class ContextAction
             );
             $context = ['request' => &$request];
             $this->provider->provide($operation, [], $context);
+
             return $this->processor->process($this->serializer->serialize($this->getContext($shortName), 'json'), $operation, [], $context);
         }
 
@@ -78,9 +78,10 @@ final class ContextAction
     }
 
     /**
-     * @return null|array{context: array<string, mixed>}
+     * @return array{context: array<string, mixed>}|null
      */
-    private function getContext(string $shortName): ?array {
+    private function getContext(string $shortName): ?array
+    {
         if ('Entrypoint' === $shortName) {
             return ['@context' => $this->contextBuilder->getEntrypointContext()];
         }

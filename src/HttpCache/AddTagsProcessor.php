@@ -15,17 +15,12 @@ namespace ApiPlatform\HttpCache;
 
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Api\UrlGeneratorInterface;
-use ApiPlatform\HttpCache\PurgerInterface;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
-use ApiPlatform\Util\OperationRequestInitiatorTrait;
-use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 /**
  * Sets the list of resources' IRIs included in this response in the configured cache tag HTTP header and/or "xkey" HTTP headers.
@@ -55,11 +50,11 @@ final class AddTagsProcessor implements ProcessorInterface
         $response = $this->inner->process($data, $operation, $uriVariables, $context);
 
         if (
-            !($request = $context['request'] ?? null) ||
-            !$request->isMethodCacheable() ||
-            !$response instanceof Response ||
-            !$operation instanceof HttpOperation ||
-            !$response->isCacheable()
+            !($request = $context['request'] ?? null)
+            || !$request->isMethodCacheable()
+            || !$response instanceof Response
+            || !$operation instanceof HttpOperation
+            || !$response->isCacheable()
         ) {
             return $response;
         }

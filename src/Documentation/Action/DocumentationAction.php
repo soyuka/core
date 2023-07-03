@@ -23,7 +23,6 @@ use ApiPlatform\OpenApi\Serializer\ApiGatewayNormalizer;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Generates the API documentation.
@@ -40,8 +39,7 @@ final class DocumentationAction
         private readonly ?OpenApiFactoryInterface $openApiFactory = null,
         private readonly ?ProviderInterface $provider = null,
         private readonly ?ProcessorInterface $processor = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -59,13 +57,14 @@ final class DocumentationAction
 
             if (('json' === $request->getRequestFormat() || $htmlPrefered) && null !== $this->openApiFactory) {
                 if ($this->provider && $this->processor) {
-                    $operation = new Get(class: OpenApi::class, provider: fn() => $this->openApiFactory->__invoke($context), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway] );
+                    $operation = new Get(class: OpenApi::class, provider: fn () => $this->openApiFactory->__invoke($context), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
                     if ($htmlPrefered) {
                         $operation = $operation->withProcessor('api_platform.swagger_ui.processor')->withWrite(true);
                     }
 
                     $request->attributes->set('_api_operation', $operation);
                     $body = $this->provider->provide($operation, [], $context);
+
                     return $this->processor->process($body, $operation, [], $context);
                 }
 
@@ -74,9 +73,10 @@ final class DocumentationAction
         }
 
         if ($this->provider && $this->processor) {
-            $operation = new Get(class: Documentation::class, provider: fn() => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
+            $operation = new Get(class: Documentation::class, provider: fn () => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
             $request->attributes->set('_api_operation', $operation);
             $body = $this->provider->provide($operation, [], $context);
+
             return $this->processor->process($body, $operation, [], $context);
         }
 

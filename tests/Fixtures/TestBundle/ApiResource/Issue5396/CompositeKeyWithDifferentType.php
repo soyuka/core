@@ -32,7 +32,7 @@ class CompositeKeyWithDifferentType
             throw new \RuntimeException('verificationKey should be a string.');
         }
 
-        $s = new CompositeKeyWithDifferentType();
+        $s = new self();
         $s->id = $uriVariables['id'];
         $s->verificationKey = $uriVariables['verificationKey'];
 

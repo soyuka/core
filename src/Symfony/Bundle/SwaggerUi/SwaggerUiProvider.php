@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\Symfony\Bundle\SwaggerUi;
 
 use ApiPlatform\Metadata\Error;
@@ -12,6 +23,7 @@ use ApiPlatform\State\ProviderInterface;
 
 /**
  * When an HTML request is sent we provide a swagger ui documentation.
+ *
  * @internal
  */
 final class SwaggerUiProvider implements ProviderInterface
@@ -25,7 +37,7 @@ final class SwaggerUiProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        if ($operation->getClass() === OpenApi::class) {
+        if (OpenApi::class === $operation->getClass()) {
             return $this->inner->provide($operation, $uriVariables, $context);
         }
 
@@ -48,7 +60,7 @@ final class SwaggerUiProvider implements ProviderInterface
             $this->inner->provide($operation, $uriVariables, $context);
         }
 
-        $swaggerUiOperation  = new Get(
+        $swaggerUiOperation = new Get(
             class: OpenApi::class,
             processor: 'api_platform.swagger_ui.processor',
             validate: false,
@@ -59,6 +71,7 @@ final class SwaggerUiProvider implements ProviderInterface
 
         // save our operation
         $request->attributes->set('_api_operation', $swaggerUiOperation);
+
         return $this->openApiFactory->__invoke($context);
     }
 }

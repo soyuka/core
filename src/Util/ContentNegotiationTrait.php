@@ -1,12 +1,22 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\Util;
 
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotAcceptableHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 
 /**
  * @internal
@@ -68,16 +78,16 @@ trait ContentNegotiationTrait
     {
         $mimeTypes = [];
 
-        if (($routeFormat = $request->attributes->get('_format') ?: null)) {
+        if ($routeFormat = $request->attributes->get('_format') ?: null) {
             if (isset($formats[$routeFormat])) {
                 $mimeTypes = Request::getMimeTypes($routeFormat);
                 $flattenedMimeTypes = $this->flattenMimeTypes([$routeFormat => $mimeTypes]);
-            } else if ($throw) {
+            } elseif ($throw) {
                 throw new NotFoundHttpException(sprintf('Format "%s" is not supported', $routeFormat));
             }
         }
 
-        if (!$mimeTypes){
+        if (!$mimeTypes) {
             $flattenedMimeTypes = $this->flattenMimeTypes($formats);
             $mimeTypes = array_keys($flattenedMimeTypes);
         }

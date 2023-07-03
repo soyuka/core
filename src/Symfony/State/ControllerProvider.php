@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace ApiPlatform\Symfony\State;
 
 use ApiPlatform\Metadata\HttpOperation;
@@ -27,15 +38,15 @@ final class ControllerProvider implements ProviderInterface
         $body = $this->inner->provide($operation, $uriVariables, $context);
 
         if (
-            !($request = $context['request']) ||
-            !($operation instanceof HttpOperation) ||
-            !($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)
+            !($request = $context['request'])
+            || !($operation instanceof HttpOperation)
+            || !($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)
         ) {
             return $body;
         }
 
         $controller = $operation->getController();
-        if (!$controller || $controller === 'api_platform.symfony.main_controller') {
+        if (!$controller || 'api_platform.symfony.main_controller' === $controller) {
             return $body;
         }
 

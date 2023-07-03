@@ -84,7 +84,7 @@ final class ApiLoader extends Loader
                     }
 
                     if (false === $this->useSymfonyEvents) {
-                        if ($controller !== 'api_platform.symfony.main_controller' && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
+                        if ('api_platform.symfony.main_controller' !== $controller && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
                             $controller = 'api_platform.symfony.main_controller';
                         }
                     }

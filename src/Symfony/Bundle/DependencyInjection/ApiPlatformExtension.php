@@ -545,7 +545,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
-        /** TODO: remove these in 4.x only one resolver factory is used and we're using providers/processors */
+        /* TODO: remove these in 4.x only one resolver factory is used and we're using providers/processors */
         if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
             $loader->load('legacy/graphql.xml');
             $requestStack = new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE);

@@ -65,7 +65,7 @@ final class DeserializeProvider implements ProviderInterface
 
         $serializerContext = $this->serializerContextBuilder->createFromRequest($request, false, [
             'resource_class' => $operation->getClass(),
-            'operation' => $operation
+            'operation' => $operation,
         ]);
 
         $serializerContext['uri_variables'] = $uriVariables;

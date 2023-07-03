@@ -19,7 +19,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 
 /**
- * Adds the mercure subscription url if available
+ * Adds the mercure subscription url if available.
  */
 final class SubscriptionProcessor implements ProcessorInterface
 {

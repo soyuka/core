@@ -242,7 +242,7 @@ class AppKernel extends Kernel
 
         $loader->load(__DIR__.'/config/config_swagger.php');
 
-		$metadataBackwardCompatibilityLayer = (bool) ($_SERVER['EVENT_LISTENERS_BACKWARD_COMPATIBILITY_LAYER'] ?? false);
+        $metadataBackwardCompatibilityLayer = (bool) ($_SERVER['EVENT_LISTENERS_BACKWARD_COMPATIBILITY_LAYER'] ?? false);
         $c->prependExtensionConfig('api_platform', ['event_listeners_backward_compatibility_layer' => $metadataBackwardCompatibilityLayer]);
 
         if ('mongodb' === $this->environment) {

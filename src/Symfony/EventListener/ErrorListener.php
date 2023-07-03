@@ -51,7 +51,7 @@ final class ErrorListener extends SymfonyErrorListener
         private readonly array $exceptionToStatus = [],
         private readonly ?IdentifiersExtractorInterface $identifiersExtractor = null,
         private readonly ?ResourceClassResolverInterface $resourceClassResolver = null,
-        ?Negotiator $negotiator = null
+        Negotiator $negotiator = null
     ) {
         parent::__construct($controller, $logger, $debug, $exceptionsMapping);
         $this->resourceMetadataCollectionFactory = $resourceMetadataCollectionFactory;
@@ -102,14 +102,15 @@ final class ErrorListener extends SymfonyErrorListener
         }
 
         // For our swagger Ui errors
-        if ($format === 'html') {
+        if ('html' === $format) {
             $operation = $operation->withOutputFormats(['html' => ['text/html']]);
         }
 
         $identifiers = [];
         try {
             $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         if ($exception instanceof ValidationException) {
             if (!($apiOperation?->getExtraProperties()['rfc_7807_compliant_errors'] ?? false)) {

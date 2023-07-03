@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Processor;
 
-use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Serializer\ResourceList;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
@@ -46,7 +45,7 @@ final class SerializeProcessor implements ProcessorInterface
 
         $serializerContext = $this->serializerContextBuilder->createFromRequest($request, true, [
             'resource_class' => $operation->getClass(),
-            'operation' => $operation
+            'operation' => $operation,
         ]);
 
         $serializerContext['uri_variables'] = $uriVariables;
