@@ -37,7 +37,7 @@ final class SwaggerUiProvider implements ProviderInterface
             $request->attributes->set('_api_requested_operation', $operation);
         }
 
-        $operation  = new Get(
+        $swaggerUiOperation  = new Get(
             class: OpenApi::class,
             processor: 'api_platform.swagger_ui.processor',
             validate: false,
@@ -45,10 +45,10 @@ final class SwaggerUiProvider implements ProviderInterface
             status: $operation->getStatus()
         );
 
-        $body = $this->inner->provide($operation, $uriVariables, $context);
+        $body = $this->inner->provide($swaggerUiOperation, $uriVariables, $context);
 
         // save our operation
-        $request->attributes->set('_api_operation', $operation);
+        $request->attributes->set('_api_operation', $swaggerUiOperation);
 
         return $this->openApiFactory->__invoke($context);
     }

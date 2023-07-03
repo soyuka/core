@@ -1,0 +1,45 @@
+<?php
+
+namespace ApiPlatform\Symfony\Validator\State;
+
+use ApiPlatform\Api\QueryParameterValidator\QueryParameterValidator;
+use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\RequestParser;
+
+final class QueryParameterValidateProvider implements ProviderInterface
+{
+    public function __construct(private readonly ProviderInterface $inner, private readonly QueryParameterValidator $queryParameterValidator)
+    {
+    }
+
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
+    {
+        if (
+            !($request = $context['request'])
+            || !$request->isMethodSafe()
+            || 'GET' !== $request->getMethod()
+            || !$operation instanceof HttpOperation
+        ) {
+            return $this->inner->provide($operation, $uriVariables, $context);
+        }
+
+        if (!($operation?->getQueryParameterValidationEnabled() ?? true) || !$operation instanceof CollectionOperationInterface) {
+            return $this->inner->provide($operation, $uriVariables, $context);
+        }
+
+        $queryString = RequestParser::getQueryString($request);
+        $queryParameters = $queryString ? RequestParser::parseRequestParams($queryString) : [];
+        $class = $operation->getClass();
+        if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
+            $class = $options->getEntityClass();
+        }
+
+        $this->queryParameterValidator->validateFilters($class, $operation->getFilters() ?? [], $queryParameters);
+
+        return $this->inner->provide($operation, $uriVariables, $context);
+    }
+}
