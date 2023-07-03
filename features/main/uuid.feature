@@ -124,7 +124,8 @@ Feature: Using uuid identifier on resource
 
   @!mongodb
   Scenario: Retrieve a resource identified by a bad Ramsey\Uuid\Uuid
-    When I send a "GET" request to "/ramsey_uuid_dummies/41B29566-144B-E1D05DEFE78"
+    When I add "Accept" header equal to "application/ld+json"
+    And I send a "GET" request to "/ramsey_uuid_dummies/41B29566-144B-E1D05DEFE78"
     Then the response status code should be 404
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"

@@ -61,7 +61,7 @@ final class DocumentationAction
                 if ($this->provider && $this->processor) {
                     $operation = new Get(class: OpenApi::class, provider: fn() => $this->openApiFactory->__invoke($context), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway] );
                     if ($htmlPrefered) {
-                        $operation = $operation->withProcessor('api_platform.swagger_ui.processor');
+                        $operation = $operation->withProcessor('api_platform.swagger_ui.processor')->withWrite(true);
                     }
 
                     $request->attributes->set('_api_operation', $operation);

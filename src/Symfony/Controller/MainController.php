@@ -62,14 +62,20 @@ final class MainController
         $body = $this->provider->provide($operation, $uriVariables, $context);
 
         // The provider can change the Operation so we extract it again
-        $operation = $this->initializeOperation($request);
-        try {
-            $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
-        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
+        if ($request->attributes->get('_api_operation') !== $operation) {
+            $operation = $this->initializeOperation($request);
+            try {
+                $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
+            } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
+            }
         }
 
         $context['previous_data'] = $request->attributes->get('previous_data');
         $context['data'] = $request->attributes->get('data');
+
+        if (null === $operation->canWrite()) {
+            $operation = $operation->withWrite(!$request->isMethodSafe());
+        }
 
         return $this->processor->process($body, $operation, $uriVariables, $context);
     }

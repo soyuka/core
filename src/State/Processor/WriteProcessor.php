@@ -35,10 +35,8 @@ final class WriteProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         if (
-            !($request = $context['request'] ?? null)
-            || $request->isMethodSafe()
-            || $data instanceof Response
-            || !($operation->canWrite() ?? true)
+            $data instanceof Response
+            || !$operation->canWrite()
             || !$operation->getProcessor()
         ) {
             return $this->processor->process($data, $operation, $uriVariables, $context);

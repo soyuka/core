@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\GraphQl\Resolver\Factory;
 
+use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Operation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\State\ProcessorInterface;
@@ -55,6 +56,10 @@ class ResolverFactory implements ResolverFactoryInterface
             $graphQlContext = [];
             $context = ['source' => $source, 'args' => $args, 'info' => $info, 'root_class' => $rootClass, 'graphql_context' => &$graphQlContext];
             $body = $this->provider->provide($operation, [], $context);
+
+            if (null === $operation->canWrite()) {
+                $operation = $operation->withWrite($operation instanceof Mutation && null !== $body);
+            }
             return $this->processor->process($body, $operation, [], $context);
         };
     }

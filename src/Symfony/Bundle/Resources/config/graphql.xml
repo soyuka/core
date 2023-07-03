@@ -168,7 +168,7 @@
             <argument type="service" id="api_platform.graphql.subscription.mercure_iri_generator" on-invalid="ignore" />
         </service>
 
-        <service id="api_platform.graphql.state_processor.write" class="ApiPlatform\GraphQl\State\Processor\WriteProcessor" decorates="api_platform.graphql.state_processor" decoration-priority="100">
+        <service id="api_platform.graphql.state_processor.write" class="ApiPlatform\State\Processor\WriteProcessor" decorates="api_platform.graphql.state_processor" decoration-priority="100">
             <argument type="service" id="api_platform.graphql.state_processor.write.inner" />
             <argument type="service" id="api_platform.state_processor.locator" />
         </service>

@@ -25,6 +25,10 @@ final class SwaggerUiProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
+        if ($operation->getClass() === OpenApi::class) {
+            return $this->inner->provide($operation, $uriVariables, $context);
+        }
+
         if (
             !($operation instanceof HttpOperation)
             || !($request = $context['request'] ?? null)
@@ -49,14 +53,12 @@ final class SwaggerUiProvider implements ProviderInterface
             processor: 'api_platform.swagger_ui.processor',
             validate: false,
             read: false,
+            write: true, // force write so that our processor gets called
             status: $operation->getStatus()
         );
 
-        $body = $this->inner->provide($swaggerUiOperation, $uriVariables, $context);
-
         // save our operation
         $request->attributes->set('_api_operation', $swaggerUiOperation);
-
         return $this->openApiFactory->__invoke($context);
     }
 }
