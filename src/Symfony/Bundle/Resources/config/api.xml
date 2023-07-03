@@ -134,6 +134,7 @@
             <argument>%api_platform.enable_docs%</argument>
             <argument>%api_platform.graphql.graphiql.enabled%</argument>
             <argument>%api_platform.graphql.graphql_playground.enabled%</argument>
+            <argument>%api_platform.event_listeners_backward_compatibility_layer%</argument>
             <argument>null</argument>
 
             <tag name="routing.loader" />

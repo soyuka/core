@@ -15,7 +15,6 @@ namespace ApiPlatform\Symfony\Validator\State;
 
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
-use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Validator\ValidatorInterface;
@@ -37,19 +36,11 @@ final class ValidateProvider implements ProviderInterface
     {
         $body = $this->inner->provide($operation, $uriVariables, $context);
 
-        if ($operation instanceof HttpOperation) {
-            $request = $context['request'] ?? null;
-
-            if (
-                $body instanceof Response
-                || $request?->isMethodSafe()
-                || $request?->isMethod('DELETE')
-            ) {
-                return $body;
-            }
+        if ($body instanceof Response) {
+            return $body;
         }
 
-        if (!($operation->canValidate() ?? ($operation instanceof GraphQlOperation ? $operation instanceof Mutation : true))) {
+        if (!($operation->canValidate() ?? true)) {
             return $body;
         }
 

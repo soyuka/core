@@ -59,6 +59,10 @@ final class MainController
             'resource_class' => $operation->getClass()
         ];
 
+        if (null === $operation->canValidate()) {
+            $operation = $operation->withValidate(!$request?->isMethodSafe() && !$request?->isMethod('DELETE'));
+        }
+
         $body = $this->provider->provide($operation, $uriVariables, $context);
 
         // The provider can change the Operation so we extract it again

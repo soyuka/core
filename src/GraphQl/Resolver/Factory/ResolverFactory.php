@@ -55,6 +55,11 @@ class ResolverFactory implements ResolverFactoryInterface
 
             $graphQlContext = [];
             $context = ['source' => $source, 'args' => $args, 'info' => $info, 'root_class' => $rootClass, 'graphql_context' => &$graphQlContext];
+
+            if (null === $operation->canValidate()) {
+                $operation = $operation->withValidate($operation instanceof Mutation);
+            }
+
             $body = $this->provider->provide($operation, [], $context);
 
             if (null === $operation->canWrite()) {

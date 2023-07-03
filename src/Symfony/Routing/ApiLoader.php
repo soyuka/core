@@ -36,7 +36,7 @@ final class ApiLoader extends Loader
 
     private readonly XmlFileLoader $fileLoader;
 
-    public function __construct(KernelInterface $kernel, private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly ContainerInterface $container, private readonly array $formats, private readonly array $resourceClassDirectories = [], private readonly bool $graphqlEnabled = false, private readonly bool $entrypointEnabled = true, private readonly bool $docsEnabled = true, private readonly bool $graphiQlEnabled = false, private readonly bool $graphQlPlaygroundEnabled = false)
+    public function __construct(KernelInterface $kernel, private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly ContainerInterface $container, private readonly array $formats, private readonly array $resourceClassDirectories = [], private readonly bool $graphqlEnabled = false, private readonly bool $entrypointEnabled = true, private readonly bool $docsEnabled = true, private readonly bool $graphiQlEnabled = false, private readonly bool $graphQlPlaygroundEnabled = false, private readonly bool $useSymfonyEvents = true)
     {
         /** @var string[]|string $paths */
         $paths = $kernel->locateResource('@ApiPlatformBundle/Resources/config/routing');
@@ -83,14 +83,16 @@ final class ApiLoader extends Loader
                         throw new RuntimeException(sprintf('There is no builtin action for the "%s" operation. You need to define the controller yourself.', $operationName));
                     }
 
-                    if ($controller !== 'api_platform.symfony.main_controller' && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
-                        $controller = 'api_platform.symfony.main_controller';
+                    if (false === $this->useSymfonyEvents) {
+                        if ($controller !== 'api_platform.symfony.main_controller' && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
+                            $controller = 'api_platform.symfony.main_controller';
+                        }
                     }
 
                     $route = new Route(
                         $path,
                         [
-                            '_controller' => $controller ?? 'api_platform.symfony.main_controller',
+                            '_controller' => $controller ?? 'api_platform.action.placeholder',
                             '_format' => null,
                             '_stateless' => $operation->getStateless(),
                             '_api_resource_class' => $resourceClass,

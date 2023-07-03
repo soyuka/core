@@ -30,7 +30,6 @@ use ApiPlatform\GraphQl\Resolver\MutationResolverInterface;
 use ApiPlatform\GraphQl\Resolver\QueryCollectionResolverInterface;
 use ApiPlatform\GraphQl\Resolver\QueryItemResolverInterface;
 use ApiPlatform\GraphQl\Type\Definition\TypeInterface as GraphQlTypeInterface;
-use ApiPlatform\JsonLd\Context;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
@@ -132,7 +131,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $this->registerMercureConfiguration($container, $config, $loader);
         $this->registerMessengerConfiguration($container, $config, $loader);
         $this->registerElasticsearchConfiguration($container, $config, $loader);
-        $this->registerSecurityConfiguration($container, $loader);
+        $this->registerSecurityConfiguration($container, $config, $loader);
         $this->registerMakerConfiguration($container, $config, $loader);
         $this->registerArgumentResolverConfiguration($loader);
 
@@ -163,6 +162,13 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
 
         if (class_exists(AbstractUid::class)) {
             $loader->load('symfony/uid.xml');
+        }
+
+        // TODO: remove in 4.x
+        $container->setParameter('api_platform.event_listeners_backward_compatibility_layer', $config['event_listeners_backward_compatibility_layer']);
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/events.xml');
+            // TODO: trigger deprecation
         }
 
         $container->setParameter('api_platform.enable_entrypoint', $config['enable_entrypoint']);
@@ -539,29 +545,33 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
             return;
         }
 
-        // $requestStack = new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE);
-        // $collectionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-        //     ->setDecoratedService('api_platform.graphql.resolver.factory.collection')
-        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.collection.inner'), $requestStack]);
-        //
-        // $itemDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item')
-        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item.inner'), $requestStack]);
-        //
-        // $itemMutationDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item_mutation')
-        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_mutation.inner'), $requestStack]);
-        //
-        // $itemSubscriptionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
-        //     ->setDecoratedService('api_platform.graphql.resolver.factory.item_subscription')
-        //     ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_subscription.inner'), $requestStack]);
-        //
-        // $container->addDefinitions([
-        //     'api_platform.graphql.data_collector.resolver.factory.collection' => $collectionDataCollectorResolverFactory,
-        //     'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
-        //     'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
-        //     'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
-        // ]);
+        /** TODO: remove these in 4.x only one resolver factory is used and we're using providers/processors */
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/graphql.xml');
+            $requestStack = new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+            $collectionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+                ->setDecoratedService('api_platform.graphql.resolver.factory.collection')
+                ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.collection.inner'), $requestStack]);
+
+            $itemDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+                ->setDecoratedService('api_platform.graphql.resolver.factory.item')
+                ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item.inner'), $requestStack]);
+
+            $itemMutationDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+                ->setDecoratedService('api_platform.graphql.resolver.factory.item_mutation')
+                ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_mutation.inner'), $requestStack]);
+
+            $itemSubscriptionDataCollectorResolverFactory = (new Definition(DataCollectorResolverFactory::class))
+                ->setDecoratedService('api_platform.graphql.resolver.factory.item_subscription')
+                ->setArguments([new Reference('api_platform.graphql.data_collector.resolver.factory.item_subscription.inner'), $requestStack]);
+
+            $container->addDefinitions([
+                'api_platform.graphql.data_collector.resolver.factory.collection' => $collectionDataCollectorResolverFactory,
+                'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
+                'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
+                'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
+            ]);
+        }
     }
 
     private function registerCacheConfiguration(ContainerBuilder $container): void
@@ -678,6 +688,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
                 ->addTag('api_platform.validation_groups_generator');
             $container->registerForAutoconfiguration(PropertySchemaRestrictionMetadataInterface::class)
                 ->addTag('api_platform.metadata.property_schema_restriction');
+
+            if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+                $loader->load('legacy/validator.xml');
+            }
         }
 
         if (!$config['validator']) {
@@ -756,7 +770,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.elasticsearch.mapping', $config['elasticsearch']['mapping']);
     }
 
-    private function registerSecurityConfiguration(ContainerBuilder $container, XmlFileLoader $loader): void
+    private function registerSecurityConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
     {
         /** @var string[] $bundles */
         $bundles = $container->getParameter('kernel.bundles');
@@ -766,6 +780,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         }
 
         $loader->load('security.xml');
+
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/security.xml');
+        }
     }
 
     private function registerOpenApiConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void

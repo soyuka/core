@@ -36,7 +36,7 @@ final class WriteProcessor implements ProcessorInterface
     {
         if (
             $data instanceof Response
-            || !$operation->canWrite()
+            || !($operation->canWrite() ?? true)
             || !$operation->getProcessor()
         ) {
             return $this->processor->process($data, $operation, $uriVariables, $context);

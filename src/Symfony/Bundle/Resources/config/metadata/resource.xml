@@ -66,6 +66,7 @@
 
         <service id="api_platform.metadata.resource.metadata_collection_factory.deprecations" class="ApiPlatform\Metadata\Resource\Factory\DeprecationResourceMetadataCollectionFactory" decorates="api_platform.metadata.resource.metadata_collection_factory" public="false" decoration-priority="1000">
             <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory.deprecations.inner" />
+            <argument>%api_platform.event_listeners_backward_compatibility_layer%</argument>
         </service>
 
         <service id="api_platform.metadata.resource.metadata_collection_factory.cached" class="ApiPlatform\Metadata\Resource\Factory\CachedResourceMetadataCollectionFactory" decorates="api_platform.metadata.resource.metadata_collection_factory" decoration-priority="-10" public="false">
