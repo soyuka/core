@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Serializer;
 
+use ApiPlatform\Doctrine\Orm\State\Options;
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Error as ErrorOperation;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,7 +43,7 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
             throw new RuntimeException('Request attributes are not valid.');
         }
 
-        $operation = $attributes['operation'] ?? $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name']);
+        $operation = $attributes['operation'] ?? $this->resourceMetadataFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name'] ?? null);
         $context = $normalization ? ($operation->getNormalizationContext() ?? []) : ($operation->getDenormalizationContext() ?? []);
         $context['operation_name'] = $operation->getName();
         $context['operation'] = $operation;
@@ -56,6 +56,10 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
         $context['output'] = $operation->getOutput();
         $context['skip_deprecated_exception_normalizers'] = true;
 
+        if (($options = $operation?->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
+            $context['force_resource_class'] = $operation->getClass();
+        }
+
         if ($this->debug && isset($context['groups']) && $operation instanceof ErrorOperation) {
             if (!\is_array($context['groups'])) {
                 $context['groups'] = (array) $context['groups'];
@@ -66,14 +70,6 @@ final class SerializerContextBuilder implements SerializerContextBuilderInterfac
 
         if ($operation->getTypes()) {
             $context['types'] = $operation->getTypes();
-        }
-
-        if ($operation->getUriVariables()) {
-            $context['uri_variables'] = [];
-
-            foreach (array_keys($operation->getUriVariables()) as $parameterName) {
-                $context['uri_variables'][$parameterName] = $request->attributes->get($parameterName);
-            }
         }
 
         if (!$normalization) {

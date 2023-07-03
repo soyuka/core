@@ -63,7 +63,13 @@ final class DeserializeProvider implements ProviderInterface
             throw new UnsupportedMediaTypeHttpException('The "Content-Type" header must exist.');
         }
 
-        $serializerContext = $this->serializerContextBuilder->createFromRequest($request, normalization: false);
+        $serializerContext = $this->serializerContextBuilder->createFromRequest($request, false, [
+            'resource_class' => $operation->getClass(),
+            'operation' => $operation
+        ]);
+
+        $serializerContext['uri_variables'] = $uriVariables;
+
         if (!$format = $request->attributes->get('input_format') ?? null) {
             throw new UnsupportedMediaTypeHttpException('Format not supported.');
         }

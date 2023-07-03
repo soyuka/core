@@ -59,17 +59,15 @@ final class ContextAction
     public function __invoke(string $shortName, ?Request $request = null): array | Response
     {
         if (null !== $request && $this->provider && $this->processor && $this->serializer) {
-            $uriVariables = [];
             $operation = new Get(
                 outputFormats: ['jsonld' => ['application/ld+json']],
                 class: Context::class,
                 read: false,
                 serialize: false
             );
-            $request->attributes->set('_api_operation', $operation);
             $context = ['request' => &$request];
             $this->provider->provide($operation, [], $context);
-            return $this->processor->process($this->serializer->serialize($this->getContext($shortName), 'json'), $operation, $uriVariables, $context);
+            return $this->processor->process($this->serializer->serialize($this->getContext($shortName), 'json'), $operation, [], $context);
         }
 
         if (!$context = $this->getContext($shortName)) {

@@ -37,6 +37,13 @@ final class SwaggerUiProvider implements ProviderInterface
             $request->attributes->set('_api_requested_operation', $operation);
         }
 
+        // We need to call our operation provider just in case it fails
+        // when it fails we'll get an Error and we'll fix the status accordingly
+        // @see features/main/content_negotiation.feature:119
+        if (!$operation instanceof Error) {
+            $this->inner->provide($operation, $uriVariables, $context);
+        }
+
         $swaggerUiOperation  = new Get(
             class: OpenApi::class,
             processor: 'api_platform.swagger_ui.processor',

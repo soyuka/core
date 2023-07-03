@@ -22,6 +22,7 @@ use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\UriVariablesResolverTrait;
 use ApiPlatform\Util\OperationRequestInitiatorTrait;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class MainController
@@ -29,6 +30,9 @@ final class MainController
     use OperationRequestInitiatorTrait;
     use UriVariablesResolverTrait;
 
+    /**
+     * @param ProviderInterface<mixed> $provider
+     */
     public function __construct(
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ProviderInterface $provider,
@@ -39,13 +43,15 @@ final class MainController
         $this->uriVariablesConverter = $uriVariablesConverter;
     }
 
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): Response
     {
         $operation = $this->initializeOperation($request);
         $uriVariables = [];
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
-        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {}
+        } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
+            throw new NotFoundHttpException('Invalid uri variables.', $e);
+        }
 
         $context = [
             'request' => &$request,
@@ -54,6 +60,8 @@ final class MainController
         ];
 
         $body = $this->provider->provide($operation, $uriVariables, $context);
+
+        // The provider can change the Operation so we extract it again
         $operation = $this->initializeOperation($request);
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());

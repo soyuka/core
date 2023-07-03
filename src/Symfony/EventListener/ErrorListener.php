@@ -101,6 +101,11 @@ final class ErrorListener extends SymfonyErrorListener
             $operation = $operation->withProvider(provider: fn () => 'jsonapi' === $format && $errorResource instanceof ConstraintViolationListAwareExceptionInterface ? $errorResource->getConstraintViolationList() : $errorResource);
         }
 
+        // For our swagger Ui errors
+        if ($format === 'html') {
+            $operation = $operation->withOutputFormats(['html' => ['text/html']]);
+        }
+
         $identifiers = [];
         try {
             $identifiers = $this->identifiersExtractor?->getIdentifiersFromItem($errorResource, $operation) ?? [];
