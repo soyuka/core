@@ -17,6 +17,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 
+/**
+ * @internal
+ */
 class DeprecationResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
     // Hashmap to avoid triggering too many deprecations
@@ -34,6 +37,10 @@ class DeprecationResourceMetadataCollectionFactory implements ResourceMetadataCo
             foreach ($resourceMetadata->getOperations() as $operation) {
                 if ($operation instanceof Put && null === ($operation->getExtraProperties()['standard_put'] ?? null)) {
                     $this->triggerDeprecationOnce($operation, 'extraProperties["standard_put"]', 'In API Platform 4 PUT will always replace the data, use extraProperties["standard_put"] to "true" on every operation to avoid breaking PUT\'s behavior. Use PATCH to use the old behavior.');
+                }
+
+                if ($operation->getController() && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
+                    $this->triggerDeprecationOnce($operation, 'extraProperties["legacy_api_platform_controller"]', 'Your controller should return a Response, using it with API Platform will not work once "extraProperties[\'legacy_api_platform_controller\']" is set to `false` which will be the defaults in API Platform 4.');
                 }
             }
         }

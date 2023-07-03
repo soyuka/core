@@ -50,6 +50,7 @@ final class MainController
         $context = [
             'request' => &$request,
             'uri_variables' => $uriVariables,
+            'resource_class' => $operation->getClass()
         ];
 
         $body = $this->provider->provide($operation, $uriVariables, $context);
@@ -57,8 +58,11 @@ final class MainController
         try {
             $uriVariables = $this->getOperationUriVariables($operation, $request->attributes->all(), $operation->getClass());
         } catch (InvalidIdentifierException|InvalidUriVariableException $e) {
-            throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
+
+        $context['previous_data'] = $request->attributes->get('previous_data');
+        $context['data'] = $request->attributes->get('data');
+
         return $this->processor->process($body, $operation, $uriVariables, $context);
     }
 }

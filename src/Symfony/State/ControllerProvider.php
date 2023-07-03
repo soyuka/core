@@ -2,10 +2,9 @@
 
 namespace ApiPlatform\Symfony\State;
 
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\State\Pagination\PartialPaginatorInterface;
 use ApiPlatform\State\ProviderInterface;
-use ApiPlatform\State\T;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolverInterface;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 
@@ -29,8 +28,14 @@ final class ControllerProvider implements ProviderInterface
 
         if (
             !($request = $context['request']) ||
-            !($controller = $operation->getExtraProperties()['legacy_api_platform_controller'] ?? null)
+            !($operation instanceof HttpOperation) ||
+            !($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)
         ) {
+            return $body;
+        }
+
+        $controller = $operation->getController();
+        if (!$controller || $controller === 'api_platform.symfony.main_controller') {
             return $body;
         }
 

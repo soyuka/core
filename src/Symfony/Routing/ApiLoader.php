@@ -83,6 +83,10 @@ final class ApiLoader extends Loader
                         throw new RuntimeException(sprintf('There is no builtin action for the "%s" operation. You need to define the controller yourself.', $operationName));
                     }
 
+                    if ($controller !== 'api_platform.symfony.main_controller' && ($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)) {
+                        $controller = 'api_platform.symfony.main_controller';
+                    }
+
                     $route = new Route(
                         $path,
                         [

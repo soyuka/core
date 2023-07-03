@@ -50,7 +50,7 @@ final class SerializeProcessor implements ProcessorInterface
 
         $serializerContext = $this->serializerContextBuilder->createFromRequest($request, normalization: true);
         if (isset($serializerContext['output']) && \array_key_exists('class', $serializerContext['output']) && null === $serializerContext['output']['class']) {
-            return null;
+            return $this->processor->process(null, $operation, $uriVariables, $context);
         }
 
         // why not context builder?
