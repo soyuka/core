@@ -672,7 +672,6 @@ Feature: Create-Retrieve-Update-Delete
   Scenario: Get a collection resource in v3 configured in YAML
     Given there are 3 Programs
     When I send a "GET" request to "/users/1/programs"
-    Then print last JSON response
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"

@@ -168,7 +168,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $container->setParameter('api_platform.event_listeners_backward_compatibility_layer', $config['event_listeners_backward_compatibility_layer']);
         if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
             $loader->load('legacy/events.xml');
-            // TODO: trigger deprecation
+            // trigger_deprecation('api-platform/core', '3.2', sprintf('The custom controller should return an instance of "%s", not doing so in API Platform 4 will result in an exception.', Response::class));
         }
 
         $container->setParameter('api_platform.enable_entrypoint', $config['enable_entrypoint']);

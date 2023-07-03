@@ -62,7 +62,6 @@ final class DocumentationAction
                         $operation = $operation->withProcessor('api_platform.swagger_ui.processor')->withWrite(true);
                     }
 
-                    $request->attributes->set('_api_operation', $operation);
                     $body = $this->provider->provide($operation, [], $context);
 
                     return $this->processor->process($body, $operation, [], $context);
@@ -74,7 +73,6 @@ final class DocumentationAction
 
         if ($this->provider && $this->processor) {
             $operation = new Get(class: Documentation::class, provider: fn () => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
-            $request->attributes->set('_api_operation', $operation);
             $body = $this->provider->provide($operation, [], $context);
 
             return $this->processor->process($body, $operation, [], $context);

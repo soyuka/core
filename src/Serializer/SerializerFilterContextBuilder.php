@@ -42,7 +42,7 @@ final class SerializerFilterContextBuilder implements SerializerContextBuilderIn
 
         $context = $this->decorated->createFromRequest($request, $normalization, $attributes);
 
-        if (!($operation = $request->attributes->get('_api_operation'))) {
+        if (!($operation = $context['operation'] ?? null)) {
             $operation = $this->resourceMetadataCollectionFactory->create($attributes['resource_class'])->getOperation($attributes['operation_name'] ?? null);
         }
 

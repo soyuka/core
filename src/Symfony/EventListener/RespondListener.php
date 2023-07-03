@@ -50,10 +50,6 @@ final class RespondListener
     public function onKernelView(ViewEvent $event): void
     {
         $request = $event->getRequest();
-        if ('api_platform.symfony.main_controller' === $request->attributes->get('_controller')) {
-            return;
-        }
-
         $controllerResult = $event->getControllerResult();
         $operation = $this->initializeOperation($request);
 
@@ -68,8 +64,6 @@ final class RespondListener
         if ($controllerResult instanceof Response || !($attributes['respond'] ?? $request->attributes->getBoolean('_api_respond'))) {
             return;
         }
-
-        trigger_deprecation('api-platform/core', '3.2', sprintf('The custom controller should return an instance of "%s", not doing so in API Platform 4 will result in an exception.', Response::class));
 
         $headers = [
             'Content-Type' => sprintf('%s; charset=utf-8', $request->getMimeType($request->getRequestFormat())),

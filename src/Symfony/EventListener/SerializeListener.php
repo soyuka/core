@@ -57,12 +57,8 @@ final class SerializeListener
      */
     public function onKernelView(ViewEvent $event): void
     {
-        $request = $event->getRequest();
-        if ('api_platform.symfony.main_controller' === $request->attributes->get('_controller')) {
-            return;
-        }
-
         $controllerResult = $event->getControllerResult();
+        $request = $event->getRequest();
 
         if ($controllerResult instanceof Response) {
             return;

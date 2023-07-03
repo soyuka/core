@@ -34,7 +34,7 @@ final class ValidateProvider implements ProviderInterface
     {
         $body = $this->inner->provide($operation, $uriVariables, $context);
 
-        if ($body instanceof Response) {
+        if ($body instanceof Response || !$body) {
             return $body;
         }
 
