@@ -123,14 +123,3 @@ final class ContentNegotiationProvider implements ProviderInterface
         return null;
     }
 }
-// if ($operation instanceof HttpOperation) {
-//     $request->attributes->set('input_format', $this->getInputFormat($operation, $request));
-// }
-// $serverRequest = (new ServerRequest(method: $request->getMethod(), uri: $request->getUri(), body: $request->getContent()))
-//     ->withAttribute('request_format', $requestFormat)
-//     ->withAttribute('input_format', $this->getInputFormat($operation, $request))
-//     ->withAttribute('request_mime_type', $this->errorFormats[$requestFormat][0] ?? $request->getMimeType($requestFormat))
-//     ->withAttribute('previous_data', $request->attributes->get('data'))
-//     ->withAttribute('previous_operation', $request->attributes->get('_api_previous_operation'))
-//
-// ;
