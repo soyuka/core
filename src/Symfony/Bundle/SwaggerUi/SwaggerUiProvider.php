@@ -37,18 +37,15 @@ final class SwaggerUiProvider implements ProviderInterface
             $request->attributes->set('_api_requested_operation', $operation);
         }
 
-        if ($operation instanceof Error) {
-            $operation  = new Get(
-                class: OpenApi::class,
-                processor: 'api_platform.swagger_ui.processor',
-                validate: false,
-                read: false,
-                status: $operation->getStatus()
-            );
-            $body = $this->inner->provide($operation, $uriVariables, $context);
-        } else {
-            $body = $this->inner->provide($operation, $uriVariables, $context);
-        }
+        $operation  = new Get(
+            class: OpenApi::class,
+            processor: 'api_platform.swagger_ui.processor',
+            validate: false,
+            read: false,
+            status: $operation->getStatus()
+        );
+
+        $body = $this->inner->provide($operation, $uriVariables, $context);
 
         // save our operation
         $request->attributes->set('_api_operation', $operation);
