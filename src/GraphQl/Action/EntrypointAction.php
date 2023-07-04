@@ -16,9 +16,12 @@ namespace ApiPlatform\GraphQl\Action;
 use ApiPlatform\GraphQl\Error\ErrorHandlerInterface;
 use ApiPlatform\GraphQl\ExecutorInterface;
 use ApiPlatform\GraphQl\Type\SchemaBuilderInterface;
+use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\ContentNegotiationTrait;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
 use GraphQL\Executor\ExecutionResult;
+use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,15 +37,32 @@ final class EntrypointAction
 {
     private int $debug;
 
-    public function __construct(private readonly SchemaBuilderInterface $schemaBuilder, private readonly ExecutorInterface $executor, private readonly ?GraphiQlAction $graphiQlAction, private readonly ?GraphQlPlaygroundAction $graphQlPlaygroundAction, private readonly NormalizerInterface $normalizer, private readonly ErrorHandlerInterface $errorHandler, bool $debug = false, private readonly bool $graphiqlEnabled = false, private readonly bool $graphQlPlaygroundEnabled = false, private readonly ?string $defaultIde = null)
+    use ContentNegotiationTrait;
+
+    public function __construct(
+        private readonly SchemaBuilderInterface $schemaBuilder,
+        private readonly ExecutorInterface $executor,
+        private readonly ?GraphiQlAction $graphiQlAction,
+        private readonly ?GraphQlPlaygroundAction $graphQlPlaygroundAction,
+        private readonly NormalizerInterface $normalizer,
+        private readonly ErrorHandlerInterface $errorHandler,
+        bool $debug = false,
+        private readonly bool $graphiqlEnabled = false,
+        private readonly bool $graphQlPlaygroundEnabled = false,
+        private readonly ?string $defaultIde = null,
+        ?Negotiator $negotiator = null
+    )
     {
         $this->debug = $debug ? DebugFlag::INCLUDE_DEBUG_MESSAGE | DebugFlag::INCLUDE_TRACE : DebugFlag::NONE;
+        $this->negotiator = $negotiator ?? new Negotiator();
     }
 
     public function __invoke(Request $request): Response
     {
+        $format = $this->getRequestFormat($request, ['json' => ['application/json'], 'html' => ['text/html']]);
+
         try {
-            if ($request->isMethod('GET') && 'html' === $request->getRequestFormat()) {
+            if ($request->isMethod('GET') && 'html' === $format) {
                 if ('graphiql' === $this->defaultIde && $this->graphiqlEnabled && $this->graphiQlAction) {
                     return ($this->graphiQlAction)($request);
                 }

@@ -22,6 +22,8 @@ use ApiPlatform\OpenApi\OpenApi;
 use ApiPlatform\OpenApi\Serializer\ApiGatewayNormalizer;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ProviderInterface;
+use ApiPlatform\Util\ContentNegotiationTrait;
+use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -31,6 +33,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final class DocumentationAction
 {
+    use ContentNegotiationTrait;
+
     public function __construct(
         private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
         private readonly string $title = '',
@@ -38,8 +42,10 @@ final class DocumentationAction
         private readonly string $version = '',
         private readonly ?OpenApiFactoryInterface $openApiFactory = null,
         private readonly ?ProviderInterface $provider = null,
-        private readonly ?ProcessorInterface $processor = null
+        private readonly ?ProcessorInterface $processor = null,
+        ?Negotiator $negotiator = null
     ) {
+        $this->negotiator = $negotiator ?? new Negotiator();
     }
 
     /**
@@ -53,17 +59,16 @@ final class DocumentationAction
             $context['base_url'] = $request->getBaseUrl();
             $request->attributes->set('_api_normalization_context', $request->attributes->get('_api_normalization_context', []) + $context);
             $isGateway = $request->query->getBoolean(ApiGatewayNormalizer::API_GATEWAY);
-            $htmlPrefered = 'html' === $request->getPreferredFormat();
+            $format = $this->getRequestFormat($request, ['json' => ['application/json'], 'jsonld' => ['application/ld+json'], 'html' => ['text/html']]);
 
-            if (('json' === $request->getRequestFormat() || $htmlPrefered) && null !== $this->openApiFactory) {
+            if ('html' === $format || 'json' === $format && null !== $this->openApiFactory) {
                 if ($this->provider && $this->processor) {
                     $operation = new Get(class: OpenApi::class, provider: fn () => $this->openApiFactory->__invoke($context), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
-                    if ($htmlPrefered) {
+                    if ('html' === $format) {
                         $operation = $operation->withProcessor('api_platform.swagger_ui.processor')->withWrite(true);
                     }
 
                     $body = $this->provider->provide($operation, [], $context);
-
                     return $this->processor->process($body, $operation, [], $context);
                 }
 
@@ -74,7 +79,6 @@ final class DocumentationAction
         if ($this->provider && $this->processor) {
             $operation = new Get(class: Documentation::class, provider: fn () => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
             $body = $this->provider->provide($operation, [], $context);
-
             return $this->processor->process($body, $operation, [], $context);
         }
 
