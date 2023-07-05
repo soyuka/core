@@ -41,6 +41,7 @@ final class ValidationExceptionListener
     {
         if ($this->exceptionListener) {
             $this->exceptionListener->onKernelException($event);
+
             return;
         }
 

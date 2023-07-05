@@ -578,7 +578,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
                 'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
                 'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
                 'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
-             ]);
+            ]);
         }
     }
 
