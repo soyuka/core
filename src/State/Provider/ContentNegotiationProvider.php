@@ -27,8 +27,8 @@ final class ContentNegotiationProvider implements ProviderInterface
     use ContentNegotiationTrait;
 
     /**
-     * @param array<string, string[]>  $formats
-     * @param array<string, string[]>  $errorFormats
+     * @param array<string, string[]> $formats
+     * @param array<string, string[]> $errorFormats
      */
     public function __construct(private readonly ProviderInterface $inner, Negotiator $negotiator, private readonly array $formats = [], private readonly array $errorFormats = [])
     {

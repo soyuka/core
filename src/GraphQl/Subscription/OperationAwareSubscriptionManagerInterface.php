@@ -15,7 +15,6 @@ namespace ApiPlatform\GraphQl\Subscription;
 
 use ApiPlatform\Metadata\GraphQl\Operation;
 
-
 /**
  * Manages all the queried subscriptions and creates their ID.
  *
@@ -23,5 +22,5 @@ use ApiPlatform\Metadata\GraphQl\Operation;
  */
 interface OperationAwareSubscriptionManagerInterface extends SubscriptionManagerInterface
 {
-    public function retrieveSubscriptionId(array $context, ?array $result, ?Operation $operation = null): ?string;
+    public function retrieveSubscriptionId(array $context, ?array $result, Operation $operation = null): ?string;
 }

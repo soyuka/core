@@ -90,7 +90,7 @@ final class EntrypointAction
     /**
      * @throws BadRequestHttpException
      *
-     * @return array{0: null|array<string, mixed>, 1: string, 2: array<string, mixed>}
+     * @return array{0: array<string, mixed>|null, 1: string, 2: array<string, mixed>}
      */
     private function parseRequest(Request $request): array
     {

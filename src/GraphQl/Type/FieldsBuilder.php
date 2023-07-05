@@ -338,7 +338,7 @@ final class FieldsBuilder implements FieldsBuilderInterface, FieldsBuilderEnumIn
                     $resolve = ($this->itemResolverFactory)($resourceClass, $rootResource, $resourceOperation);
                 }
             } else {
-               if ($isStandardGraphqlType || $input) {
+                if ($isStandardGraphqlType || $input) {
                     $resolve = null;
                 } elseif (($rootOperation instanceof Mutation || $rootOperation instanceof Subscription) && $depth <= 0) {
                     $resolve = $rootOperation instanceof Mutation ? ($this->itemMutationResolverFactory)($resourceClass, $rootResource, $resourceOperation) : ($this->itemSubscriptionResolverFactory)($resourceClass, $rootResource, $resourceOperation);

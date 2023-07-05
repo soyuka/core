@@ -27,7 +27,7 @@ interface ProviderInterface
     /**
      * Provides data.
      *
-     * @param array<string, mixed>                                                            $uriVariables
+     * @param array<string, mixed>                                                                                     $uriVariables
      * @param array<string, mixed>|array{request?: \Symfony\Component\HttpFoundation\Request, resource_class?: string} $context
      *
      * @return T|Pagination\PartialPaginatorInterface<T>|iterable<T>|null
