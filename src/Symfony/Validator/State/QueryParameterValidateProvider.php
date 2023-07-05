@@ -30,10 +30,10 @@ final class QueryParameterValidateProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         if (
-            !($request = $context['request'])
+            !$operation instanceof HttpOperation
+            || !($request = $context['request'] ?? null)
             || !$request->isMethodSafe()
             || 'GET' !== $request->getMethod()
-            || !$operation instanceof HttpOperation
         ) {
             return $this->inner->provide($operation, $uriVariables, $context);
         }

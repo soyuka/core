@@ -42,12 +42,12 @@
         </service>
 
         <service id="api_platform.graphql.resolver.stage.write" class="ApiPlatform\GraphQl\Resolver\Stage\WriteStage" public="false">
-            <argument type="service" id="api_platform.state_processor" />
+            <argument type="service" id="api_platform.state_processor.locator" />
             <argument type="service" id="api_platform.graphql.serializer.context_builder" />
         </service>
         <service id="api_platform.graphql.resolver.stage.read" class="ApiPlatform\GraphQl\Resolver\Stage\ReadStage" public="false">
             <argument type="service" id="api_platform.symfony.iri_converter" />
-            <argument type="service" id="api_platform.state_provider" />
+            <argument type="service" id="api_platform.state_provider.locator" />
             <argument type="service" id="api_platform.graphql.serializer.context_builder" />
             <argument>%api_platform.graphql.nesting_separator%</argument>
         </service>

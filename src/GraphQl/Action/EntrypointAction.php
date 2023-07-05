@@ -56,7 +56,8 @@ final class EntrypointAction
 
     public function __invoke(Request $request): Response
     {
-        $format = $this->getRequestFormat($request, ['json' => ['application/json'], 'html' => ['text/html']]);
+        $formats = ['json' => ['application/json'], 'html' => ['text/html']];
+        $format = $this->getRequestFormat($request, $formats, false);
 
         try {
             if ($request->isMethod('GET') && 'html' === $format) {

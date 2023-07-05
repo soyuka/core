@@ -438,6 +438,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         $loader->load('openapi.xml');
         $loader->load('swagger_ui.xml');
 
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/swagger_ui.xml');
+        }
+
         if (!$config['enable_swagger_ui'] && !$config['enable_re_doc']) {
             // Remove the listener but keep the controller to allow customizing the path of the UI
             $container->removeDefinition('api_platform.swagger.listener.ui');
@@ -459,6 +463,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
         }
 
         $loader->load('jsonapi.xml');
+
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/jsonapi.xml');
+        }
     }
 
     private function registerJsonLdHydraConfiguration(ContainerBuilder $container, array $formats, XmlFileLoader $loader, array $config): void
@@ -570,9 +578,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
                 'api_platform.graphql.data_collector.resolver.factory.item' => $itemDataCollectorResolverFactory,
                 'api_platform.graphql.data_collector.resolver.factory.item_mutation' => $itemMutationDataCollectorResolverFactory,
                 'api_platform.graphql.data_collector.resolver.factory.item_subscription' => $itemSubscriptionDataCollectorResolverFactory,
-            ]);
-        } else {
-            $container->setAlias('api_platform.graphql.resolver.factory.item', 'api_platform.graphql.resolver.factory');
+             ]);
         }
     }
 
@@ -631,6 +637,10 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     private function registerHttpCacheConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader): void
     {
         $loader->load('http_cache.xml');
+
+        if ($config['event_listeners_backward_compatibility_layer'] ?? true) {
+            $loader->load('legacy/http_cache.xml');
+        }
 
         if (!$this->isConfigEnabled($container, $config['http_cache']['invalidation'])) {
             return;

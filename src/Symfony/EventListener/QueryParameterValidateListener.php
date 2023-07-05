@@ -65,6 +65,6 @@ final class QueryParameterValidateListener
             $class = $options->getEntityClass();
         }
 
-        $this->queryParameterValidator->validateFilters($class, $operation->getFilters() ?? [], $queryParameters);
+        $this->query.ParameterValidator->validateFilters($class, $operation->getFilters() ?? [], $queryParameters);
     }
 }

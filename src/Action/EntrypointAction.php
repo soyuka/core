@@ -44,7 +44,6 @@ final class EntrypointAction
             $context = ['request' => &$request];
             $operation = new Get(class: Entrypoint::class, provider: fn () => new Entrypoint($this->resourceNameCollectionFactory->create()));
             $body = $this->provider->provide($operation, [], $context);
-
             return $this->processor->process($body, $operation, [], $context);
         }
 

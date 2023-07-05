@@ -38,8 +38,8 @@ final class ControllerProvider implements ProviderInterface
         $body = $this->inner->provide($operation, $uriVariables, $context);
 
         if (
-            !($request = $context['request'])
-            || !($operation instanceof HttpOperation)
+            !($operation instanceof HttpOperation)
+            || !($request = $context['request'] ?? null)
             || !($operation->getExtraProperties()['legacy_api_platform_controller'] ?? false)
         ) {
             return $body;
