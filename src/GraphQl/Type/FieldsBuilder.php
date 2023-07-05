@@ -15,6 +15,7 @@ namespace ApiPlatform\GraphQl\Type;
 
 use ApiPlatform\Api\ResourceClassResolverInterface;
 use ApiPlatform\Doctrine\Orm\State\Options;
+use ApiPlatform\GraphQl\Resolver\Factory\ResolverFactory;
 use ApiPlatform\GraphQl\Resolver\Factory\ResolverFactoryInterface;
 use ApiPlatform\GraphQl\Type\Definition\TypeInterface;
 use ApiPlatform\Metadata\GraphQl\Mutation;
@@ -330,10 +331,22 @@ final class FieldsBuilder implements FieldsBuilderInterface, FieldsBuilderEnumIn
                 $args = $this->getFilterArgs($args, $resourceClass, $rootResource, $resourceOperation, $rootOperation, $property, $depth);
             }
 
-            if ($isStandardGraphqlType || $input) {
-                $resolve = null;
+            if ($this->itemResolverFactory instanceof ResolverFactory) {
+                if ($isStandardGraphqlType || $input) {
+                    $resolve = null;
+                } else {
+                    $resolve = ($this->itemResolverFactory)($resourceClass, $rootResource, $resourceOperation);
+                }
             } else {
-                $resolve = ($this->itemResolverFactory)($resourceClass, $rootResource, $resourceOperation);
+               if ($isStandardGraphqlType || $input) {
+                    $resolve = null;
+                } elseif (($rootOperation instanceof Mutation || $rootOperation instanceof Subscription) && $depth <= 0) {
+                    $resolve = $rootOperation instanceof Mutation ? ($this->itemMutationResolverFactory)($resourceClass, $rootResource, $resourceOperation) : ($this->itemSubscriptionResolverFactory)($resourceClass, $rootResource, $resourceOperation);
+                } elseif ($this->typeBuilder->isCollection($type)) {
+                    $resolve = ($this->collectionResolverFactory)($resourceClass, $rootResource, $resourceOperation);
+                } else {
+                    $resolve = ($this->itemResolverFactory)($resourceClass, $rootResource, $resourceOperation);
+                }
             }
 
             return [

@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace ApiPlatform\GraphQl\State\Processor;
 
 use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGeneratorInterface;
+use ApiPlatform\GraphQl\Subscription\OperationAwareSubscriptionManagerInterface;
 use ApiPlatform\GraphQl\Subscription\SubscriptionManagerInterface;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 
@@ -30,11 +32,17 @@ final class SubscriptionProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         $data = $this->inner->process($data, $operation, $uriVariables, $context);
-        if (!($mercure = $operation->getMercure())) {
+        if (!$operation instanceof GraphQlOperation || !($mercure = $operation->getMercure())) {
             return $data;
         }
 
-        if ($subscriptionId = $this->subscriptionManager->retrieveSubscriptionId($context, $data, $operation)) {
+        if ($this->subscriptionManager instanceof OperationAwareSubscriptionManagerInterface) {
+            $subscriptionId = $this->subscriptionManager->retrieveSubscriptionId($context, $data, $operation);
+        } else {
+            $subscriptionId = $this->subscriptionManager->retrieveSubscriptionId($context, $data);
+        }
+
+        if ($subscriptionId) {
             if (!$this->mercureSubscriptionIriGenerator) {
                 throw new \LogicException('Cannot use Mercure for subscriptions when MercureBundle is not installed. Try running "composer require mercure".');
             }

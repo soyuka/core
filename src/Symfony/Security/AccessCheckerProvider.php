@@ -28,9 +28,6 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  */
 final class AccessCheckerProvider implements ProviderInterface
 {
-    /**
-     * @param ProviderInterface<mixed> $inner
-     */
     public function __construct(
         private readonly ProviderInterface $inner,
         private readonly ?ResourceAccessCheckerInterface $resourceAccessChecker = null,

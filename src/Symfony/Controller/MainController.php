@@ -30,9 +30,6 @@ final class MainController
     use OperationRequestInitiatorTrait;
     use UriVariablesResolverTrait;
 
-    /**
-     * @param ProviderInterface<mixed> $provider
-     */
     public function __construct(
         ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ProviderInterface $provider,
@@ -60,7 +57,7 @@ final class MainController
         ];
 
         if (null === $operation->canValidate()) {
-            $operation = $operation->withValidate(!$request?->isMethodSafe() && !$request?->isMethod('DELETE'));
+            $operation = $operation->withValidate(!$request->isMethodSafe() && !$request->isMethod('DELETE'));
         }
 
         $body = $this->provider->provide($operation, $uriVariables, $context);

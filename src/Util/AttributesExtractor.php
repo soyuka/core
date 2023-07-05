@@ -32,7 +32,7 @@ final class AttributesExtractor
      */
     public static function extractAttributes(array $attributes): array
     {
-        if ($attributes['_api_operation'] ?? null && !isset($attributes['_api_resource_class'])) {
+        if (($attributes['_api_operation'] ?? null) && !isset($attributes['_api_resource_class'])) {
             $attributes['_api_resource_class'] = $attributes['_api_operation']->getClass();
         }
 

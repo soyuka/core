@@ -29,9 +29,6 @@ use ApiPlatform\State\ProviderInterface;
  */
 final class SwaggerUiProvider implements ProviderInterface
 {
-    /**
-     * @param ProviderInterface<mixed> $inner
-     */
     public function __construct(private readonly ProviderInterface $inner, private readonly OpenApiFactoryInterface $openApiFactory)
     {
     }

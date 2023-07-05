@@ -38,7 +38,7 @@ final class QueryParameterValidateProvider implements ProviderInterface
             return $this->inner->provide($operation, $uriVariables, $context);
         }
 
-        if (!($operation?->getQueryParameterValidationEnabled() ?? true) || !$operation instanceof CollectionOperationInterface) {
+        if (!($operation->getQueryParameterValidationEnabled() ?? true) || !$operation instanceof CollectionOperationInterface) {
             return $this->inner->provide($operation, $uriVariables, $context);
         }
 

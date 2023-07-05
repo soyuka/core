@@ -73,9 +73,7 @@ final class RespondProcessor implements ProcessorInterface
         $method = $request->getMethod();
 
         if (
-            $this->iriConverter
-            && $operation
-            && ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
+            ($operation->getExtraProperties()['is_alternate_resource_metadata'] ?? false)
             && 301 === $operation->getStatus()
         ) {
             $status = 301;

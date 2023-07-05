@@ -25,7 +25,6 @@
         </service>
 
         <service id="api_platform.swagger_ui.processor" class="ApiPlatform\Symfony\Bundle\SwaggerUi\SwaggerUiProcessor" public="false">
-            <argument type="service" id="api_platform.metadata.resource.metadata_collection_factory" />
             <argument type="service" id="twig" on-invalid="null" />
             <argument type="service" id="router" />
             <argument type="service" id="api_platform.serializer" />

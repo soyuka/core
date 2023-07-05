@@ -20,6 +20,7 @@ use ApiPlatform\GraphQl\Serializer\ItemNormalizer;
 use ApiPlatform\GraphQl\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\GraphQl\Subscription;
 use ApiPlatform\Metadata\Operation;
@@ -37,9 +38,6 @@ final class ReadProvider implements ProviderInterface
     use ClassInfoTrait;
     use IdentifierTrait;
 
-    /**
-     * @param ProviderInterface<mixed> $provider
-     */
     public function __construct(
         private readonly ProviderInterface $provider,
         private readonly IriConverterInterface $iriConverter,
@@ -50,7 +48,7 @@ final class ReadProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        if (!($operation->canRead() ?? true)) {
+        if (!$operation instanceof GraphQlOperation || !($operation->canRead() ?? true)) {
             return $operation instanceof QueryCollection ? [] : null;
         }
 
@@ -69,7 +67,7 @@ final class ReadProvider implements ProviderInterface
                 $item = null;
             }
 
-            if ($identifier && ($operation instanceof Subscription || $operation instanceof Mutation)) {
+            if ($operation instanceof Subscription || $operation instanceof Mutation) {
                 if (null === $item) {
                     throw new NotFoundHttpException(sprintf('Item "%s" not found.', $args['input']['id']));
                 }
@@ -100,7 +98,7 @@ final class ReadProvider implements ProviderInterface
         // This is how we resolve graphql links see ApiPlatform\Doctrine\Common\State\LinksHandlerTrait, I'm wondering if we couldn't do that in an UriVariables
         // resolver within our ApiPlatform\GraphQl\Resolver\Factory\ResolverFactory, this would mimic what's happening in the HTTP controller and simplify some code.
         $source = $context['source'];
-        /** @var ResolveInfo $info */
+        /** @var \GraphQL\Type\Definition\ResolveInfo $info */
         $info = $context['info'];
         if (isset($source[$info->fieldName], $source[ItemNormalizer::ITEM_IDENTIFIERS_KEY], $source[ItemNormalizer::ITEM_RESOURCE_CLASS_KEY])) {
             $uriVariables = $source[ItemNormalizer::ITEM_IDENTIFIERS_KEY];
@@ -117,9 +115,9 @@ final class ReadProvider implements ProviderInterface
     }
 
     /**
-     * @param array<int, string> $args
+     * @param array<string, string|array> $args
      *
-     * @return array<int, string>
+     * @return array<string, string>
      */
     private function getNormalizedFilters(array $args): array
     {

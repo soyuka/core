@@ -27,9 +27,6 @@ final class ResolverProvider implements ProviderInterface
 {
     use ClassInfoTrait;
 
-    /**
-     * @param ProviderInterface<mixed> $inner
-     */
     public function __construct(private readonly ProviderInterface $inner, private readonly ContainerInterface $queryResolverLocator)
     {
     }
@@ -42,7 +39,7 @@ final class ResolverProvider implements ProviderInterface
             return $item;
         }
 
-        /** @var QueryItemResolverInterface $queryResolver */
+        /** @var \ApiPlatform\GraphQl\Resolver\QueryItemResolverInterface $queryResolver */
         $queryResolver = $this->queryResolverLocator->get($queryResolverId);
         $item = $queryResolver($item, $context);
         if (!$operation instanceof CollectionOperationInterface) {

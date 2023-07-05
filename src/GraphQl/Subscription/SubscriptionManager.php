@@ -31,7 +31,7 @@ use Psr\Cache\CacheItemPoolInterface;
  *
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
-final class SubscriptionManager implements SubscriptionManagerInterface
+final class SubscriptionManager implements OperationAwareSubscriptionManagerInterface
 {
     use IdentifierTrait;
     use ResourceClassInfoTrait;

@@ -37,7 +37,7 @@ final class CustomInputDtoProcessor implements ProcessorInterface
         /**
          * @var DummyDtoCustom|\ApiPlatform\Tests\Fixtures\TestBundle\Document\DummyDtoCustom
          */
-        $resourceObject = $context[AbstractItemNormalizer::OBJECT_TO_POPULATE] ?? new $context['resource_class']();
+        $resourceObject = $context['previous_data'] ?? new $context['resource_class']();
         $resourceObject->lorem = $data->foo;
         $resourceObject->ipsum = (string) $data->bar;
 

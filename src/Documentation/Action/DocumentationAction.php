@@ -43,7 +43,7 @@ final class DocumentationAction
         private readonly ?OpenApiFactoryInterface $openApiFactory = null,
         private readonly ?ProviderInterface $provider = null,
         private readonly ?ProcessorInterface $processor = null,
-        ?Negotiator $negotiator = null
+        Negotiator $negotiator = null
     ) {
         $this->negotiator = $negotiator ?? new Negotiator();
     }
@@ -69,6 +69,7 @@ final class DocumentationAction
                     }
 
                     $body = $this->provider->provide($operation, [], $context);
+
                     return $this->processor->process($body, $operation, [], $context);
                 }
 
@@ -77,8 +78,13 @@ final class DocumentationAction
         }
 
         if ($this->provider && $this->processor) {
-            $operation = new Get(class: Documentation::class, provider: fn () => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version), normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway]);
+            $operation = new Get(
+                class: Documentation::class,
+                provider: fn () => new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version),
+                normalizationContext: [ApiGatewayNormalizer::API_GATEWAY => $isGateway ?? false]
+            );
             $body = $this->provider->provide($operation, [], $context);
+
             return $this->processor->process($body, $operation, [], $context);
         }
 

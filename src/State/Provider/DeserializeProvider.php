@@ -104,5 +104,7 @@ final class DeserializeProvider implements ProviderInterface
                 throw new ValidationException($violations);
             }
         }
+
+        return $data;
     }
 }

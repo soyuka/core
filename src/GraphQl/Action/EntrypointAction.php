@@ -16,7 +16,6 @@ namespace ApiPlatform\GraphQl\Action;
 use ApiPlatform\GraphQl\Error\ErrorHandlerInterface;
 use ApiPlatform\GraphQl\ExecutorInterface;
 use ApiPlatform\GraphQl\Type\SchemaBuilderInterface;
-use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Util\ContentNegotiationTrait;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
@@ -35,9 +34,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class EntrypointAction
 {
-    private int $debug;
-
     use ContentNegotiationTrait;
+    private int $debug;
 
     public function __construct(
         private readonly SchemaBuilderInterface $schemaBuilder,
@@ -50,9 +48,8 @@ final class EntrypointAction
         private readonly bool $graphiqlEnabled = false,
         private readonly bool $graphQlPlaygroundEnabled = false,
         private readonly ?string $defaultIde = null,
-        ?Negotiator $negotiator = null
-    )
-    {
+        Negotiator $negotiator = null
+    ) {
         $this->debug = $debug ? DebugFlag::INCLUDE_DEBUG_MESSAGE | DebugFlag::INCLUDE_TRACE : DebugFlag::NONE;
         $this->negotiator = $negotiator ?? new Negotiator();
     }
@@ -93,7 +90,7 @@ final class EntrypointAction
     /**
      * @throws BadRequestHttpException
      *
-     * @return array{query: array<string, mixed>, operationName: string, variables: array<string, mixed>}
+     * @return array{0: null|array<string, mixed>, 1: string, 2: array<string, mixed>}
      */
     private function parseRequest(Request $request): array
     {
@@ -129,7 +126,7 @@ final class EntrypointAction
      *
      * @throws BadRequestHttpException
      *
-     * @return array{query: array<string,mixed>, operationName: string, variables: array<string,mixed>}
+     * @return array{0: array<string, mixed>, 1: string, 2: array<string, mixed>}
      */
     private function parseData(?string $query, ?string $operationName, array $variables, string $jsonContent): array
     {
@@ -159,7 +156,7 @@ final class EntrypointAction
      *
      * @throws BadRequestHttpException
      *
-     * @return array{query: array<string, mixed>, operationName: string, variables: array<string, mixed>}
+     * @return array{0: array<string, mixed>, 1: string, 2: array<string, mixed>}
      */
     private function parseMultipartRequest(?string $query, ?string $operationName, array $variables, array $bodyParameters, array $files): array
     {

@@ -53,7 +53,7 @@ final class ContextAction
      *
      * @throws NotFoundHttpException
      *
-     * @return array{context: array<string, mixed>}|Response
+     * @return array{'@context': array<string, mixed>}|Response
      */
     public function __invoke(string $shortName, Request $request = null): array|Response
     {
@@ -78,7 +78,7 @@ final class ContextAction
     }
 
     /**
-     * @return array{context: array<string, mixed>}|null
+     * @return array{'@context': array<string, mixed>}|null
      */
     private function getContext(string $shortName): ?array
     {

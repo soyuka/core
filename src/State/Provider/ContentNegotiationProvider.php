@@ -29,7 +29,6 @@ final class ContentNegotiationProvider implements ProviderInterface
     /**
      * @param array<string, string[]>  $formats
      * @param array<string, string[]>  $errorFormats
-     * @param ProviderInterface<mixed> $inner
      */
     public function __construct(private readonly ProviderInterface $inner, Negotiator $negotiator, private readonly array $formats = [], private readonly array $errorFormats = [])
     {
@@ -98,11 +97,11 @@ final class ContentNegotiationProvider implements ProviderInterface
      */
     private function getInputFormat(HttpOperation $operation, Request $request): ?string
     {
-        /** @var ?string $contentType */
         if (null === ($contentType = $request->headers->get('CONTENT_TYPE'))) {
             return null;
         }
 
+        /** @var string $contentType */
         $formats = $operation->getInputFormats() ?? [];
         if ($format = $this->getMimeTypeFormat($contentType, $formats)) {
             return $format;

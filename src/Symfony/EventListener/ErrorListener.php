@@ -87,7 +87,7 @@ final class ErrorListener extends SymfonyErrorListener
         } elseif ($this->resourceMetadataCollectionFactory) {
             // Create a generic, rfc7807 compatible error according to the wanted format
             /** @var HttpOperation $operation */
-            $operation = $this->resourceMetadataCollectionFactory->create(Error::class)->getOperation($this->getFormatOperation($format ?? null));
+            $operation = $this->resourceMetadataCollectionFactory->create(Error::class)->getOperation($this->getFormatOperation($format));
             $operation = $operation->withStatus($this->getStatusCode($apiOperation, $request, $operation, $exception));
             $errorResource = Error::createFromException($exception, $operation->getStatus());
         } else {
@@ -192,7 +192,7 @@ final class ErrorListener extends SymfonyErrorListener
         return 500;
     }
 
-    private function getFormatOperation(?string $format): ?string
+    private function getFormatOperation(?string $format): string
     {
         return match ($format) {
             'json' => '_api_errors_problem',

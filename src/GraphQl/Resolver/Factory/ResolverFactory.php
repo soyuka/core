@@ -22,9 +22,6 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 class ResolverFactory implements ResolverFactoryInterface
 {
-    /**
-     * @param ProviderInterface<mixed> $provider
-     */
     public function __construct(
         private readonly ProviderInterface $provider,
         private readonly ProcessorInterface $processor

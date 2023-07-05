@@ -15,7 +15,6 @@ namespace ApiPlatform\Symfony\Bundle\SwaggerUi;
 
 use ApiPlatform\Exception\RuntimeException;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\OpenApi\OpenApi;
 use ApiPlatform\OpenApi\Options;
 use ApiPlatform\OpenApi\Serializer\NormalizeOperationNameTrait;
@@ -32,7 +31,7 @@ final class SwaggerUiProcessor implements ProcessorInterface
 {
     use NormalizeOperationNameTrait;
 
-    public function __construct(private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, private readonly ?TwigEnvironment $twig, private readonly UrlGeneratorInterface $urlGenerator, private readonly NormalizerInterface $normalizer, private readonly Options $openApiOptions, private readonly SwaggerUiContext $swaggerUiContext, private readonly array $formats = [], private readonly ?string $oauthClientId = null, private readonly ?string $oauthClientSecret = null, private readonly bool $oauthPkce = false)
+    public function __construct(private readonly ?TwigEnvironment $twig, private readonly UrlGeneratorInterface $urlGenerator, private readonly NormalizerInterface $normalizer, private readonly Options $openApiOptions, private readonly SwaggerUiContext $swaggerUiContext, private readonly array $formats = [], private readonly ?string $oauthClientId = null, private readonly ?string $oauthClientSecret = null, private readonly bool $oauthPkce = false)
     {
         if (null === $this->twig) {
             throw new \RuntimeException('The documentation cannot be displayed since the Twig bundle is not installed. Try running "composer require symfony/twig-bundle".');
@@ -80,7 +79,7 @@ final class SwaggerUiProcessor implements ProcessorInterface
 
         $status = 200;
         $requestedOperation = $request?->attributes->get('_api_requested_operation') ?? null;
-        if ($request?->isMethodSafe() && $requestedOperation && $requestedOperation->getName()) {
+        if ($request->isMethodSafe() && $requestedOperation && $requestedOperation->getName()) {
             $swaggerData['id'] = $request->get('id');
             $swaggerData['queryParameters'] = $request->query->all();
 

@@ -36,7 +36,7 @@ final class SerializeProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        if ($data instanceof Response || !($operation?->canSerialize() ?? true) || !($request = $context['request'] ?? null)) {
+        if ($data instanceof Response || !($operation->canSerialize() ?? true) || !($request = $context['request'] ?? null)) {
             return $this->processor->process($data, $operation, $uriVariables, $context);
         }
 
@@ -64,7 +64,7 @@ final class SerializeProcessor implements ProcessorInterface
 
         $serialized = $this->serializer->serialize($data, $request->getRequestFormat(), $serializerContext);
         $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
-        if ($resourcesToPush) {
+        if (\count($resourcesToPush)) {
             $linkProvider = $request->attributes->get('_links', new GenericLinkProvider());
             foreach ($resourcesToPush as $resourceToPush) {
                 $linkProvider = $linkProvider->withLink((new Link('preload', $resourceToPush))->withAttribute('as', 'fetch'));

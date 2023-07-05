@@ -23,9 +23,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class ValidateProvider implements ProviderInterface
 {
-    /**
-     * @param ProviderInterface<mixed> $inner
-     */
     public function __construct(private readonly ProviderInterface $inner, private readonly ValidatorInterface $validator)
     {
     }

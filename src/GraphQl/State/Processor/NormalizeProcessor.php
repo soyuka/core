@@ -19,6 +19,7 @@ use ApiPlatform\GraphQl\Serializer\SerializerContextBuilderInterface;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
 use ApiPlatform\Metadata\GraphQl\Subscription;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
@@ -40,6 +41,10 @@ final class NormalizeProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): array|null
     {
+        if (!$operation instanceof GraphQlOperation) {
+            return $data;
+        }
+
         return $this->getData($data, $operation, $uriVariables, $context);
     }
 
@@ -49,7 +54,7 @@ final class NormalizeProcessor implements ProcessorInterface
      *
      * @return array<string, mixed>
      */
-    private function getData(mixed $itemOrCollection, Operation $operation, array $uriVariables = [], array $context = []): ?array
+    private function getData(mixed $itemOrCollection, GraphQlOperation $operation, array $uriVariables = [], array $context = []): ?array
     {
         $isCollection = $operation instanceof CollectionOperationInterface;
         $isMutation = $operation instanceof Mutation;

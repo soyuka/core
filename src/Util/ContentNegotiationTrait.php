@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Util;
 
+use Negotiation\Accept;
 use Negotiation\Negotiator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotAcceptableHttpException;
@@ -77,6 +78,7 @@ trait ContentNegotiationTrait
     private function getRequestFormat(Request $request, array $formats, bool $throw = true): string
     {
         $mimeTypes = [];
+        $flattenedMimeTypes = [];
 
         if ($routeFormat = $request->attributes->get('_format') ?: null) {
             if (isset($formats[$routeFormat])) {
@@ -97,6 +99,7 @@ trait ContentNegotiationTrait
         $accept = $request->headers->get('Accept');
         if (null !== $accept) {
             if ($mediaType = $this->negotiator->getBest($accept, $mimeTypes)) {
+                /** @var Accept $mediaType */
                 return $this->getMimeTypeFormat($mediaType->getType(), $formats);
             }
 
