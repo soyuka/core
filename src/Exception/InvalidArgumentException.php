@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Exception;
 
+use ApiPlatform\Metadata\Exception\InvalidArgumentException as MetadataInvalidArgumentException;
+
 /**
  * Invalid argument exception.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
+ *
+ * @deprecated use \ApiPlatform\Metadata\Exception\InvalidArgumentException
  */
-class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
+class InvalidArgumentException extends MetadataInvalidArgumentException
 {
 }

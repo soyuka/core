@@ -11,12 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Api;
+namespace ApiPlatform\Metadata;
 
 use ApiPlatform\Metadata\Exception\RuntimeException;
 use ApiPlatform\Metadata\GraphQl\Operation as GraphQlOperation;
-use ApiPlatform\Metadata\HttpOperation;
-use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -28,8 +26,6 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 /**
  * {@inheritdoc}
  *
- * @deprecated use ApiPlatform\Metadata\IdentifiersExtractor instead
- *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
 final class IdentifiersExtractor implements IdentifiersExtractorInterface
@@ -37,7 +33,10 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface
     use ResourceClassInfoTrait;
     private readonly PropertyAccessorInterface $propertyAccessor;
 
-    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, ResourceClassResolverInterface $resourceClassResolver, private readonly PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, private readonly PropertyMetadataFactoryInterface $propertyMetadataFactory, PropertyAccessorInterface $propertyAccessor = null)
+    /**
+     * @param LegacyResourceClassResolverInterface|ResourceClassResolverInterface $resourceClassResolver
+     */
+    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory, $resourceClassResolver, private readonly PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, private readonly PropertyMetadataFactoryInterface $propertyMetadataFactory, PropertyAccessorInterface $propertyAccessor = null)
     {
         $this->resourceMetadataFactory = $resourceMetadataFactory;
         $this->resourceClassResolver = $resourceClassResolver;

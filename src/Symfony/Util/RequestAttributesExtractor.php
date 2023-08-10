@@ -11,14 +11,15 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Util;
+namespace ApiPlatform\Symfony\Util;
 
+use ApiPlatform\Metadata\Util\AttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Extracts data used by the library form a Request instance.
  *
- * @deprecated use \ApiPlatform\Symfony\Util\RequestAttributesExtractor although it should've been internal
+ * @internal
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  */

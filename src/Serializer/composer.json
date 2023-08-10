@@ -1,10 +1,10 @@
 {
-    "name": "api-platform/elasticseach",
-    "description": "Elasticsearch support",
+    "name": "api-platform/serializer",
+    "description": "Build GraphQL API endpoints",
     "type": "library",
     "keywords": [
-        "Filter",
-        "Elasticsearch"
+        "Serializer",
+        "API"
     ],
     "homepage": "https://api-platform.com",
     "license": "MIT",
@@ -23,25 +23,21 @@
         "php": ">=8.1",
         "api-platform/metadata": "*@dev || ^3.1",
         "api-platform/state": "*@dev || ^3.1",
-        "api-platform/serializer": "*@dev || ^3.1",
-        "elasticsearch/elasticsearch": "^7.11.0",
-        "symfony/cache": "^6.1",
-        "symfony/console": "^6.2",
+        "doctrine/collections": "^2.1",
+        "symfony/property-access": "^6.3",
         "symfony/property-info": "^6.1",
         "symfony/serializer": "^6.1",
-        "symfony/uid": "^6.1",
-        "symfony/property-access": "^6.1"
-    },
-    "conflict": {
-        "elasticsearch/elasticsearch": ">=8.0"
+        "symfony/validator": "^6.3"
     },
     "require-dev": {
         "phpspec/prophecy-phpunit": "^2.0",
-        "symfony/phpunit-bridge": "^6.1"
+        "symfony/phpunit-bridge": "^6.1",
+        "symfony/mercure-bundle": "*",
+        "api-platform/symfony": "*@dev || ^3.1"
     },
     "autoload": {
         "psr-4": {
-            "ApiPlatform\\Elasticsearch\\": ""
+            "ApiPlatform\\Serializer\\": ""
         },
         "exclude-from-classmap": [
             "/Tests/"
@@ -76,7 +72,7 @@
         },
         {
             "type": "path",
-            "url": "../Serializer"
+            "url": "../Symfony"
         }
     ]
 }
