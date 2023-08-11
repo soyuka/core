@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Api;
+namespace ApiPlatform\Metadata\Util;
 
 /**
  * Normalizes a composite identifier.
  *
+ * @internal
  * @author Antoine Bluchet <soyuka@gmail.com>
- * @deprecated
  */
 final class CompositeIdentifierParser
 {

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Serializer\Tests\Filter;
 
 use ApiPlatform\Serializer\Filter\PropertyFilter;
+use ApiPlatform\Serializer\Tests\Fixtures\ApiResource\DummyProperty;
 use ApiPlatform\Serializer\Tests\Fixtures\Serializer\NameConverter\CustomConverter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

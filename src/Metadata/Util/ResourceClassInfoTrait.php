@@ -27,7 +27,7 @@ trait ResourceClassInfoTrait
     use ClassInfoTrait;
 
     /**
-     * @var LegacyResourceClassResolverInterface|ResourceClassResolverInterface
+     * @var LegacyResourceClassResolverInterface|ResourceClassResolverInterface|null
      */
     private $resourceClassResolver;
     private ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null;

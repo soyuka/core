@@ -20,8 +20,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\Link;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -42,10 +40,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(uriTemplate: '/dummies/{id}/related_dummies{._format}', uriVariables: ['id' => new Link(fromClass: Dummy::class, identifiers: ['id'], fromProperty: 'relatedDummies')], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new GetCollection()])]
 #[ApiResource(uriTemplate: '/dummies/{id}/related_dummies/{relatedDummies}{._format}', uriVariables: ['id' => new Link(fromClass: Dummy::class, identifiers: ['id'], fromProperty: 'relatedDummies'), 'relatedDummies' => new Link(fromClass: self::class, identifiers: ['id'])], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new Get()])]
 #[ApiResource(uriTemplate: '/related_dummies/{id}/id{._format}', uriVariables: ['id' => new Link(fromClass: self::class, identifiers: ['id'])], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new Get()])]
-#[ApiResource(uriTemplate: '/related_owned_dummies/{id}/owning_dummy/related_dummies{._format}', uriVariables: ['id' => new Link(fromClass: RelatedOwnedDummy::class, identifiers: ['id'], fromProperty: 'owningDummy'), 'owningDummy' => new Link(fromClass: Dummy::class, identifiers: [], expandedValue: 'owning_dummy', fromProperty: 'relatedDummies')], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new GetCollection()])]
-#[ApiResource(uriTemplate: '/related_owned_dummies/{id}/owning_dummy/related_dummies/{relatedDummies}{._format}', uriVariables: ['id' => new Link(fromClass: RelatedOwnedDummy::class, identifiers: ['id'], fromProperty: 'owningDummy'), 'owningDummy' => new Link(fromClass: Dummy::class, identifiers: [], expandedValue: 'owning_dummy', fromProperty: 'relatedDummies'), 'relatedDummies' => new Link(fromClass: self::class, identifiers: ['id'])], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new Get()])]
-#[ApiResource(uriTemplate: '/related_owning_dummies/{id}/owned_dummy/related_dummies{._format}', uriVariables: ['id' => new Link(fromClass: RelatedOwningDummy::class, identifiers: ['id'], fromProperty: 'ownedDummy'), 'ownedDummy' => new Link(fromClass: Dummy::class, identifiers: [], expandedValue: 'owned_dummy', fromProperty: 'relatedDummies')], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new GetCollection()])]
-#[ApiResource(uriTemplate: '/related_owning_dummies/{id}/owned_dummy/related_dummies/{relatedDummies}{._format}', uriVariables: ['id' => new Link(fromClass: RelatedOwningDummy::class, identifiers: ['id'], fromProperty: 'ownedDummy'), 'ownedDummy' => new Link(fromClass: Dummy::class, identifiers: [], expandedValue: 'owned_dummy', fromProperty: 'relatedDummies'), 'relatedDummies' => new Link(fromClass: self::class, identifiers: ['id'])], status: 200, types: ['https://schema.org/Product'], filters: ['related_dummy.friends', 'related_dummy.complex_sub_query'], normalizationContext: ['groups' => ['friends']], operations: [new Get()])]
 class RelatedDummy implements \Stringable
 {
     #[ApiProperty(writable: false)]
@@ -70,9 +64,6 @@ class RelatedDummy implements \Stringable
     #[Groups(['friends'])]
     public $dummyDate;
 
-    #[Groups(['fakemanytomany', 'friends'])]
-    public Collection|iterable $relatedToDummyFriend;
-
     /**
      * @var bool|null A dummy bool
      */
@@ -81,7 +72,6 @@ class RelatedDummy implements \Stringable
 
     public function __construct()
     {
-        $this->relatedToDummyFriend = new ArrayCollection();
     }
 
     public function getId()
@@ -135,44 +125,6 @@ class RelatedDummy implements \Stringable
     public function setDummyBoolean($dummyBoolean): void
     {
         $this->dummyBoolean = $dummyBoolean;
-    }
-
-    public function getThirdLevel(): ?ThirdLevel
-    {
-        return $this->thirdLevel;
-    }
-
-    public function setThirdLevel(ThirdLevel $thirdLevel = null): void
-    {
-        $this->thirdLevel = $thirdLevel;
-    }
-
-    /**
-     * Get relatedToDummyFriend.
-     */
-    public function getRelatedToDummyFriend(): Collection|iterable
-    {
-        return $this->relatedToDummyFriend;
-    }
-
-    /**
-     * Set relatedToDummyFriend.
-     *
-     * @param RelatedToDummyFriend $relatedToDummyFriend the value to set
-     */
-    public function addRelatedToDummyFriend(RelatedToDummyFriend $relatedToDummyFriend): void
-    {
-        $this->relatedToDummyFriend->add($relatedToDummyFriend);
-    }
-
-    public function getEmbeddedDummy(): EmbeddableDummy
-    {
-        return $this->embeddedDummy;
-    }
-
-    public function setEmbeddedDummy(EmbeddableDummy $embeddedDummy): void
-    {
-        $this->embeddedDummy = $embeddedDummy;
     }
 
     public function __toString(): string

@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Metadata;
 
+use ApiPlatform\Metadata\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\Exception\ItemNotFoundException;
+use ApiPlatform\Metadata\Exception\RuntimeException;
+
+
 /**
  * Converts item and resources to IRI and vice versa.
  *

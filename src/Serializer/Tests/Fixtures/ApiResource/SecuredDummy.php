@@ -102,7 +102,7 @@ class SecuredDummy
     /**
      * A dummy that only users can access. The security on RelatedSecuredDummy shouldn't be run.
      *
-     * @var RelatedSecuredDummy|null
+     * @var mixed
      */
     #[ApiProperty(security: "is_granted('ROLE_USER')")]
     protected $relatedSecuredDummy;
@@ -115,7 +115,7 @@ class SecuredDummy
     /**
      * A dummy that anyone can access. There is no ApiProperty security, and the security on RelatedSecuredDummy shouldn't be run.
      *
-     * @var RelatedSecuredDummy|null
+     * @var mixed
      */
     protected $publicRelatedSecuredDummy;
 
@@ -181,63 +181,4 @@ class SecuredDummy
         $this->owner = $owner;
     }
 
-    public function addRelatedDummy(RelatedDummy $relatedDummy): void
-    {
-        $this->relatedDummies->add($relatedDummy);
-    }
-
-    public function getRelatedDummies(): Collection|iterable
-    {
-        return $this->relatedDummies;
-    }
-
-    public function getRelatedDummy()
-    {
-        return $this->relatedDummy;
-    }
-
-    public function setRelatedDummy(RelatedDummy $relatedDummy): void
-    {
-        $this->relatedDummy = $relatedDummy;
-    }
-
-    public function addRelatedSecuredDummy(RelatedSecuredDummy $relatedSecuredDummy): void
-    {
-        $this->relatedSecuredDummies->add($relatedSecuredDummy);
-    }
-
-    public function getRelatedSecuredDummies(): Collection|iterable
-    {
-        return $this->relatedSecuredDummies;
-    }
-
-    public function getRelatedSecuredDummy()
-    {
-        return $this->relatedSecuredDummy;
-    }
-
-    public function setRelatedSecuredDummy(RelatedSecuredDummy $relatedSecuredDummy): void
-    {
-        $this->relatedSecuredDummy = $relatedSecuredDummy;
-    }
-
-    public function addPublicRelatedSecuredDummy(RelatedSecuredDummy $publicRelatedSecuredDummy): void
-    {
-        $this->publicRelatedSecuredDummies->add($publicRelatedSecuredDummy);
-    }
-
-    public function getPublicRelatedSecuredDummies(): Collection|iterable
-    {
-        return $this->publicRelatedSecuredDummies;
-    }
-
-    public function getPublicRelatedSecuredDummy()
-    {
-        return $this->publicRelatedSecuredDummy;
-    }
-
-    public function setPublicRelatedSecuredDummy(RelatedSecuredDummy $publicRelatedSecuredDummy): void
-    {
-        $this->publicRelatedSecuredDummy = $publicRelatedSecuredDummy;
-    }
 }

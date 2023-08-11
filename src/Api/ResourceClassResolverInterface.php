@@ -15,7 +15,7 @@ namespace ApiPlatform\Api;
 
 class_exists(\ApiPlatform\Metadata\ResourceClassResolverInterface::class);
 
-if (false) {
+if (false) { // @phpstan-ignore-line
     interface ResourceClassResolverInterface extends \ApiPlatform\Metadata\ResourceClassResolverInterface
     {
     }
