@@ -4,7 +4,14 @@ namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue5926;
 
 class MediaContentItem implements ContentItemInterface
 {
-    public string $type;
-    public Media $value;
-}
+    public function __construct(
+        private readonly Media $media,
+    )
+    {
+    }
 
+    public function getMedia(): Media
+    {
+        return $this->media;
+    }
+}
