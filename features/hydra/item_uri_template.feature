@@ -220,3 +220,16 @@ Feature: Exposing a collection of objects should use the specified operation to 
         ]
     }
     """
+
+  Scenario: Create an object without an itemUriTemplate should generate the IRI from the first Get operation
+    When I add "Content-Type" header equal to "application/ld+json"
+    And I send a "POST" request to "/issue5662/books/a/reviews" with body:
+    """
+    {
+      "body": "Good book"
+    }
+    """
+    Then the response status code should be 201
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON node "@id" should be equal to "/issue5662/books/a/reviews/0"
