@@ -49,7 +49,7 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: intl, bcmath, curl, openssl, mbstring, mongodb
           ini-values: memory_limit=-1
-          tools: pecl, composer, php-cs-fixer
+          tools: pecl, composer, php-cs-fixer:3.46.0
           coverage: none
       - name: Run PHP-CS-Fixer fix
         run: php-cs-fixer fix --dry-run --diff --ansi
