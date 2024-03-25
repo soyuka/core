@@ -290,6 +290,27 @@ final class FieldsBuilder implements FieldsBuilderInterface, FieldsBuilderEnumIn
             $args[$id]['type'] = $this->typeConverter->resolveType($arg['type']);
         }
 
+        // foreach ($operation->getParameters() ?? [] as $parameter) {
+        //     $args[$k = $parameter->getKey()] = ['type' =>  GraphQLType::string()];
+        //
+        //     if (false !== strpos($k, ':property')) {
+        //
+        //         if (!($filterId = $parameter->getFilter()) || !$this->filterLocator->has($filterId)) {
+        //             continue;
+        //         }
+        //         // foreach ($this->filterLocator->get($filterId)->getDescription($operation->getClass()) as $key => $value) {
+        //         //     $parsed = $this->parseFilterDescription($key, $value, fn($filterType) => $this->convertType($filterType, false, $operation, $operation, $operation->getClass(), $operation->getClass(), null, 0));
+        //         //     $args = $this->mergeFilterArgs($args, $parsed, $operation, $key);
+        //         // }
+        //
+        //         continue;
+        //     }
+        //
+        //     if ($parameter->getRequired()) {
+        //         $args[$k]['type'] = GraphQLType::nonNull($args[$k]['type']);
+        //     }
+        // }
+
         return $args;
     }
 
@@ -451,30 +472,41 @@ final class FieldsBuilder implements FieldsBuilderInterface, FieldsBuilderEnumIn
             }
 
             foreach ($this->filterLocator->get($filterId)->getDescription($entityClass) as $key => $value) {
-                $nullable = isset($value['required']) ? !$value['required'] : true;
-                $filterType = \in_array($value['type'], Type::$builtinTypes, true) ? new Type($value['type'], $nullable) : new Type('object', $nullable, $value['type']);
-                $graphqlFilterType = $this->convertType($filterType, false, $resourceOperation, $rootOperation, $resourceClass, $rootResource, $property, $depth);
-
-                if (str_ends_with($key, '[]')) {
-                    $graphqlFilterType = GraphQLType::listOf($graphqlFilterType);
-                    $key = substr($key, 0, -2).'_list';
-                }
-
-                /** @var string $key */
-                $key = str_replace('.', $this->nestingSeparator, $key);
-
-                parse_str($key, $parsed);
-                if (\array_key_exists($key, $parsed) && \is_array($parsed[$key])) {
-                    $parsed = [$key => ''];
-                }
-                array_walk_recursive($parsed, static function (&$value) use ($graphqlFilterType): void {
-                    $value = $graphqlFilterType;
-                });
+                $parsed = $this->parseFilterDescription($key, $value, fn($filterType) => $this->convertType($filterType, false, $resourceOperation, $rootOperation, $resourceClass, $rootResource, $property, $depth));
                 $args = $this->mergeFilterArgs($args, $parsed, $resourceOperation, $key);
             }
         }
 
         return $this->convertFilterArgsToTypes($args);
+    }
+
+    /**
+     * @param array{type: string, required: bool} $description
+     *
+     * @return array{parsed: array, key: string}
+     */
+    private function parseFilterDescription(string $key, array $description, callable $getType): array {
+        $nullable = isset($description['required']) ? !$description['required'] : true;
+        $filterType = \in_array($description['type'], Type::$builtinTypes, true) ? new Type($description['type'], $nullable) : new Type('object', $nullable, $description['type']);
+        $graphqlFilterType = $getType($filterType);
+
+        if (str_ends_with($key, '[]')) {
+            $graphqlFilterType = GraphQLType::listOf($graphqlFilterType);
+            $key = substr($key, 0, -2).'_list';
+        }
+
+        /** @var string $key */
+        $key = str_replace('.', $this->nestingSeparator, $key);
+
+        parse_str($key, $parsed);
+        if (\array_key_exists($key, $parsed) && \is_array($parsed[$key])) {
+            $parsed = [$key => ''];
+        }
+        array_walk_recursive($parsed, static function (&$v) use ($graphqlFilterType): void {
+            $v = $graphqlFilterType;
+        });
+
+        return ['parsed' => $parsed, 'key' => $key];
     }
 
     private function mergeFilterArgs(array $args, array $parsed, ?Operation $operation = null, string $original = ''): array

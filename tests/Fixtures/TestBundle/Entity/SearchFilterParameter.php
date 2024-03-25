@@ -33,17 +33,6 @@ use Doctrine\ORM\Mapping as ORM;
         'q' => new QueryParameter(property: 'hydra:freetextQuery'),
     ]
 )]
-#[QueryCollection(
-    parameters: [
-        'foo' => new QueryParameter(filter: 'app_search_filter_via_parameter'),
-        'order[:property]' => new QueryParameter(filter: 'app_search_filter_via_parameter.order_filter'),
-
-        'searchPartial[:property]' => new QueryParameter(filter: 'app_search_filter_partial'),
-        'searchExact[:property]' => new QueryParameter(filter: 'app_search_filter_with_exact'),
-        'searchOnTextAndDate[:property]' => new QueryParameter(filter: 'app_filter_date_and_search'),
-        'q' => new QueryParameter(property: 'hydra:freetextQuery'),
-    ]
-)]
 #[ApiFilter(SearchFilterValueTransformer::class, alias: 'app_search_filter_partial', properties: ['foo' => 'partial'], arguments: ['key' => 'searchPartial'])]
 #[ApiFilter(SearchFilterValueTransformer::class, alias: 'app_search_filter_with_exact', properties: ['foo' => 'exact'], arguments: ['key' => 'searchExact'])]
 #[ApiFilter(SearchTextAndDateFilter::class, alias: 'app_filter_date_and_search', properties: ['foo', 'createdAt'], arguments: ['dateFilterProperties' => ['createdAt' => 'exclude_null'], 'searchFilterProperties' => ['foo' => 'exact']])]
