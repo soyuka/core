@@ -143,6 +143,16 @@ final class ContextBuilder implements AnonymousContextBuilderInterface
     private function getResourceContextWithShortname(string $resourceClass, int $referenceType, string $shortName, ?HttpOperation $operation = null): array
     {
         $context = $this->getBaseContext($referenceType);
+        if (enum_exists($resourceClass)) {
+            $context['rdfs:label'] = $context['@id'] = $operation->getShortName();
+            $context['@type'] = 'rdfs:Class';
+            if ($description = $operation->getDescription()) {
+                $context['rdfs:comment'] = $description;
+            }
+            $context['subClassOf'] = ['@id' => 'schema:Enumeration'];
+            return $context;
+        }
+
         $propertyContext = $operation ? ['normalization_groups' => $operation->getNormalizationContext()['groups'] ?? null, 'denormalization_groups' => $operation->getDenormalizationContext()['groups'] ?? null] : ['normalization_groups' => [], 'denormalization_groups' => []];
 
         foreach ($this->propertyNameCollectionFactory->create($resourceClass) as $propertyName) {

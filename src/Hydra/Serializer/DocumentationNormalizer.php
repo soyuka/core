@@ -57,6 +57,10 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         $entrypointProperties = [];
 
         foreach ($object->getResourceNameCollection() as $resourceClass) {
+            if (enum_exists($resourceClass)) {
+                continue;
+            }
+
             $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
 
             $resourceMetadata = $resourceMetadataCollection[0];
@@ -505,16 +509,8 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
             'domain' => $prefixedShortName,
         ];
 
-        if ($propertyMetadata->getDeprecationReason()) {
-            $propertyData['owl:deprecated'] = true;
-        }
-
         if ($this->isSingleRelation($propertyMetadata)) {
             $propertyData['owl:maxCardinality'] = 1;
-        }
-
-        if (null !== $range = $this->getRange($propertyMetadata)) {
-            $propertyData['range'] = $range;
         }
 
         $property = [
@@ -526,8 +522,16 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
             'hydra:writeable' => $propertyMetadata->isWritable() || $propertyMetadata->isInitializable(),
         ];
 
+        if (null !== $range = $this->getRange($propertyMetadata)) {
+            $property['hydra:property']['range'] = $range;
+        }
+
         if (null !== $description = $propertyMetadata->getDescription()) {
             $property['hydra:description'] = $description;
+        }
+
+        if ($propertyMetadata->getDeprecationReason()) {
+            $property['owl:deprecated'] = true;
         }
 
         return $property;
@@ -602,3 +606,4 @@ final class DocumentationNormalizer implements NormalizerInterface, CacheableSup
         return true;
     }
 }
+
