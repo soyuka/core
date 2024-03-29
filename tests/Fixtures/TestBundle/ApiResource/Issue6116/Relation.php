@@ -4,7 +4,7 @@ namespace ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Issue6116;
 
 use ApiPlatform\Metadata\Get;
 
-#[Get(shortName: 'issue6116Relation', uriTemplate: 'issue6116_relation', provider: [Relation::class, 'provide'])]
+#[Get(shortName: 'issue6116Relation', uriTemplate: 'issue6116_relations/{id}', provider: [Relation::class, 'provide'])]
 class Relation
 {
     public string $id;

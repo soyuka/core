@@ -550,6 +550,15 @@ Feature: Relations support
     When I add "Content-Type" header equal to "application/ld+json"
     And I send a "POST" request to "/issue6116" with body:
     """
-    {"relation": "/issue6116_relation/1"}
+    {"relation": "/issue6116_relations/1"}
     """
     Then the response status code should be 400
+    And the JSON should be a superset of:
+    """
+    {
+      "@id": "/errors/400",
+      "@type": "hydra:Error",
+      "title": "An error occurred",
+      "detail": "Item not found for \"/issue6116_relations/1\"."
+    }
+    """
