@@ -544,3 +544,12 @@ Feature: Relations support
       "hydra:totalItems": 1
     }
     """
+
+  @createSchema
+  Scenario: Issue #6116
+    When I add "Content-Type" header equal to "application/ld+json"
+    And I send a "POST" request to "/issue6116" with body:
+    """
+    {"relation": "/issue6116_relation/1"}
+    """
+    Then the response status code should be 400
