@@ -1107,3 +1107,19 @@ Feature: GraphQL collection support
     Then the response status code should be 200
     And the response should be in JSON
     And the JSON node "data.fooDummies.paginationInfo.hasNextPage" should be false
+
+  @createSchema
+  Scenario: Retrieve an embeded collection
+    When I send the following GraphQL request:
+    """
+    query searchQuery($what: String) {
+      issue6365UserResults(what: $what) {
+        collection {
+
+        }
+      }
+    }
+    """
+    Then print last JSON response
+    Then the response status code should be 200
+    And the response should be in JSON
