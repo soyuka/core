@@ -41,6 +41,10 @@ final class ParameterProvider implements ProviderInterface
     {
         $request = $context['request'] ?? null;
 
+        if (!$request) {
+            return $this->decorated?->provide($operation, $uriVariables, $context);
+        }
+
         if ($request && null === $request->attributes->get('_api_query_parameters')) {
             $queryString = RequestParser::getQueryString($request);
             $request->attributes->set('_api_query_parameters', $queryString ? RequestParser::parseRequestParams($queryString) : []);
