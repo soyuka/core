@@ -268,4 +268,20 @@ class JsonLdTest extends TestCase
         $response = $this->get($iri, ['accept' => 'application/ld+json']);
         $response->assertStatus(200);
     }
+
+    public function testPolicy(): void
+    {
+        $response = $this->get('/api/books', ['accept' => 'application/ld+json']);
+        // $response->assertStatus(200);
+        // $response->assertHeader('content-type', 'application/ld+json; charset=utf-8');
+        // $response->assertJsonFragment([
+        //     '@context' => '/api/contexts/Sluggable',
+        //     '@id' => '/api/sluggables',
+        //     '@type' => 'hydra:Collection',
+        //     'hydra:totalItems' => 10,
+        // ]);
+        // $iri = $response->json('hydra:member.0.@id');
+        // $response = $this->get($iri, ['accept' => 'application/ld+json']);
+        // $response->assertStatus(200);
+    }
 }

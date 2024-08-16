@@ -95,6 +95,7 @@ final class Patch extends HttpOperation
         ?OptionsInterface $stateOptions = null,
         array|Parameters|null $parameters = null,
         array|string|null $rules = null,
+        array|string|null $policy = null,
         array $extraProperties = [],
     ) {
         parent::__construct(
@@ -172,6 +173,7 @@ final class Patch extends HttpOperation
             stateOptions: $stateOptions,
             parameters: $parameters,
             rules: $rules,
+            policy: $policy,
             extraProperties: $extraProperties
         );
     }

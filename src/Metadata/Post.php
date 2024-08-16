@@ -95,6 +95,7 @@ final class Post extends HttpOperation
         ?OptionsInterface $stateOptions = null,
         array|Parameters|null $parameters = null,
         array|string|null $rules = null,
+        array|string|null $policy = null,
         array $extraProperties = [],
         private ?string $itemUriTemplate = null
     ) {
@@ -173,6 +174,7 @@ final class Post extends HttpOperation
             stateOptions: $stateOptions,
             parameters: $parameters,
             rules: $rules,
+            policy: $policy,
             extraProperties: $extraProperties
         );
     }

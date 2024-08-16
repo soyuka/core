@@ -807,7 +807,8 @@ abstract class Operation extends Metadata
         protected $processor = null,
         protected ?OptionsInterface $stateOptions = null,
         array|Parameters|null $parameters = null,
-        protected mixed $rules = null,
+        protected array|string|null $rules = null,
+        protected array|string|null $policy = null,
         ?bool $queryParameterValidationEnabled = null,
         protected array $extraProperties = [],
     ) {

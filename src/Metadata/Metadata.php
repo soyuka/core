@@ -77,7 +77,8 @@ abstract class Metadata
          * @experimental
          */
         array|Parameters|null $parameters = null,
-        protected mixed $rules = null,
+        protected array|string|null $rules = null,
+        protected array|string|null $policy = null,
         protected ?bool $queryParameterValidationEnabled = null,
         protected array $extraProperties = []
     ) {
@@ -596,6 +597,25 @@ abstract class Metadata
     {
         $self = clone $this;
         $self->rules = $rules;
+
+        return $self;
+    }
+
+    /**
+     * @return string|callable|array<class-string, string>
+     */
+    public function getPolicy(): mixed
+    {
+        return $this->policy;
+    }
+
+    /**
+     * @param string|callable|array<class-string, string> $policy
+     */
+    public function withPolicy(mixed $policy): static
+    {
+        $self = clone $this;
+        $self->policy = $policy;
 
         return $self;
     }

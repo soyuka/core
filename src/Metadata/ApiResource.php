@@ -959,7 +959,8 @@ class ApiResource extends Metadata
         $provider = null,
         $processor = null,
         protected ?OptionsInterface $stateOptions = null,
-        protected mixed $rules = null,
+        protected array|string|null $rules = null,
+        protected array|string|null $policy = null,
         array|Parameters|null $parameters = null,
         protected array $extraProperties = [],
     ) {
@@ -1003,6 +1004,7 @@ class ApiResource extends Metadata
             stateOptions: $stateOptions,
             parameters: $parameters,
             rules: $rules,
+            policy: $policy,
             extraProperties: $extraProperties
         );
 
