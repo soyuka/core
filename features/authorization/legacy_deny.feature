@@ -3,8 +3,8 @@ Feature: Authorization checking
   As a client software user
   I need to be authorized to access a given resource using legacy access_control attribute.
 
-  @createSchema
   Scenario: An anonymous user retrieves a secured resource
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\LegacySecuredDummy" schema
     When I add "Accept" header equal to "application/ld+json"
     And I send a "GET" request to "/legacy_secured_dummies"
     Then the response status code should be 401

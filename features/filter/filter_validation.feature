@@ -3,8 +3,8 @@ Feature: Validate filters based upon filter description
   Background:
     Given I add "Accept" header equal to "application/json"
 
-  @createSchema
   Scenario: Required filter should not throw an error if set
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\FilterValidator" schema
     When I am on "/filter_validators?required=foo&required-allow-empty=&arrayRequired[foo]="
     Then the response status code should be 200
 
@@ -19,6 +19,7 @@ Feature: Validate filters based upon filter description
     And the JSON node "detail" should be equal to 'required: This value should not be blank.\nrequired-allow-empty: The parameter "required-allow-empty" is required.'
 
   Scenario: Required filter should not throw an error if set
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\ArrayFilterValidator" schema
     When I am on "/array_filter_validators?arrayRequired[]=foo&indexedArrayRequired[foo]=foo"
     Then the response status code should be 200
 

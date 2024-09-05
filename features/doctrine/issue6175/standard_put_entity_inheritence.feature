@@ -1,7 +1,6 @@
 Feature: Update properties of a resource that are inherited with standard PUT operation
 
   @!mongodb
-  @createSchema
   Scenario: Update properties of a resource that are inherited with standard PUT operation
     Given there is a dummy entity with a mapped superclass
     When I add "Content-Type" header equal to "application/ld+json"

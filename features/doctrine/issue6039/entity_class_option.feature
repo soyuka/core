@@ -2,7 +2,6 @@ Feature: Test entity class option on collections
   In order to retrieve a collections of resources mapped to a DTO automatically
   As a client software developer
 
-  @createSchema
   @!mongodb
   Scenario: Get collection
     Given there are issue6039 users

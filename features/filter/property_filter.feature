@@ -3,7 +3,6 @@ Feature: Set properties to include
   As a client software developer
   I need to select attributes to retrieve
 
-  @createSchema
   Scenario: Test properties filter
     Given there are 1 dummy objects with relatedDummy and its thirdLevel
     When I send a "GET" request to "/dummies/1?properties[]=name&properties[]=alias&properties[]=relatedDummy&properties[]=name_converted"

@@ -3,8 +3,8 @@ Feature: Create-Retrieve-Update-Delete
   As a client software developer
   I need to be able to retrieve, create, update and delete JSON-LD encoded resources.
 
-  @createSchema
   Scenario: Create a resource
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy" schema
     When I add "Content-Type" header equal to "application/ld+json"
     And I send a "POST" request to "/dummies" with body:
     """
@@ -559,8 +559,8 @@ Feature: Create-Retrieve-Update-Delete
     And the response should be empty
 
   @php8
-  @createSchema
   Scenario: Create a resource ProcessorEntity
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\ProcessorEntity" schema
     When I add "Content-Type" header equal to "application/ld+json"
     And I send a "POST" request to "/processor_entities" with body:
     """
@@ -586,6 +586,7 @@ Feature: Create-Retrieve-Update-Delete
 
   @php8
   Scenario: Create a resource ProviderEntity
+    Given there is a "ApiPlatform\Tests\Fixtures\TestBundle\Entity\ProviderEntity" schema
     When I add "Content-Type" header equal to "application/ld+json"
     And I send a "POST" request to "/provider_entities" with body:
     """

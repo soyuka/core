@@ -206,6 +206,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\Entity\UuidIdentifierDummy;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\VideoGame;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\WithJsonDummy;
 use Behat\Behat\Context\Context;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -245,7 +246,7 @@ final class DoctrineContext implements Context
     /**
      * @BeforeScenario @createSchema
      */
-    public function createDatabase(): void
+    public function createDatabase(BeforeScenarioScope $scope): void
     {
         /** @var ClassMetadata[] $classes */
         $classes = $this->manager->getMetadataFactory()->getAllMetadata();
@@ -260,6 +261,42 @@ final class DoctrineContext implements Context
         }
 
         $this->doctrine->getManager()->clear();
+    }
+
+    /**
+     * @param class-string[] $classes
+     */
+    private function recreateSchema(array $classes = []): void
+    {
+        $manager = $this->doctrine->getManager();
+
+        if ($manager instanceof DocumentManager) {
+            $schemaManager = $manager->getSchemaManager();
+            foreach ($classes as $c) {
+                $class = str_contains($c, 'Entity') ? str_replace('Entity', 'Document', $c) : $c;
+                $schemaManager->dropDocumentDatabase($class);
+            }
+
+            return;
+        }
+
+        /** @var ClassMetadata[] $cl */
+        $cl = [];
+        foreach ($classes as $c) {
+            $cl[] = $manager->getMetadataFactory()->getMetadataFor($c);
+        }
+
+        $schemaTool = new SchemaTool($manager);
+        @$schemaTool->dropSchema($cl);
+        @$schemaTool->createSchema($cl);
+    }
+
+    /**
+     * @Given there is a :className schema
+     */
+    public function givenThereIsAGivenSchema(string $className): void
+    {
+        $this->recreateSchema([$className]);
     }
 
     /**
@@ -696,6 +733,7 @@ final class DoctrineContext implements Context
      */
     public function thereAreDummyObjectsWithRelatedDummyAndItsThirdLevel(int $nb): void
     {
+        $this->recreateSchema([ThirdLevel::class, Dummy::class, RelatedDummy::class]);
         for ($i = 1; $i <= $nb; ++$i) {
             $thirdLevel = $this->buildThirdLevel();
 
@@ -1438,6 +1476,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsAProgram(): void
     {
+        $this->recreateSchema([Program::class, User::class]);
         $this->thereArePrograms(1);
     }
 
@@ -1485,6 +1524,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsAComment(): void
     {
+        $this->recreateSchema([Comment::class, User::class]);
         $this->thereAreComments(1);
     }
 
@@ -2275,6 +2315,7 @@ final class DoctrineContext implements Context
      */
     public function thereAreLogsOnAnEvent(): void
     {
+        $this->recreateSchema([Event::class, ItemLog::class]);
         $entity = new Event();
         $entity->logs = new ArrayCollection([new ItemLog(), new ItemLog()]);
         $entity->uuid = Uuid::fromString('03af3507-271e-4cca-8eee-6244fb06e95b');
@@ -2304,6 +2345,7 @@ final class DoctrineContext implements Context
      */
     public function thereIsADummyEntityWithAMappedSuperclass(): void
     {
+        $this->recreateSchema([DummyMappedSubclass::class]);
         $entity = new DummyMappedSubclass();
         $this->manager->persist($entity);
         $this->manager->flush();
@@ -2314,6 +2356,7 @@ final class DoctrineContext implements Context
      */
     public function thereAreIssue6039Users(): void
     {
+        $this->recreateSchema([Issue6039EntityUser::class]);
         $entity = new Issue6039EntityUser();
         $entity->name = 'test';
         $entity->bar = 'test';
