@@ -165,6 +165,7 @@ use ApiPlatform\Serializer\Filter\PropertyFilter;
 use ApiPlatform\Serializer\ItemNormalizer;
 use ApiPlatform\Serializer\JsonEncoder;
 use ApiPlatform\Serializer\Mapping\Factory\ClassMetadataFactory as SerializerClassMetadataFactory;
+use ApiPlatform\Serializer\Mapping\Loader\PropertyMetadataLoader;
 use ApiPlatform\Serializer\Parameter\SerializerFilterParameterProvider;
 use ApiPlatform\Serializer\SerializerContextBuilder;
 use ApiPlatform\State\CallableProcessor;
@@ -244,8 +245,14 @@ class ApiPlatformProvider extends ServiceProvider
 
         $this->app->bind(LoaderInterface::class, AttributeLoader::class);
         $this->app->bind(ClassMetadataFactoryInterface::class, ClassMetadataFactory::class);
-        $this->app->singleton(ClassMetadataFactory::class, function () {
-            return new ClassMetadataFactory(new AttributeLoader());
+        $this->app->singleton(ClassMetadataFactory::class, function (Application $app) {
+            return new ClassMetadataFactory(
+                new PropertyMetadataLoader(
+                    $app->make(PropertyNameCollectionFactoryInterface::class),
+                    $app->make(PropertyMetadataFactoryInterface::class),
+                    new AttributeLoader()
+                )
+            );
         });
 
         $this->app->singleton(SerializerClassMetadataFactory::class, function (Application $app) {
@@ -285,15 +292,15 @@ class ApiPlatformProvider extends ServiceProvider
             return new CachePropertyMetadataFactory(
                 new SchemaPropertyMetadataFactory(
                     $app->make(ResourceClassResolverInterface::class),
-                    new SerializerPropertyMetadataFactory(
-                        $app->make(SerializerClassMetadataFactory::class),
+                    // new SerializerPropertyMetadataFactory(
+                    //     $app->make(SerializerClassMetadataFactory::class),
                         new AttributePropertyMetadataFactory(
                             new EloquentAttributePropertyMetadataFactory(
                                 $inner,
                             )
                         ),
                         $app->make(ResourceClassResolverInterface::class)
-                    ),
+                    // ),
                 ),
                 true === $config->get('app.debug') ? 'array' : 'file'
             );

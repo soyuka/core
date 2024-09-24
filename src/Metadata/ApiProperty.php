@@ -14,6 +14,12 @@ declare(strict_types=1);
 namespace ApiPlatform\Metadata;
 
 use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
+use Symfony\Component\Serializer\Attribute\SerializedName;
+use Symfony\Component\Serializer\Attribute\SerializedPath;
 
 /**
  * ApiProperty annotation.
@@ -41,6 +47,7 @@ final class ApiProperty
      * @param Type[]                  $builtinTypes
      * @param string|null             $uriTemplate             (experimental) whether to return the subRessource collection IRI instead of an iterable of IRI
      * @param string|null             $property                The property name
+     * @param array<int, Groups|SerializedName|SerializedPath|MaxDepth|Ignore|Context> $serialize
      */
     public function __construct(
         private ?string $description = null,
@@ -205,6 +212,7 @@ final class ApiProperty
         private ?string $uriTemplate = null,
         private ?string $property = null,
         private ?string $policy = null,
+        private ?array $serialize = null,
         private array $extraProperties = [],
     ) {
         if (\is_string($types)) {
@@ -597,6 +605,22 @@ final class ApiProperty
     {
         $self = clone $this;
         $self->policy = $policy;
+
+        return $self;
+    }
+
+    public function getSerialize(): ?string
+    {
+        return $this->serialize;
+    }
+
+    /**
+     * @param array<int, Groups|SerializedName|SerializedPath|MaxDepth|Ignore|Context> $serialize
+     */
+    public function withSerialize(array $serialize): static
+    {
+        $self = clone $this;
+        $self->serialize = $serialize;
 
         return $self;
     }

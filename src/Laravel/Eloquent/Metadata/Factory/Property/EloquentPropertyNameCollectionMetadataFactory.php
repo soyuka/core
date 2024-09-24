@@ -39,8 +39,8 @@ final class EloquentPropertyNameCollectionMetadataFactory implements PropertyNam
             return $this->decorated?->create($resourceClass, $options) ?? new PropertyNameCollection();
         }
 
-        $refl = new \ReflectionClass($resourceClass);
         try {
+            $refl = new \ReflectionClass($resourceClass);
             $model = $refl->newInstanceWithoutConstructor();
         } catch (\ReflectionException) {
             return $this->decorated?->create($resourceClass, $options) ?? new PropertyNameCollection();
@@ -53,7 +53,7 @@ final class EloquentPropertyNameCollectionMetadataFactory implements PropertyNam
 
         // When it's an Eloquent model we read attributes from database (@see ShowModelCommand)
         foreach ($this->modelMetadata->getAttributes($model) as $property) {
-            if (!$property['primary'] && $property['hidden']) {
+            if (!($property['primary'] ?? null) && $property['hidden']) {
                 continue;
             }
 
