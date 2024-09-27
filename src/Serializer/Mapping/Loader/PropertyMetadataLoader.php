@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Serializer\Mapping\Loader;
 
-use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Attribute\DiscriminatorMap;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Serializer\Attribute\MaxDepth;
@@ -23,6 +25,7 @@ use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Serializer\Attribute\SerializedPath;
 use Symfony\Component\Serializer\Mapping\AttributeMetadata;
 use Symfony\Component\Serializer\Mapping\AttributeMetadataInterface;
+use Symfony\Component\Serializer\Mapping\ClassDiscriminatorMapping;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 
@@ -31,50 +34,111 @@ use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
  */
 final class PropertyMetadataLoader implements LoaderInterface
 {
-    public function __construct(private readonly PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, private readonly PropertyMetadataFactoryInterface $propertyMetadataFactory, private readonly ?LoaderInterface $decorated = null)
+    public function __construct(private readonly PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory)
     {
     }
 
     public function loadClassMetadata(ClassMetadataInterface $classMetadata): bool
     {
-        $ret = $this->decorated?->loadClassMetadata($classMetadata);
         $attributesMetadata = $classMetadata->getAttributesMetadata();
+        $refl = $classMetadata->getReflectionClass();
+        $attributes = [];
+        $classGroups = [];
+        $classContextAnnotation = null;
 
-        if ($classMetadata->getReflectionClass()->isAbstract()) {
-            return $ret ?? false;
+        // It's very weird to grab an eloquent's properties in that case as they're never serialized
+        // the Serializer makes a call on the abstract class, let's save some unneeded work with a condition
+        if (Model::class === $classMetadata->getName()) {
+            return false;
         }
 
-        foreach ($this->propertyNameCollectionFactory->create($resourceClass = $classMetadata->getName()) as $propertyName) {
-            $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
-            if (!($attributes = $propertyMetadata->getSerialize() ?? [])) {
+        foreach ($refl->getAttributes(ApiProperty::class) as $clAttr) {
+            $this->addAttributeMetadata($clAttr->newInstance(), $attributes);
+        }
+
+        $attributesMetadata = $classMetadata->getAttributesMetadata();
+
+        foreach ($refl->getAttributes() as $a) {
+            $attribute = $a->newInstance();
+            if ($attribute instanceof DiscriminatorMap) {
+                $classMetadata->setClassDiscriminatorMapping(new ClassDiscriminatorMapping(
+                    $attribute->getTypeProperty(),
+                    $attribute->getMapping()
+                ));
                 continue;
             }
 
+            if ($attribute instanceof Groups) {
+                $classGroups = $attribute->getGroups();
+
+                continue;
+            }
+
+            if ($attribute instanceof Context) {
+                $classContextAnnotation = $attribute;
+            }
+        }
+
+        foreach ($refl->getProperties() as $reflProperty) {
+            foreach ($reflProperty->getAttributes(ApiProperty::class) as $propAttr) {
+                $this->addAttributeMetadata($propAttr->newInstance()->withProperty($reflProperty->name), $attributes);
+            }
+        }
+
+        foreach ($refl->getMethods() as $reflMethod) {
+            foreach ($reflMethod->getAttributes(ApiProperty::class) as $methodAttr) {
+                $this->addAttributeMetadata($methodAttr->newInstance()->withProperty($reflMethod->getName()), $attributes);
+            }
+        }
+
+        foreach ($this->propertyNameCollectionFactory->create($classMetadata->getName()) as $propertyName) {
             if (!isset($attributesMetadata[$propertyName])) {
                 $attributesMetadata[$propertyName] = new AttributeMetadata($propertyName);
                 $classMetadata->addAttributeMetadata($attributesMetadata[$propertyName]);
             }
 
-            foreach ($attributes as $annotation) {
-                if ($annotation instanceof Groups) {
-                    foreach ($annotation->getGroups() as $group) {
+            foreach ($classGroups as $group) {
+                $attributesMetadata[$propertyName]->addGroup($group);
+            }
+
+            if ($classContextAnnotation) {
+                $this->setAttributeContextsForGroups($classContextAnnotation, $attributesMetadata[$propertyName]);
+            }
+
+            if (!isset($attributes[$propertyName])) {
+                continue;
+            }
+
+            foreach ($attributes[$propertyName] as $attr) {
+                if ($attr instanceof Groups) {
+                    foreach ($attr->getGroups() as $group) {
                         $attributesMetadata[$propertyName]->addGroup($group);
                     }
-                } elseif ($annotation instanceof MaxDepth) {
-                    $attributesMetadata[$propertyName]->setMaxDepth($annotation->getMaxDepth());
-                } elseif ($annotation instanceof SerializedName) {
-                    $attributesMetadata[$propertyName]->setSerializedName($annotation->getSerializedName());
-                } elseif ($annotation instanceof SerializedPath) {
-                    $attributesMetadata[$propertyName]->setSerializedPath($annotation->getSerializedPath());
-                } elseif ($annotation instanceof Ignore) {
+                } elseif ($attr instanceof MaxDepth) {
+                    $attributesMetadata[$propertyName]->setMaxDepth($attr->getMaxDepth());
+                } elseif ($attr instanceof SerializedName) {
+                    $attributesMetadata[$propertyName]->setSerializedName($attr->getSerializedName());
+                } elseif ($attr instanceof SerializedPath) {
+                    $attributesMetadata[$propertyName]->setSerializedPath($attr->getSerializedPath());
+                } elseif ($attr instanceof Ignore) {
                     $attributesMetadata[$propertyName]->setIgnore(true);
-                } elseif ($annotation instanceof Context) {
-                    $this->setAttributeContextsForGroups($annotation, $attributesMetadata[$propertyName]);
+                } elseif ($attr instanceof Context) {
+                    $this->setAttributeContextsForGroups($attr, $attributesMetadata[$propertyName]);
                 }
             }
         }
 
         return true;
+    }
+
+    /**
+     * @param ApiProperty[] $attributes
+     */
+    private function addAttributeMetadata(ApiProperty $attribute, array &$attributes): void
+    {
+        if (($prop = $attribute->getProperty()) && ($value = $attribute->getSerialize())) {
+            $attributes[$prop] = $value;
+        }
     }
 
     private function setAttributeContextsForGroups(Context $annotation, AttributeMetadataInterface $attributeMetadata): void

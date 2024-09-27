@@ -207,6 +207,7 @@ use Symfony\Component\Serializer\Encoder\CsvEncoder;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
+use Symfony\Component\Serializer\Mapping\Loader\LoaderChain;
 use Symfony\Component\Serializer\Mapping\Loader\LoaderInterface;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
@@ -247,11 +248,12 @@ class ApiPlatformProvider extends ServiceProvider
         $this->app->bind(ClassMetadataFactoryInterface::class, ClassMetadataFactory::class);
         $this->app->singleton(ClassMetadataFactory::class, function (Application $app) {
             return new ClassMetadataFactory(
-                new PropertyMetadataLoader(
-                    $app->make(PropertyNameCollectionFactoryInterface::class),
-                    $app->make(PropertyMetadataFactoryInterface::class),
-                    new AttributeLoader()
-                )
+                new LoaderChain([
+                    new PropertyMetadataLoader(
+                        $app->make(PropertyNameCollectionFactoryInterface::class),
+                    ),
+                    new AttributeLoader(),
+                ])
             );
         });
 
@@ -292,15 +294,15 @@ class ApiPlatformProvider extends ServiceProvider
             return new CachePropertyMetadataFactory(
                 new SchemaPropertyMetadataFactory(
                     $app->make(ResourceClassResolverInterface::class),
-                    // new SerializerPropertyMetadataFactory(
-                    //     $app->make(SerializerClassMetadataFactory::class),
+                    new SerializerPropertyMetadataFactory(
+                        $app->make(SerializerClassMetadataFactory::class),
                         new AttributePropertyMetadataFactory(
                             new EloquentAttributePropertyMetadataFactory(
                                 $inner,
                             )
                         ),
                         $app->make(ResourceClassResolverInterface::class)
-                    // ),
+                    ),
                 ),
                 true === $config->get('app.debug') ? 'array' : 'file'
             );

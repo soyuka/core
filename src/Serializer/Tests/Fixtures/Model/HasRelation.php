@@ -11,16 +11,17 @@
 
 declare(strict_types=1);
 
-namespace Workbench\App\Models;
+namespace ApiPlatform\Serializer\Tests\Fixtures\Model;
 
-use ApiPlatform\Metadata\ApiResource;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use ApiPlatform\Metadata\ApiProperty;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Symfony\Component\Serializer\Attribute\Groups;
 
-#[Groups(['read'])]
-#[ApiResource(operations: [])]
-class WithAccessorRelation extends Model
+class HasRelation
 {
-    use HasFactory;
+    #[ApiProperty(serialize: [new Groups(['read'])])]
+    public function relation(): Relation
+    {
+        return new Relation();
+    }
 }

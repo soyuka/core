@@ -188,4 +188,13 @@ class JsonApiTest extends TestCase
         $response->assertStatus(204);
         $this->assertNull(Book::find($book->id));
     }
+
+    public function testRelationWithGroups(): void
+    {
+        $response = $this->get('/api/with_accessors/1', ['accept' => 'application/vnd.api+json']);
+        $content = $response->json();
+        $this->assertArrayHasKey('relationships', $content);
+        $this->assertArrayHasKey('relation', $content['relationships']);
+        $this->assertArrayHasKey('data', $content['relationships']['relation']);
+    }
 }

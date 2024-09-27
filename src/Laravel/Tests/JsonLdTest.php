@@ -298,4 +298,12 @@ class JsonLdTest extends TestCase
         $content = $response->json();
         $this->assertArrayHasKey('trace', $content);
     }
+
+    public function testRelationWithGroups(): void
+    {
+        $response = $this->get('/api/with_accessors/1', ['accept' => 'application/ld+json']);
+        $content = $response->json();
+        $this->assertArrayHasKey('relation', $content);
+        $this->assertArrayHasKey('name', $content['relation']);
+    }
 }
