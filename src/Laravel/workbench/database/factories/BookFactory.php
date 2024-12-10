@@ -38,6 +38,7 @@ class BookFactory extends Factory
             'isbn' => fake()->isbn13(),
             'publication_date' => fake()->optional()->date(),
             'internal_note' => fake()->text(),
+            'published' => fake()->boolean(100),
         ];
     }
 }

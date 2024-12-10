@@ -33,6 +33,7 @@ return new class extends Migration {
             $table->string('isbn');
             $table->date('publication_date')->nullable();
             $table->text('internal_note')->nullable();
+            $table->boolean('published')->nullable();
             $table->integer('author_id')->unsigned();
             $table->foreign('author_id')->references('id')->on('authors');
             $table->timestamps();
