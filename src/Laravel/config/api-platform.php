@@ -65,7 +65,14 @@ return [
         'nesting_separator' => '__',
         'introspection' => ['enabled' => true],
         'max_query_complexity' => 500,
-        'max_query_depth' => 200
+        'max_query_depth' => 200,
+        'middleware' => []
+    ],
+
+    'graphiql' => [
+        'enabled' => false,
+        'domain' => null,
+        'middleware' => []
     ],
 
     'exception_to_status' => [
