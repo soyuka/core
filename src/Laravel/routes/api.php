@@ -40,13 +40,15 @@ Route::domain($domain)->middleware($globalMiddlewares)->group(function (): void 
                 }
 
                 /* @var HttpOperation $operation */
-                Route::addRoute($operation->getMethod(), Str::replace('{._format}', '{_format?}', $operation->getUriTemplate()), ApiPlatformController::class)
-                    ->prefix($operation->getRoutePrefix())
-                    ->middleware(ApiPlatformMiddleware::class.':'.$operation->getName())
-                    ->middleware($operation->getMiddleware())
-                    ->where('_format', '^\.[a-zA-Z]+')
-                    ->name($operation->getName())
-                    ->setDefaults(['_api_operation_name' => $operation->getName(), '_api_resource_class' => $operation->getClass()]);
+                Route::group([
+                    'middleware' => [ApiPlatformMiddleware::class.':'.$operation->getName(), $operation->getMiddleware()],
+                    'prefix' => $operation->getRoutePrefix(),
+                    'name' => $operation->getName(),
+                ], function () use ($operation): void {
+                    Route::addRoute($operation->getMethod(), Str::replace('{._format}', '{_format?}', $operation->getUriTemplate()), ApiPlatformController::class)
+                         ->where('_format', '^\.[a-zA-Z]+')
+                         ->setDefaults(['_api_operation_name' => $operation->getName(), '_api_resource_class' => $operation->getClass()]);
+                });
             }
         }
     }
