@@ -69,11 +69,11 @@ return [
         'middleware' => []
     ],
 
-    'graphiql' => [
-        'enabled' => false,
-        'domain' => null,
-        'middleware' => []
-    ],
+    // 'graphiql' => [
+        // 'enabled' => true,
+        // 'domain' => null,
+        // 'middleware' => []
+    // ],
 
     'exception_to_status' => [
         AuthenticationException::class => 401,
