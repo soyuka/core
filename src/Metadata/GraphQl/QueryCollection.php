@@ -130,6 +130,7 @@ final class QueryCollection extends Query implements CollectionOperationInterfac
             name: $name ?: 'collection_query',
             provider: $provider,
             processor: $processor,
+            stateOptions: $stateOptions,
             parameters: $parameters,
             queryParameterValidationEnabled: $queryParameterValidationEnabled,
             policy: $policy,
