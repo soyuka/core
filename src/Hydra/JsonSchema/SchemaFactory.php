@@ -146,12 +146,12 @@ final class SchemaFactory implements SchemaFactoryInterface, SchemaFactoryAwareI
                         ],
                     ],
                     'example' => [
-                        '@id' => 'string',
-                        'type' => 'string',
-                        $hydraPrefix.'first' => 'string',
-                        $hydraPrefix.'last' => 'string',
-                        $hydraPrefix.'previous' => 'string',
-                        $hydraPrefix.'next' => 'string',
+                        '@id' => '/examples?page=2',
+                        '@type' => 'hydra:PartialCollectionView',
+                        $hydraPrefix.'first' => '/examples?page=1',
+                        $hydraPrefix.'last' => '/examples?page=7',
+                        $hydraPrefix.'previous' => '/examples?page=1',
+                        $hydraPrefix.'next' => '/examples?page=3',
                     ],
                 ],
                 $hydraPrefix.'search' => [
