@@ -30,6 +30,7 @@ use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\OpenApi\Model\Parameter as OpenApiParameter;
 use ApiPlatform\Serializer\Filter\FilterInterface as SerializerFilterInterface;
+use ApiPlatform\State\Util\StateOptionsTrait;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
@@ -41,6 +42,8 @@ use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
  */
 final class ParameterResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
+    use StateOptionsTrait;
+
     private array $localPropertyCache;
 
     public function __construct(
@@ -235,7 +238,7 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
 
     private function getLegacyFilterMetadata(Parameter $parameter, Operation $operation, FilterInterface $filter): Parameter
     {
-        $description = $filter->getDescription($this->getFilterClass($operation));
+        $description = $filter->getDescription($this->getStateOptionsClass($operation, $operation->getClass()));
         $key = $parameter->getKey();
         if (($schema = $description[$key]['schema'] ?? null) && null === $parameter->getSchema()) {
             $parameter = $parameter->withSchema($schema);
@@ -254,18 +257,5 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
         }
 
         return $parameter;
-    }
-
-    private function getFilterClass(Operation $operation): ?string
-    {
-        $stateOptions = $operation->getStateOptions();
-        if ($stateOptions instanceof DoctrineORMOptions) {
-            return $stateOptions->getEntityClass();
-        }
-        if ($stateOptions instanceof DoctrineODMOptions) {
-            return $stateOptions->getDocumentClass();
-        }
-
-        return $operation->getClass();
     }
 }

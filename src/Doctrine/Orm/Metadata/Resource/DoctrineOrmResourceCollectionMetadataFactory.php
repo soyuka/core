@@ -27,6 +27,8 @@ use Doctrine\Persistence\ManagerRegistry;
 
 final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMetadataCollectionFactoryInterface
 {
+    use StateOptionsTrait;
+
     public function __construct(private readonly ManagerRegistry $managerRegistry, private readonly ResourceMetadataCollectionFactoryInterface $decorated)
     {
     }
@@ -45,10 +47,7 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
             if ($operations) {
                 /** @var Operation $operation */
                 foreach ($resourceMetadata->getOperations() as $operationName => $operation) {
-                    $entityClass = $operation->getClass();
-                    if (($options = $operation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
-                        $entityClass = $options->getEntityClass();
-                    }
+                    $entityClass = $operation->getStateOptionsClass($operation, $operation->getClass(), Options::class);
 
                     if (!$this->managerRegistry->getManagerForClass($entityClass) instanceof EntityManagerInterface) {
                         continue;
@@ -64,10 +63,7 @@ final class DoctrineOrmResourceCollectionMetadataFactory implements ResourceMeta
 
             if ($graphQlOperations) {
                 foreach ($graphQlOperations as $operationName => $graphQlOperation) {
-                    $entityClass = $graphQlOperation->getClass();
-                    if (($options = $graphQlOperation->getStateOptions()) && $options instanceof Options && $options->getEntityClass()) {
-                        $entityClass = $options->getEntityClass();
-                    }
+                    $entityClass = $this->getStateOptionsClass($operation, $operation->getClass(), Options::class);
 
                     if (!$this->managerRegistry->getManagerForClass($entityClass) instanceof EntityManagerInterface) {
                         continue;

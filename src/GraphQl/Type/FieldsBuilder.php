@@ -563,17 +563,6 @@ final class FieldsBuilder implements FieldsBuilderEnumInterface
                 continue;
             }
 
-            $entityClass = $resourceClass;
-            if ($options = $resourceOperation->getStateOptions()) {
-                if (class_exists(Options::class) && $options instanceof Options && $options->getEntityClass()) {
-                    $entityClass = $options->getEntityClass();
-                }
-
-                if (class_exists(ODMOptions::class) && $options instanceof ODMOptions && $options->getDocumentClass()) {
-                    $entityClass = $options->getDocumentClass();
-                }
-            }
-
             foreach ($this->filterLocator->get($filterId)->getDescription($entityClass) as $key => $description) {
                 $nullable = isset($description['required']) ? !$description['required'] : true;
                 $filterType = \in_array($description['type'], Type::$builtinTypes, true) ? new Type($description['type'], $nullable) : new Type('object', $nullable, $description['type']);
