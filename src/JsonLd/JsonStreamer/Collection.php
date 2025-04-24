@@ -5,26 +5,24 @@ declare(strict_types=1);
 namespace ApiPlatform\JsonLd\JsonStreamer;
 
 use ApiPlatform\Hydra\IriTemplate;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue6465\Foo;
 use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
-/**
- * @template T of object
- */
 final class Collection
 {
     #[StreamedName('@context')]
-    public string $context;
+    public ?string $context = null;
 
     #[StreamedName('@id')]
-    public string $id;
+    public CollectionId $id = CollectionId::VALUE;
 
     #[StreamedName('@type')]
-    public string $type;
+    public string $type = 'Collection';
 
-    public IriTemplate $search;
+    // public IriTemplate $search;
 
     /**
-     * @var iterable<T>
+     * @var list<Foo>
      */
-    public iterable $member;
+    public array $member;
 }

@@ -19,11 +19,15 @@ final class IriValueTransformer implements ValueTransformerInterface
 
     public function transform(mixed $value, array $options = []): mixed
     {
-        if ($options['operation'] instanceof CollectionOperationInterface) {
+        if ($options['_current_object'] instanceof Collection) {
             return $this->iriConverter->getIriFromResource($options['operation']->getClass(), UrlGeneratorInterface::ABS_PATH, $options['operation']);
         }
 
-        return $this->iriConverter->getIriFromResource($options['object'], UrlGeneratorInterface::ABS_PATH, $options['operation']);
+        return $this->iriConverter->getIriFromResource(
+            $options['_current_object'],
+            UrlGeneratorInterface::ABS_PATH,
+            $options['operation'] instanceof CollectionOperationInterface ? null : $options['operation'],
+        );
     }
 
     public static function getStreamValueType(): Type

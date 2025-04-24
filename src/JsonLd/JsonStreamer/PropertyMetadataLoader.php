@@ -21,7 +21,7 @@ final class PropertyMetadataLoader implements PropertyMetadataLoaderInterface
     {
         $properties = $this->loader->load($className, $options, $context);
 
-        if (!$this->resourceClassResolver->isResourceClass($className)) {
+        if ($className !== Collection::class && !$this->resourceClassResolver->isResourceClass($className)) {
             return $properties;
         }
 
@@ -31,11 +31,13 @@ final class PropertyMetadataLoader implements PropertyMetadataLoaderInterface
             ['api_platform.jsonld.json_streamer.write.value_transformer.iri'],
         );
 
-        $properties['@context'] = new PropertyMetadata(
-            'id', // virual property
-            Type::mixed(), // virtual property
-            ['api_platform.jsonld.json_streamer.write.value_transformer.context'],
-        );
+        if ((string) $context['original_type'] === Collection::class || ($this->resourceClassResolver->isResourceClass((string) $context['original_type']) && !isset($context['generated_classes'][Collection::class]))) {
+            $properties['@context'] = new PropertyMetadata(
+                'id', // virual property
+                Type::mixed(), // virtual property
+                ['api_platform.jsonld.json_streamer.write.value_transformer.context'],
+            );
+        }
 
         return $properties;
     }

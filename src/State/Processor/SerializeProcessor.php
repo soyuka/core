@@ -62,16 +62,16 @@ final class SerializeProcessor implements ProcessorInterface
         if ($this->jsonStreamer && !$operation instanceof Error) {
             if ($operation instanceof CollectionOperationInterface) {
                 $collection = new Collection();
-                $collection->member = $data;
-                $collection->search = new IriTemplate(
-                );
+                $collection->member = iterator_to_array($data);
+                // $collection->search = new IriTemplate('foo', 'bar');
 
-                return new StreamedResponse($this->jsonStreamer->write($data, Type::collection(Type::object(Collection::class), Type::object($operation->getClass())), [
+                return new StreamedResponse($this->jsonStreamer->write($collection, Type::object(Collection::class), [
+                    'data' => $data,
                     'operation' => $operation,
                 ]));
             } else {
                 return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass()), [
-                    'object' => $data,
+                    'data' => $data,
                     'operation' => $operation,
                 ]));
             }
