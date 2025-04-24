@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\JsonLd\JsonStreamer;
 
+use ApiPlatform\Hydra\IriTemplate;
 use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
 /**
@@ -20,8 +21,10 @@ final class Collection
     #[StreamedName('@type')]
     public string $type;
 
+    public IriTemplate $search;
+
     /**
-     * @var list<T>
+     * @var iterable<T>
      */
-    public iterable $members;
+    public iterable $member;
 }

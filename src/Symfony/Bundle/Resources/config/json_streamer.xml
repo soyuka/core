@@ -3,15 +3,25 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-
         <service id="api_platform.json_streamer.stream_writer" class="Symfony\Component\JsonStreamer\JsonStreamWriter">
-            <argument type="service_locator" id="json_streamer.value_transformer" />
+            <argument type="tagged_locator" tag="json_streamer.value_transformer" />
             <argument type="service" id="api_platform.jsonld.json_streamer.write.property_metadata_loader" />
             <argument>%.json_streamer.stream_writers_dir%</argument>
         </service>
 
         <service id="api_platform.jsonld.json_streamer.write.property_metadata_loader" class="ApiPlatform\JsonLd\JsonStreamer\PropertyMetadataLoader">
             <argument type="service" id="json_streamer.write.property_metadata_loader" />
+            <argument type="service" id="api_platform.resource_class_resolver" />
+        </service>
+
+        <service id="api_platform.jsonld.json_streamer.write.value_transformer.iri" class="ApiPlatform\JsonLd\JsonStreamer\IriValueTransformer">
+            <argument type="service" id="api_platform.iri_converter" />
+            <tag name="json_streamer.value_transformer"/>
+        </service>
+
+        <service id="api_platform.jsonld.json_streamer.write.value_transformer.context" class="ApiPlatform\JsonLd\JsonStreamer\ContextValueTransformer">
+            <argument type="service" id="api_platform.router" />
+            <tag name="json_streamer.value_transformer"/>
         </service>
     </services>
 </container>

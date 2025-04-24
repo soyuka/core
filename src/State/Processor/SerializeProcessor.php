@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Processor;
 
+use ApiPlatform\Hydra\IriTemplate;
 use ApiPlatform\JsonLd\JsonStreamer\Collection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\CollectionOperationInterface;
@@ -60,8 +61,12 @@ final class SerializeProcessor implements ProcessorInterface
 
         if ($this->jsonStreamer && !$operation instanceof Error) {
             if ($operation instanceof CollectionOperationInterface) {
-                return new StreamedResponse($this->jsonStreamer->write($data, Type::generic(Type::object(Collection::class), Type::object($operation->getClass())), [
-                    'collection' => $data,
+                $collection = new Collection();
+                $collection->member = $data;
+                $collection->search = new IriTemplate(
+                );
+
+                return new StreamedResponse($this->jsonStreamer->write($data, Type::collection(Type::object(Collection::class), Type::object($operation->getClass())), [
                     'operation' => $operation,
                 ]));
             } else {

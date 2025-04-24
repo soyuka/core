@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Hydra;
 
+use Symfony\Component\JsonStreamer\Attribute\StreamedName;
+
 class IriTemplateMapping
 {
-    public const TYPE = 'IriTemplateMapping';
+    #[StreamedName('@type')]
+    public string $type = 'IriTemplateMapping';
 
     public function __construct(
         public string $variable,
