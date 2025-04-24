@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Processor;
 
+use ApiPlatform\JsonLd\JsonStreamer\Collection;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\CollectionOperationInterface;
+use ApiPlatform\Metadata\Error;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ResourceList;
 use ApiPlatform\State\SerializerContextBuilderInterface;
@@ -55,8 +58,18 @@ final class SerializeProcessor implements ProcessorInterface
             return $this->processor ? $this->processor->process($data, $operation, $uriVariables, $context) : $data;
         }
 
-        if ($this->jsonStreamer) {
-            return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass())));
+        if ($this->jsonStreamer && !$operation instanceof Error) {
+            if ($operation instanceof CollectionOperationInterface) {
+                return new StreamedResponse($this->jsonStreamer->write($data, Type::generic(Type::object(Collection::class), Type::object($operation->getClass())), [
+                    'collection' => $data,
+                    'operation' => $operation,
+                ]));
+            } else {
+                return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass()), [
+                    'object' => $data,
+                    'operation' => $operation,
+                ]));
+            }
         }
 
         // @see ApiPlatform\State\Processor\RespondProcessor

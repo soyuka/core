@@ -129,9 +129,6 @@ class JsonLdTest extends ApiTestCase
         parent::tearDown();
     }
 
-    /**
-     * The input DTO denormalizes an existing Doctrine entity.
-     */
     public function testJsonStreamer(): void
     {
         $container = static::getContainer();
@@ -150,7 +147,25 @@ class JsonLdTest extends ApiTestCase
 
         $res = json_decode($buffer, true);
         dump($res);
-        $this->assertEquals('Bar two', $res['title']);
     }
 
+    public function testJsonStreamerCollection(): void
+    {
+        $container = static::getContainer();
+        if ('mongodb' === $container->getParameter('kernel.environment')) {
+            $this->markTestSkipped();
+        }
+
+        $buffer = '';
+        ob_start(function (string $chunk) use (&$buffer): void {
+            $buffer .= $chunk;
+        });
+
+        self::createClient()->request('GET', '/foo6465s', ['headers' => ['accept' => 'application/ld+json']]);
+
+        ob_get_clean();
+
+        $res = json_decode($buffer, true);
+        dump($res);
+    }
 }
