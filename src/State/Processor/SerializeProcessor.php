@@ -65,7 +65,7 @@ final class SerializeProcessor implements ProcessorInterface
                 $collection->member = iterator_to_array($data);
                 // $collection->search = new IriTemplate('foo', 'bar');
 
-                return new StreamedResponse($this->jsonStreamer->write($collection, Type::object(Collection::class), [
+                return new StreamedResponse($this->jsonStreamer->write($collection, Type::generic(Type::object(Collection::class), Type::object($operation->getClass())), [
                     'data' => $data,
                     'operation' => $operation,
                 ]));
