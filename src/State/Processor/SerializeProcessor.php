@@ -56,7 +56,7 @@ final class SerializeProcessor implements ProcessorInterface
         }
 
         if ($this->jsonStreamer) {
-            // return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass())));
+            return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass())));
         }
 
         // @see ApiPlatform\State\Processor\RespondProcessor

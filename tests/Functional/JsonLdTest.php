@@ -144,7 +144,7 @@ class JsonLdTest extends ApiTestCase
             $buffer .= $chunk;
         });
 
-        self::createClient()->request('GET', '/foo/1', ['headers' => ['accept' => 'application/ld+json']]);
+        self::createClient()->request('GET', '/foo6465s/1', ['headers' => ['accept' => 'application/ld+json']]);
 
         ob_get_clean();
 
