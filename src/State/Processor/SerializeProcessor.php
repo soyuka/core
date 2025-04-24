@@ -18,8 +18,11 @@ use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ResourceList;
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\JsonStreamer\StreamWriterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\WebLink\GenericLinkProvider;
 use Symfony\Component\WebLink\Link;
 
@@ -38,14 +41,22 @@ final class SerializeProcessor implements ProcessorInterface
     /**
      * @param ProcessorInterface<mixed, mixed>|null $processor
      */
-    public function __construct(private readonly ?ProcessorInterface $processor, private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder)
-    {
+    public function __construct(
+        private readonly ?ProcessorInterface $processor,
+        private readonly SerializerInterface $serializer,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        private readonly ?StreamWriterInterface $jsonStreamer = null,
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         if ($data instanceof Response || !$operation->canSerialize() || !($request = $context['request'] ?? null)) {
             return $this->processor ? $this->processor->process($data, $operation, $uriVariables, $context) : $data;
+        }
+
+        if ($this->jsonStreamer) {
+            // return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass())));
         }
 
         // @see ApiPlatform\State\Processor\RespondProcessor
@@ -80,6 +91,8 @@ final class SerializeProcessor implements ProcessorInterface
             }
             $request->attributes->set('_api_platform_links', $linkProvider);
         }
+
+        return new StreamedResponse([$serialized]);
 
         return $this->processor ? $this->processor->process($serialized, $operation, $uriVariables, $context) : $serialized;
     }
