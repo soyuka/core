@@ -128,4 +128,29 @@ class JsonLdTest extends ApiTestCase
         @$schemaTool->dropSchema($classes);
         parent::tearDown();
     }
+
+    /**
+     * The input DTO denormalizes an existing Doctrine entity.
+     */
+    public function testJsonStreamer(): void
+    {
+        $container = static::getContainer();
+        if ('mongodb' === $container->getParameter('kernel.environment')) {
+            $this->markTestSkipped();
+        }
+
+        $buffer = '';
+        ob_start(function (string $chunk) use (&$buffer): void {
+            $buffer .= $chunk;
+        });
+
+        self::createClient()->request('GET', '/foo/1', ['headers' => ['accept' => 'application/ld+json']]);
+
+        ob_get_clean();
+
+        $res = json_decode($buffer, true);
+        dump($res);
+        $this->assertEquals('Bar two', $res['title']);
+    }
+
 }
