@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\JsonLd\JsonStreamer;
+namespace ApiPlatform\Hydra;
 
-use ApiPlatform\Hydra\IriTemplate;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue6465\Foo;
 use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
@@ -19,7 +18,9 @@ final class Collection
     #[StreamedName('@type')]
     public string $type = 'Collection';
 
-    // public IriTemplate $search;
+    public IriTemplate $search;
+
+    public ?int $totalItems = null;
 
     /**
      * @var list<Foo>

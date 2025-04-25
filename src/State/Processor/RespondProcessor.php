@@ -144,6 +144,8 @@ final class RespondProcessor implements ProcessorInterface
             }
         }
 
+        // return new StreamedResponse([$serialized]);
+
         return new Response(
             $data,
             $status,

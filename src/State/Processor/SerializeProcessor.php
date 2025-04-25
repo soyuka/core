@@ -13,11 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\State\Processor;
 
-use ApiPlatform\Hydra\IriTemplate;
-use ApiPlatform\JsonLd\JsonStreamer\Collection;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\CollectionOperationInterface;
-use ApiPlatform\Metadata\Error;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\State\ResourceList;
 use ApiPlatform\State\SerializerContextBuilderInterface;
@@ -26,7 +22,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\JsonStreamer\StreamWriterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\WebLink\GenericLinkProvider;
 use Symfony\Component\WebLink\Link;
 
@@ -49,7 +44,6 @@ final class SerializeProcessor implements ProcessorInterface
         private readonly ?ProcessorInterface $processor,
         private readonly SerializerInterface $serializer,
         private readonly SerializerContextBuilderInterface $serializerContextBuilder,
-        private readonly ?StreamWriterInterface $jsonStreamer = null,
     ) {
     }
 
@@ -57,24 +51,6 @@ final class SerializeProcessor implements ProcessorInterface
     {
         if ($data instanceof Response || !$operation->canSerialize() || !($request = $context['request'] ?? null)) {
             return $this->processor ? $this->processor->process($data, $operation, $uriVariables, $context) : $data;
-        }
-
-        if ($this->jsonStreamer && !$operation instanceof Error) {
-            if ($operation instanceof CollectionOperationInterface) {
-                $collection = new Collection();
-                $collection->member = iterator_to_array($data);
-                // $collection->search = new IriTemplate('foo', 'bar');
-
-                return new StreamedResponse($this->jsonStreamer->write($collection, Type::generic(Type::object(Collection::class), Type::object($operation->getClass())), [
-                    'data' => $data,
-                    'operation' => $operation,
-                ]));
-            } else {
-                return new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass()), [
-                    'data' => $data,
-                    'operation' => $operation,
-                ]));
-            }
         }
 
         // @see ApiPlatform\State\Processor\RespondProcessor
@@ -109,8 +85,6 @@ final class SerializeProcessor implements ProcessorInterface
             }
             $request->attributes->set('_api_platform_links', $linkProvider);
         }
-
-        return new StreamedResponse([$serialized]);
 
         return $this->processor ? $this->processor->process($serialized, $operation, $uriVariables, $context) : $serialized;
     }

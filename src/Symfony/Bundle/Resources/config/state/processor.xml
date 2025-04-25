@@ -10,7 +10,6 @@
             <argument type="service" id="api_platform.state_processor.serialize.inner" />
             <argument type="service" id="api_platform.serializer" />
             <argument type="service" id="api_platform.serializer.context_builder" />
-            <argument type="service" id="api_platform.json_streamer.stream_writer" on-invalid="ignore" />
         </service>
 
         <service id="api_platform.state_processor.write" class="ApiPlatform\State\Processor\WriteProcessor" decorates="api_platform.state_processor.main" decoration-priority="100">

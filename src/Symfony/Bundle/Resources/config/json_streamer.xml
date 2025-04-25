@@ -19,6 +19,11 @@
             <argument type="service" id="api_platform.iri_converter" />
             <tag name="json_streamer.value_transformer"/>
         </service>
+
+        <service id="api_platform.state_processor.json_streamer" class="ApiPlatform\Hydra\State\JsonStreamerProcessor" decorates="api_platform.state_processor.main" decoration-priority="210">
+            <argument type="service" id="api_platform.state_processor.json_streamer.inner" />
+            <argument type="service" id="api_platform.json_streamer.stream_writer" />
+        </service>
     </services>
 </container>
 
