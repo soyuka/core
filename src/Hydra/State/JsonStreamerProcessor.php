@@ -73,7 +73,6 @@ final class JsonStreamerProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        dd($data);
         if ($operation instanceof Error || $data instanceof Response) {
             return $this->processor->process($data, $operation, $uriVariables, $context);
         }
@@ -81,7 +80,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
         if ($operation instanceof CollectionOperationInterface) {
             $collection = new Collection();
             $collection->member = iterator_to_array($data);
-            $collection->search = $this->getSearch();
+            // $collection->search = $this->getSearch();
             if ($data instanceof PaginatorInterface) {
                 $collection->totalItems = $data->getTotalItems();
             }

@@ -20,7 +20,7 @@ final class Collection
 
     public IriTemplate $search;
 
-    public ?int $totalItems = null;
+    public ?float $totalItems = null;
 
     /**
      * @var list<Foo>
