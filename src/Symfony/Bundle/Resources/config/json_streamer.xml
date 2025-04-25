@@ -36,6 +36,9 @@
         <service id="api_platform.state_processor.json_streamer" class="ApiPlatform\Hydra\State\JsonStreamerProcessor" decorates="api_platform.state_processor.main" decoration-priority="190">
             <argument type="service" id="api_platform.state_processor.json_streamer.inner" />
             <argument type="service" id="api_platform.json_streamer.stream_writer" />
+            <argument>%api_platform.collection.pagination.page_parameter_name%</argument>
+            <argument>%api_platform.collection.pagination.enabled_parameter_name%</argument>
+            <argument>%api_platform.url_generation_strategy%</argument>
         </service>
 
         <service id="api_platform.state_provider.json_streamer" class="ApiPlatform\Hydra\State\JsonStreamerProvider" decorates="api_platform.state_provider.main" decoration-priority="310">

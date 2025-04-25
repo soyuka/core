@@ -131,7 +131,7 @@ class AppKernel extends Kernel
                 'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] + $cookie : ['storage_id' => 'session.storage.mock_file'] + $cookie,
                 'profiler' => [
                     'enabled' => true,
-                    'collect' => true,
+                    'collect' => false,
                 ],
                 'php_errors' => ['log' => true],
                 'messenger' => $messengerConfig,
@@ -150,7 +150,7 @@ class AppKernel extends Kernel
                 'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] : ['storage_id' => 'session.storage.mock_file'],
                 'profiler' => [
                     'enabled' => true,
-                    'collect' => true,
+                    'collect' => false,
                 ],
                 'messenger' => $messengerConfig,
                 'router' => ['utf8' => true],

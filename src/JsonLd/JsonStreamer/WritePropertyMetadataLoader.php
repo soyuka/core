@@ -1,9 +1,19 @@
 <?php
 
+/*
+ * This file is part of the API Platform project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace ApiPlatform\JsonLd\JsonStreamer;
 
+use ApiPlatform\Hydra\IriTemplate;
 use ApiPlatform\Hydra\Collection;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
@@ -25,7 +35,17 @@ final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterfa
     {
         $properties = $this->loader->load($className, $options, $context);
 
-        if ($className !== Collection::class && !$this->resourceClassResolver->isResourceClass($className)) {
+        if (IriTemplate::class === $className) {
+            $properties['template'] = new PropertyMetadata(
+                'template',
+                Type::string(),
+                ['api_platform.hydra.json_streamer.write.value_transformer.template'],
+            );
+
+            return $properties;
+        }
+
+        if (Collection::class !== $className && !$this->resourceClassResolver->isResourceClass($className)) {
             return $properties;
         }
 
@@ -37,7 +57,7 @@ final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterfa
 
         $originalClassName = TypeHelper::getClassName($context['original_type']);
 
-        if ($originalClassName === Collection::class || ($this->resourceClassResolver->isResourceClass($originalClassName) && !isset($context['generated_classes'][Collection::class]))) {
+        if (Collection::class === $originalClassName || ($this->resourceClassResolver->isResourceClass($originalClassName) && !isset($context['generated_classes'][Collection::class]))) {
             $properties['@context'] = new PropertyMetadata(
                 'id', // virual property
                 Type::string(), // virtual property

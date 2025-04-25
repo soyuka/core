@@ -19,7 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity()]
 #[ORM\Table(name: 'json_stream_resource')]
 #[ApiResource(
-    // paginationEnabled: false
+    paginationEnabled: false,
+    normalizationContext: ['hydra_prefix' => false]
 )]
 class JsonStreamResource
 {

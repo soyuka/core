@@ -8,8 +8,10 @@ use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
 /**
  * @template T
+ *
+ * @internal
  */
-final class Collection
+class Collection
 {
     #[StreamedName('@context')]
     public string $context = 'VIRTUAL';
@@ -21,11 +23,12 @@ final class Collection
     public string $type = 'Collection';
 
     public ?IriTemplate $search = null;
-
-    public ?float $totalItems = null;
+    public ?PartialCollectionView $view = null;
 
     /**
      * @var list<T>
      */
-    public array $member;
+    public iterable $member;
+
+    public float $totalItems;
 }

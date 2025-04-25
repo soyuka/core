@@ -15,16 +15,22 @@ namespace ApiPlatform\Hydra;
 
 use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
-final class IriTemplate
+class PartialCollectionView
 {
     #[StreamedName('@type')]
-    public string $type = 'IriTemplate';
+    public string $type = 'PartialCollectionView';
 
     public function __construct(
-        public string $variableRepresentation,
-        /** @var list<IriTemplateMapping> */
-        public array $mapping = [],
-        public ?string $template = null,
+        #[StreamedName('@id')]
+        public string $id,
+        #[StreamedName('first')]
+        public ?string $first = null,
+        #[StreamedName('last')]
+        public ?string $last = null,
+        #[StreamedName('previous')]
+        public ?string $previous = null,
+        #[StreamedName('next')]
+        public ?string $next = null,
     ) {
     }
 }
