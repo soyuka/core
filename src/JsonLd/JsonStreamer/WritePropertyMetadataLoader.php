@@ -12,7 +12,7 @@ use Symfony\Component\JsonStreamer\Mapping\PropertyMetadata;
 use Symfony\Component\JsonStreamer\Mapping\PropertyMetadataLoaderInterface;
 use Symfony\Component\TypeInfo\Type;
 
-final class PropertyMetadataLoader implements PropertyMetadataLoaderInterface
+final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterface
 {
     public function __construct(
         private readonly PropertyMetadataLoaderInterface $loader,

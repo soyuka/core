@@ -124,4 +124,32 @@ class JsonStreamerTest extends ApiTestCase
         $res = json_decode($buffer, true);
         dump($res);
     }
+
+    public function testJsonStreamerWrite(): void
+    {
+        $container = static::getContainer();
+        if ('mongodb' === $container->getParameter('kernel.environment')) {
+            $this->markTestSkipped();
+        }
+
+        $buffer = '';
+        ob_start(function (string $chunk) use (&$buffer): void {
+            $buffer .= $chunk;
+        });
+
+        self::createClient()->request('POST', '/json_stream_resources', [
+            'json' => [
+                'title' => 'asd',
+                'views' => 0,
+                'rating' => 0.0,
+                'isFeatured' => false,
+                'price' => '0.00',
+            ],
+        ]);
+
+        ob_get_clean();
+
+        $res = json_decode($buffer, true);
+        dump($res);
+    }
 }

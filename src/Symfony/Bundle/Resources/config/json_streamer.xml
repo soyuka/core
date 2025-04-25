@@ -9,8 +9,21 @@
             <argument>%.json_streamer.stream_writers_dir%</argument>
         </service>
 
-        <service id="api_platform.jsonld.json_streamer.write.property_metadata_loader" class="ApiPlatform\JsonLd\JsonStreamer\PropertyMetadataLoader">
+        <service id="api_platform.json_streamer.stream_reader" class="Symfony\Component\JsonStreamer\JsonStreamReader">
+            <argument type="tagged_locator" tag="json_streamer.value_transformer" />
+            <argument type="service" id="api_platform.jsonld.json_streamer.read.property_metadata_loader" />
+            <argument>%.json_streamer.stream_readers_dir%</argument>
+            <argument>%.json_streamer.lazy_ghosts_dir%</argument>
+        </service>
+
+        <service id="api_platform.jsonld.json_streamer.write.property_metadata_loader" class="ApiPlatform\JsonLd\JsonStreamer\WritePropertyMetadataLoader">
             <argument type="service" id="json_streamer.write.property_metadata_loader" />
+            <argument type="service" id="api_platform.resource_class_resolver" />
+            <argument type="service" id="api_platform.router" />
+        </service>
+
+        <service id="api_platform.jsonld.json_streamer.read.property_metadata_loader" class="ApiPlatform\JsonLd\JsonStreamer\ReadPropertyMetadataLoader">
+            <argument type="service" id="json_streamer.read.property_metadata_loader" />
             <argument type="service" id="api_platform.resource_class_resolver" />
             <argument type="service" id="api_platform.router" />
         </service>
@@ -23,6 +36,11 @@
         <service id="api_platform.state_processor.json_streamer" class="ApiPlatform\Hydra\State\JsonStreamerProcessor" decorates="api_platform.state_processor.main" decoration-priority="190">
             <argument type="service" id="api_platform.state_processor.json_streamer.inner" />
             <argument type="service" id="api_platform.json_streamer.stream_writer" />
+        </service>
+
+        <service id="api_platform.state_provider.json_streamer" class="ApiPlatform\Hydra\State\JsonStreamerProvider" decorates="api_platform.state_provider.main" decoration-priority="310">
+            <argument type="service" id="api_platform.state_provider.json_streamer.inner" />
+            <argument type="service" id="api_platform.json_streamer.stream_reader" />
         </service>
     </services>
 </container>
