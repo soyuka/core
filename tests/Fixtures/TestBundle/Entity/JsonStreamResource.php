@@ -31,11 +31,11 @@ class JsonStreamResource
     #[ORM\Column(length: 255)]
     public string $title;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    public \DateTimeImmutable $createdAt;
-
-    #[ORM\Column(type: 'date_immutable')]
-    public \DateTimeImmutable $publishedAt;
+    // #[ORM\Column(type: 'datetime_immutable')]
+    // public \DateTimeImmutable $createdAt;
+    //
+    // #[ORM\Column(type: 'date_immutable')]
+    // public \DateTimeImmutable $publishedAt;
 
     #[ORM\Column(type: 'integer')]
     public int $views;

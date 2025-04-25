@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Hydra;
 
-use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue6465\Foo;
 use Symfony\Component\JsonStreamer\Attribute\StreamedName;
 
+/**
+ * @template T
+ */
 final class Collection
 {
     #[StreamedName('@context')]
-    public ?string $context = null;
+    public string $context = 'VIRTUAL';
 
     #[StreamedName('@id')]
     public CollectionId $id = CollectionId::VALUE;
@@ -18,12 +20,12 @@ final class Collection
     #[StreamedName('@type')]
     public string $type = 'Collection';
 
-    public IriTemplate $search;
+    public ?IriTemplate $search = null;
 
     public ?float $totalItems = null;
 
     /**
-     * @var list<Foo>
+     * @var list<T>
      */
     public array $member;
 }

@@ -52,8 +52,8 @@ class JsonStreamerTest extends ApiTestCase
         for ($i = 0; $i < 1000; ++$i) {
             $resource = new JsonStreamResource();
             $resource->title = 'Title ' . $i;
-            $resource->createdAt = new \DateTimeImmutable();
-            $resource->publishedAt = new \DateTimeImmutable();
+            // $resource->createdAt = new \DateTimeImmutable();
+            // $resource->publishedAt = new \DateTimeImmutable();
             $resource->views = rand(1, 1000);
             $resource->rating = rand(1, 5);
             $resource->isFeatured = (bool) rand(0, 1);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\JsonLd\JsonStreamer;
 
+use ApiPlatform\Hydra\Collection;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;

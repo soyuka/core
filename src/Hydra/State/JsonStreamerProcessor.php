@@ -85,7 +85,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
                 $collection->totalItems = $data->getTotalItems();
             }
 
-            $response = new StreamedResponse($this->jsonStreamer->write($collection, Type::object(Collection::class), [
+            $response = new StreamedResponse($this->jsonStreamer->write($collection, Type::generic(Type::object(Collection::class), Type::object($operation->getClass())), [
                 'data' => $data,
                 'operation' => $operation,
             ]));
