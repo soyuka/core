@@ -27,6 +27,7 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Doctrine\Bundle\MongoDBBundle\Command\TailCursorDoctrineODMCommand;
 use Doctrine\Bundle\MongoDBBundle\DoctrineMongoDBBundle;
 use FriendsOfBehat\SymfonyExtension\Bundle\FriendsOfBehatSymfonyExtensionBundle;
+use Nelmio\CorsBundle\NelmioCorsBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\MakerBundle\MakerBundle;
@@ -74,6 +75,7 @@ class AppKernel extends Kernel
             new WebProfilerBundle(),
             new FrameworkBundle(),
             new MakerBundle(),
+            new NelmioCorsBundle(),
         ];
 
         if (null === ($_ENV['APP_PHPUNIT'] ?? null)) {
@@ -131,7 +133,7 @@ class AppKernel extends Kernel
                 'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] + $cookie : ['storage_id' => 'session.storage.mock_file'] + $cookie,
                 'profiler' => [
                     'enabled' => true,
-                    'collect' => false,
+                    'collect' => true,
                 ],
                 'php_errors' => ['log' => true],
                 'messenger' => $messengerConfig,
@@ -150,7 +152,7 @@ class AppKernel extends Kernel
                 'session' => class_exists(SessionFactory::class) ? ['storage_factory_id' => 'session.storage.factory.mock_file'] : ['storage_id' => 'session.storage.mock_file'],
                 'profiler' => [
                     'enabled' => true,
-                    'collect' => false,
+                    'collect' => true,
                 ],
                 'messenger' => $messengerConfig,
                 'router' => ['utf8' => true],
@@ -158,6 +160,12 @@ class AppKernel extends Kernel
                 'annotations' => false,
             ];
         }
+
+        $c->prependExtensionConfig('nelmio_cors', [
+            'paths' => [
+                '^/' => ['allow_origin' => ['*']]
+            ]
+        ]);
 
         $c->prependExtensionConfig('framework', $config);
 

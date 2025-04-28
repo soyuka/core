@@ -65,24 +65,24 @@ class JsonStreamerTest extends ApiTestCase
         $manager->flush();
     }
 
-    protected function tearDown(): void
-    {
-        $container = static::getContainer();
-        $registry = $container->get('doctrine');
-        $manager = $registry->getManager();
-        if (!$manager instanceof EntityManagerInterface) {
-            return;
-        }
-
-        $classes = [];
-        foreach ([JsonStreamResource::class] as $entityClass) {
-            $classes[] = $manager->getClassMetadata($entityClass);
-        }
-
-        $schemaTool = new SchemaTool($manager);
-        @$schemaTool->dropSchema($classes);
-        parent::tearDown();
-    }
+    // protected function tearDown(): void
+    // {
+    //     $container = static::getContainer();
+    //     $registry = $container->get('doctrine');
+    //     $manager = $registry->getManager();
+    //     if (!$manager instanceof EntityManagerInterface) {
+    //         return;
+    //     }
+    //
+    //     $classes = [];
+    //     foreach ([JsonStreamResource::class] as $entityClass) {
+    //         $classes[] = $manager->getClassMetadata($entityClass);
+    //     }
+    //
+    //     $schemaTool = new SchemaTool($manager);
+    //     @$schemaTool->dropSchema($classes);
+    //     parent::tearDown();
+    // }
 
 
     public function testJsonStreamer(): void
