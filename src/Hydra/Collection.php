@@ -22,6 +22,8 @@ class Collection
     #[StreamedName('@type')]
     public string $type = 'Collection';
 
+    public float $totalItems;
+
     public ?IriTemplate $search = null;
     public ?PartialCollectionView $view = null;
 
@@ -29,6 +31,4 @@ class Collection
      * @var list<T>
      */
     public iterable $member;
-
-    public float $totalItems;
 }
