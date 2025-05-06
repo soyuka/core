@@ -49,6 +49,8 @@ final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterfa
             return $properties;
         }
 
+        // Missing @type => $operation->getShortName
+
         $properties['@id'] = new PropertyMetadata(
             'id', // virtual property
             Type::mixed(), // virtual property

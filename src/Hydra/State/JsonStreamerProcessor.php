@@ -38,7 +38,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
         private readonly StreamWriterInterface $jsonStreamer,
         private readonly string $pageParameterName = 'page',
         private readonly string $enabledParameterName = 'pagination',
-        private readonly int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH
+        private readonly int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH,
     ) {
     }
 
@@ -67,6 +67,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
         }
 
         $parts = parse_url($requestUri);
+
         return new IriTemplate(
             variableRepresentation: 'BasicRepresentation',
             mapping: $mapping,
@@ -128,6 +129,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
             return $this->processor->process($data, $operation, $uriVariables, $context);
         }
 
+        $limit = 4096;
         if ($operation instanceof CollectionOperationInterface) {
             $requestUri = $context['request']->getRequestUri() ?? '';
             $collection = new Collection();
@@ -150,11 +152,73 @@ final class JsonStreamerProcessor implements ProcessorInterface
                 'data' => $data,
                 'operation' => $operation,
             ]));
+        // $response = new StreamedResponse(
+        //     function () use ($data, $collection, $operation, $limit): void {
+        //         $chunkLength = 0;
+        //         $buffer = '';
+        //
+        //         foreach (
+        //             $this->jsonStreamer->write($collection, Type::generic(Type::object($collection::class), Type::object($operation->getClass())), [
+        //                 'data' => $data,
+        //                 'operation' => $operation,
+        //             ]) as $chunk
+        //         ) {
+        //             $buffer .= $chunk;
+        //             $chunkLength += \strlen($chunk);
+        //
+        //             if ($chunkLength >= $limit) {
+        //                 echo $buffer;
+        //                 @ob_flush();
+        //                 flush();
+        //                 $chunkLength = 0;
+        //                 $buffer = '';
+        //             }
+        //         }
+        //
+        //         if ($chunkLength > 0) {
+        //             echo $buffer;
+        //             @ob_flush();
+        //             flush();
+        //             unset($buffer);
+        //         }
+        //     }
+        // );
         } else {
             $response = new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass()), [
                 'data' => $data,
                 'operation' => $operation,
             ]));
+            // $response = new StreamedResponse(
+            //     function () use ($data, $operation, $limit): void {
+            //         $chunkLength = 0;
+            //         $buffer = '';
+            //
+            //         foreach (
+            //             $this->jsonStreamer->write($data, Type::object($operation->getClass()), [
+            //                 'data' => $data,
+            //                 'operation' => $operation,
+            //             ]) as $chunk
+            //         ) {
+            //             $buffer .= $chunk;
+            //             $chunkLength += \strlen($chunk);
+            //
+            //             if ($chunkLength >= $limit) {
+            //                 echo $buffer;
+            //                 @ob_flush();
+            //                 flush();
+            //                 $chunkLength = 0;
+            //                 $buffer = '';
+            //             }
+            //         }
+            //
+            //         if ($chunkLength > 0) {
+            //             echo $buffer;
+            //             @ob_flush();
+            //             flush();
+            //             unset($buffer);
+            //         }
+            //     }
+            // );
         }
 
         return $this->processor->process($response, $operation, $uriVariables, $context);

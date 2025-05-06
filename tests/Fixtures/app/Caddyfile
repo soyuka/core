@@ -1,0 +1,30 @@
+{
+	frankenphp
+}
+
+localhost:8080 {
+header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Credentials true
+        Access-Control-Allow-Methods *
+        Access-Control-Allow-Headers *
+        defer
+    }
+    root * public/
+    php_fastcgi 127.0.0.1:9000
+    file_server
+}
+
+localhost:8081 {
+header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Credentials true
+        Access-Control-Allow-Methods *
+        Access-Control-Allow-Headers *
+        defer
+    }
+    root * public/
+    file_server
+    log
+	php_server
+}
