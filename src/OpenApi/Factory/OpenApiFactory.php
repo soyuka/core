@@ -116,7 +116,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
     {
         $baseUrl = $context[self::BASE_URL] ?? '/';
         $contact = null === $this->openApiOptions->getContactUrl() || null === $this->openApiOptions->getContactEmail() ? null : new Contact($this->openApiOptions->getContactName(), $this->openApiOptions->getContactUrl(), $this->openApiOptions->getContactEmail());
-        $license = null === $this->openApiOptions->getLicenseName() ? null : new License($this->openApiOptions->getLicenseName(), $this->openApiOptions->getLicenseUrl());
+        $license = null === $this->openApiOptions->getLicenseName() ? null : new License($this->openApiOptions->getLicenseName(), $this->openApiOptions->getLicenseUrl(), $this->openApiOptions->getLicenseIdentifier());
         $info = new Info($this->openApiOptions->getTitle(), $this->openApiOptions->getVersion(), trim($this->openApiOptions->getDescription()), $this->openApiOptions->getTermsOfService(), $contact, $license);
         $servers = '/' === $baseUrl || '' === $baseUrl ? [new Server('/')] : [new Server($baseUrl)];
         $paths = new Paths();
@@ -242,14 +242,14 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 parameters: null !== $openapiOperation->getParameters() ? $openapiOperation->getParameters() : [],
                 requestBody: $openapiOperation->getRequestBody(),
                 callbacks: $openapiOperation->getCallbacks(),
-                deprecated: null !== $openapiOperation->getDeprecated() ? $openapiOperation->getDeprecated() : (bool) $operation->getDeprecationReason(),
+                deprecated: null !== $openapiOperation->getDeprecated() ? $openapiOperation->getDeprecated() : ($operation->getDeprecationReason() ? true : null),
                 security: null !== $openapiOperation->getSecurity() ? $openapiOperation->getSecurity() : null,
                 servers: null !== $openapiOperation->getServers() ? $openapiOperation->getServers() : null,
                 extensionProperties: $openapiOperation->getExtensionProperties(),
             );
 
             foreach ($openapiOperation->getTags() as $v) {
-                $tags[$v] = new Tag(name: $v, description: $resource->getDescription());
+                $tags[$v] = new Tag(name: $v, description: $resource->getDescription() ?? "Resource '$v' operations.");
             }
 
             [$requestMimeTypes, $responseMimeTypes] = $this->getMimeTypes($operation);
