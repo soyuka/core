@@ -235,12 +235,9 @@ class WithParameter
             $value = (int) $value;
         }
 
-        $parameters = $operation->getParameters();
-        $parameters->add($parameter->getKey(), $parameter = $parameter->withExtraProperties(
-            $parameter->getExtraProperties() + ['_api_values' => $value]
-        ));
+        $parameter->setValue($value);
 
-        return $operation->withParameters($parameters);
+        return $operation;
     }
 
     public static function headerProvider(Operation $operation, array $uriVariables = [], array $context = []): JsonResponse

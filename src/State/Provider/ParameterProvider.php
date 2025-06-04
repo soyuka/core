@@ -15,9 +15,11 @@ namespace ApiPlatform\State\Provider;
 
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Parameters;
 use ApiPlatform\State\Exception\ParameterNotSupportedException;
 use ApiPlatform\State\Exception\ProviderNotFoundException;
 use ApiPlatform\State\ParameterNotFound;
+use ApiPlatform\State\ParameterProvider\ReadLinkParameterProvider;
 use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\State\Util\ParameterParserTrait;
 use ApiPlatform\State\Util\RequestParser;
@@ -50,25 +52,41 @@ final class ParameterProvider implements ProviderInterface
             $request->attributes->set('_api_header_parameters', $request->headers->all());
         }
 
-        $parameters = $operation->getParameters();
+        if ($request && null === $request->attributes->get('_api_path_parameters')) {
+            $request->attributes->set('_api_path_parameters', $request->attributes->all());
+        }
 
-        if ($operation instanceof HttpOperation && true === $operation->getStrictQueryParameterValidation()) {
-            $keys = [];
-            foreach ($parameters as $parameter) {
-                $keys[] = $parameter->getKey();
+        $parameters = $operation->getParameters() ?? new Parameters();
+
+        if ($operation instanceof HttpOperation) {
+            // TODO: this should return Parameters but its a BC, prepare that change in 4.3
+            foreach ($operation->getUriVariables() ?? [] as $key => $uriVariable) {
+                if ($uriVariable->getSecurity() && !$uriVariable->getProvider()) {
+                    $uriVariable = $uriVariable->withProvider(ReadLinkParameterProvider::class);
+                }
+
+                $parameters->add($key, $uriVariable->withKey($key));
             }
 
-            foreach (array_keys($request->attributes->get('_api_query_parameters')) as $key) {
-                if (!\in_array($key, $keys, true)) {
-                    throw new ParameterNotSupportedException($key);
+            if (true === $operation->getStrictQueryParameterValidation()) {
+                $keys = [];
+                foreach ($parameters as $parameter) {
+                    $keys[] = $parameter->getKey();
+                }
+
+                foreach (array_keys($request->attributes->get('_api_query_parameters')) as $key) {
+                    if (!\in_array($key, $keys, true)) {
+                        throw new ParameterNotSupportedException($key);
+                    }
                 }
             }
         }
 
-        foreach ($parameters ?? [] as $parameter) {
-            $extraProperties = $parameter->getExtraProperties();
-            unset($extraProperties['_api_values']);
-            $parameters->add($parameter->getKey(), $parameter = $parameter->withExtraProperties($extraProperties));
+        foreach ($parameters as $parameter) {
+            // we force API Platform's value extraction, use _api_query_parameters or _api_header_parameters if you need to set a value
+            if (isset($parameter->getExtraProperties()['_api_values'])) {
+                unset($parameter->getExtraProperties()['_api_values']);
+            }
 
             $context = ['operation' => $operation] + $context;
             $values = $this->getParameterValues($parameter, $request, $context);
@@ -78,13 +96,11 @@ final class ParameterProvider implements ProviderInterface
                 $value = $default;
             }
 
+            $parameter->setValue($value);
+
             if ($value instanceof ParameterNotFound) {
                 continue;
             }
-
-            $parameters->add($parameter->getKey(), $parameter = $parameter->withExtraProperties(
-                $parameter->getExtraProperties() + ['_api_values' => $value]
-            ));
 
             if (null === ($provider = $parameter->getProvider())) {
                 continue;
@@ -111,7 +127,7 @@ final class ParameterProvider implements ProviderInterface
             }
         }
 
-        if ($parameters) {
+        if (\count($parameters)) {
             $operation = $operation->withParameters($parameters);
         }
         $request?->attributes->set('_api_operation', $operation);
