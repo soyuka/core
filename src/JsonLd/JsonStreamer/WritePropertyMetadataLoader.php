@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\JsonLd\JsonStreamer;
 
-use ApiPlatform\Hydra\IriTemplate;
 use ApiPlatform\Hydra\Collection;
+use ApiPlatform\Hydra\IriTemplate;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
-use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\Metadata\Util\TypeHelper;
 use Symfony\Component\JsonStreamer\Mapping\PropertyMetadata;
 use Symfony\Component\JsonStreamer\Mapping\PropertyMetadataLoaderInterface;
@@ -27,7 +26,6 @@ final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterfa
     public function __construct(
         private readonly PropertyMetadataLoaderInterface $loader,
         private readonly ResourceClassResolverInterface $resourceClassResolver,
-        private readonly UrlGeneratorInterface $urlGenerator,
     ) {
     }
 
@@ -63,7 +61,7 @@ final class WritePropertyMetadataLoader implements PropertyMetadataLoaderInterfa
             $properties['@context'] = new PropertyMetadata(
                 'id', // virual property
                 Type::string(), // virtual property
-                staticValue: $this->urlGenerator->generate('api_jsonld_context', ['shortName' => $options['operation']->getShortName()], $options['operation']->getUrlGenerationStrategy()),
+                ['api_platform.jsonld.json_streamer.write.value_transformer.context'],
             );
         }
 

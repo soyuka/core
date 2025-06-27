@@ -98,6 +98,7 @@ final class Put extends HttpOperation
         mixed $rules = null,
         ?string $policy = null,
         array|string|null $middleware = null,
+        ?bool $jsonStream = null,
         array $extraProperties = [],
         ?bool $strictQueryParameterValidation = null,
         ?bool $hideHydraOperation = null,
@@ -183,6 +184,7 @@ final class Put extends HttpOperation
             middleware: $middleware,
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
+            jsonStream: $jsonStream,
             extraProperties: $extraProperties
         );
     }

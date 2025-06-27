@@ -100,6 +100,7 @@ final class Patch extends HttpOperation
         array|string|null $middleware = null,
         ?bool $strictQueryParameterValidation = null,
         ?bool $hideHydraOperation = null,
+        ?bool $jsonStream = null,
         array $extraProperties = [],
     ) {
         parent::__construct(
@@ -182,6 +183,7 @@ final class Patch extends HttpOperation
             middleware: $middleware,
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
+            jsonStream: $jsonStream,
             extraProperties: $extraProperties
         );
     }

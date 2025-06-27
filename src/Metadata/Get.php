@@ -100,6 +100,7 @@ final class Get extends HttpOperation
         array|string|null $middleware = null,
         ?bool $strictQueryParameterValidation = null,
         protected ?bool $hideHydraOperation = null,
+        ?bool $jsonStream = null,
         array $extraProperties = [],
     ) {
         parent::__construct(
@@ -181,6 +182,7 @@ final class Get extends HttpOperation
             middleware: $middleware,
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
+            jsonStream: $jsonStream,
             extraProperties: $extraProperties,
         );
     }

@@ -213,6 +213,7 @@ class HttpOperation extends Operation
         ?string $policy = null,
         array|string|null $middleware = null,
         ?bool $queryParameterValidationEnabled = null,
+        ?bool $jsonStream = null,
         array $extraProperties = [],
     ) {
         parent::__construct(
@@ -267,6 +268,7 @@ class HttpOperation extends Operation
             queryParameterValidationEnabled: $queryParameterValidationEnabled,
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
+            jsonStream: $jsonStream,
             extraProperties: $extraProperties
         );
     }
