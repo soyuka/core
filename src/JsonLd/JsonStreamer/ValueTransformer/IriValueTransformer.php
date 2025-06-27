@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\JsonLd\JsonStreamer;
+namespace ApiPlatform\JsonLd\JsonStreamer\ValueTransformer;
 
 use ApiPlatform\Hydra\Collection;
 use ApiPlatform\Metadata\CollectionOperationInterface;

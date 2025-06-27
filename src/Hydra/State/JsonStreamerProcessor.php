@@ -26,19 +26,31 @@ use ApiPlatform\Metadata\Util\IriHelper;
 use ApiPlatform\State\Pagination\PaginatorInterface;
 use ApiPlatform\State\Pagination\PartialPaginatorInterface;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\State\Util\HttpResponseHeadersTrait;
+use ApiPlatform\State\Util\HttpResponseStatusTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\JsonStreamer\StreamWriterInterface;
 use Symfony\Component\TypeInfo\Type;
 
+/**
+ * @implements ProcessorInterface<mixed,mixed>
+ */
 final class JsonStreamerProcessor implements ProcessorInterface
 {
+    use HttpResponseHeadersTrait;
+    use HttpResponseStatusTrait;
+
+    /**
+     * @param ProcessorInterface<mixed,mixed> $processor
+     * @param StreamWriterInterface<array<string,mixed>> $jsonStreamer
+     */
     public function __construct(
         private readonly ProcessorInterface $processor,
         private readonly StreamWriterInterface $jsonStreamer,
         private readonly string $pageParameterName = 'page',
         private readonly string $enabledParameterName = 'pagination',
-        private readonly int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH
+        private readonly int $urlGenerationStrategy = UrlGeneratorInterface::ABS_PATH,
     ) {
     }
 
@@ -67,6 +79,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
         }
 
         $parts = parse_url($requestUri);
+
         return new IriTemplate(
             variableRepresentation: 'BasicRepresentation',
             mapping: $mapping,
@@ -120,7 +133,12 @@ final class JsonStreamerProcessor implements ProcessorInterface
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        if ($context['request']->query->has('skip_json_stream')) {
+        if (!$operation->getJsonStream() || !($request = $context['request'] ?? null)) {
+            return $this->processor->process($data, $operation, $uriVariables, $context);
+        }
+
+        // TODO: remove this before merging
+        if ($request->query->has('skip_json_stream')) {
             return $this->processor->process($data, $operation, $uriVariables, $context);
         }
 
@@ -129,7 +147,7 @@ final class JsonStreamerProcessor implements ProcessorInterface
         }
 
         if ($operation instanceof CollectionOperationInterface) {
-            $requestUri = $context['request']->getRequestUri() ?? '';
+            $requestUri = $request->getRequestUri() ?? '';
             $collection = new Collection();
             $collection->member = $data;
             $collection->view = $this->getView($data, $requestUri, $operation);
@@ -146,16 +164,24 @@ final class JsonStreamerProcessor implements ProcessorInterface
                 $collection->totalItems = \count($data);
             }
 
-            $response = new StreamedResponse($this->jsonStreamer->write($collection, Type::generic(Type::object($collection::class), Type::object($operation->getClass())), [
-                'data' => $data,
-                'operation' => $operation,
-            ]));
+            $data = $this->jsonStreamer->write(
+                $collection,
+                Type::generic(Type::object($collection::class), Type::object($operation->getClass())),
+                ['data' => $data, 'operation' => $operation],
+            );
         } else {
-            $response = new StreamedResponse($this->jsonStreamer->write($data, Type::object($operation->getClass()), [
+            $data = $this->jsonStreamer->write($data, Type::object($operation->getClass()), [
                 'data' => $data,
                 'operation' => $operation,
-            ]));
+            ]);
         }
+
+        /** @var Iterable<string> $data */
+        $response = new StreamedResponse(
+            $data,
+            $this->getStatus($request, $operation, $context),
+            $this->getHeaders($request, $operation, $context)
+        );
 
         return $this->processor->process($response, $operation, $uriVariables, $context);
     }

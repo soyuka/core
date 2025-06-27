@@ -102,7 +102,6 @@ class JsonStreamerTest extends ApiTestCase
         ob_get_clean();
 
         $res = json_decode($buffer, true);
-        dump($res);
     }
 
     public function testJsonStreamerCollection(): void

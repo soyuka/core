@@ -813,6 +813,7 @@ abstract class Operation extends Metadata
         ?bool $queryParameterValidationEnabled = null,
         protected ?bool $strictQueryParameterValidation = null,
         protected ?bool $hideHydraOperation = null,
+        protected ?bool $jsonStream = null,
         protected array $extraProperties = [],
     ) {
         parent::__construct(
@@ -860,6 +861,7 @@ abstract class Operation extends Metadata
             queryParameterValidationEnabled: $queryParameterValidationEnabled,
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
+            jsonStream: $jsonStream,
             extraProperties: $extraProperties,
         );
     }
