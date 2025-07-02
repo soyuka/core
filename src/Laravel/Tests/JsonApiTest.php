@@ -28,6 +28,7 @@ use Workbench\App\Models\Book;
 use Workbench\Database\Factories\AuthorFactory;
 use Workbench\Database\Factories\BookFactory;
 use Workbench\Database\Factories\WithAccessorFactory;
+use Workbench\Database\Factories\FooFactory;
 
 class JsonApiTest extends TestCase
 {
@@ -330,5 +331,15 @@ class JsonApiTest extends TestCase
         $included = $res['included'][0]['attributes'];
         $this->assertArrayNotHasKey('createdAt', $included);
         $this->assertArrayHasKey('name', $included);
+    }
+
+    public function testIncludeAndSparseFieldsets(): void
+    {
+        $foo = FooFactory::new()->createOne();
+        $foo->bars()->create(['name' => 'Bar 1']);
+
+        $response = $this->get('/api/foos?include=bars&fields[Foo]=name&fields[bars]=name', headers: ['accept' => 'application/vnd.api+json']);
+        dd($response->json());
+
     }
 }
