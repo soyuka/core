@@ -18,6 +18,8 @@ use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 /**
  * Filter attribute.
  *
+ * @deprecated in 4.2 will be removed in 5.0
+ *
  * @author Antoine Bluchet <soyuka@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
