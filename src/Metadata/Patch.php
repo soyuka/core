@@ -101,6 +101,7 @@ final class Patch extends HttpOperation
         ?bool $hideHydraOperation = null,
         ?bool $jsonStream = null,
         array $extraProperties = [],
+        protected mixed $mcp = null,
     ) {
         parent::__construct(
             method: 'PATCH',
@@ -182,7 +183,8 @@ final class Patch extends HttpOperation
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
             jsonStream: $jsonStream,
-            extraProperties: $extraProperties
+            extraProperties: $extraProperties,
+            mcp: $mcp
         );
     }
 }

@@ -100,6 +100,7 @@ final class Post extends HttpOperation
         ?bool $jsonStream = null,
         array $extraProperties = [],
         private ?string $itemUriTemplate = null,
+        protected mixed $mcp = null,
         ?bool $strictQueryParameterValidation = null,
         ?bool $hideHydraOperation = null,
     ) {
@@ -183,7 +184,8 @@ final class Post extends HttpOperation
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
             jsonStream: $jsonStream,
-            extraProperties: $extraProperties
+            extraProperties: $extraProperties,
+            mcp: $mcp
         );
     }
 

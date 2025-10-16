@@ -970,6 +970,7 @@ class ApiResource extends Metadata
         protected ?bool $strictQueryParameterValidation = null,
         protected ?bool $hideHydraOperation = null,
         ?bool $jsonStream = null,
+        protected mixed $mcp = null,
         protected array $extraProperties = [],
     ) {
         parent::__construct(
@@ -1418,6 +1419,19 @@ class ApiResource extends Metadata
     {
         $self = clone $this;
         $self->links = $links;
+
+        return $self;
+    }
+
+    public function getMcp(): mixed
+    {
+        return $this->mcp;
+    }
+
+    public function withMcp(mixed $mcp): static
+    {
+        $self = clone $this;
+        $self->mcp = $mcp;
 
         return $self;
     }

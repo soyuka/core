@@ -211,6 +211,19 @@ class McpTest extends ApiTestCase
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('tools/call', [
+                'name' => 'recipe_update_by_id',
+                'arguments' => [
+                    'id' => $createdRecipeId,
+                    'name' => 'Ratatouille Updated again',
+                ],
+            ]),
+        ]);
+        $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString('Ratatouille Updated again', $response->getContent());
+
+        $response = $client->request('POST', '/mcp', [
+            'headers' => $this->mcpHeaders,
+            'json' => $this->createJsonRpcRequest('tools/call', [
                 'name' => 'recipe_delete_by_id',
                 'arguments' => ['id' => $createdRecipeId],
             ]),

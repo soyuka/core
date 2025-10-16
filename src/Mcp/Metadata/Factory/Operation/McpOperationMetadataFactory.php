@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Mcp\Metadata\Factory\Operation;
 
+use ApiPlatform\Mcp\Metadata\McpTool;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operation\Factory\OperationMetadataFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
@@ -37,9 +39,24 @@ final readonly class McpOperationMetadataFactory implements OperationMetadataFac
             $resourceMetadataCollection = $this->resourceMetadataCollectionFactory->create($resourceClass);
             foreach ($resourceMetadataCollection as $resource) {
                 foreach ($resource->getOperations() as $operation) {
-                    $candidateMcpName = $operation->getExtraProperties()['mcp_name'] ?? null;
-                    if ($candidateMcpName === $mcpName) {
-                        return $operation;
+                    if (!$operation instanceof HttpOperation) {
+                        continue;
+                    }
+
+                    $mcp = $operation->getMcp();
+
+                    if (\is_bool($mcp) || null === $mcp) {
+                        continue;
+                    }
+
+                    if (!\is_array($mcp)) {
+                        $mcp = [$mcp];
+                    }
+
+                    foreach ($mcp as $capability) {
+                        if ($capability instanceof McpTool && $capability->name === $mcpName) {
+                            return $operation;
+                        }
                     }
                 }
             }

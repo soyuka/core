@@ -99,6 +99,7 @@ final class Put extends HttpOperation
         array|string|null $middleware = null,
         ?bool $jsonStream = null,
         array $extraProperties = [],
+        protected mixed $mcp = null,
         ?bool $strictQueryParameterValidation = null,
         ?bool $hideHydraOperation = null,
         private ?bool $allowCreate = null,
@@ -183,7 +184,8 @@ final class Put extends HttpOperation
             strictQueryParameterValidation: $strictQueryParameterValidation,
             hideHydraOperation: $hideHydraOperation,
             jsonStream: $jsonStream,
-            extraProperties: $extraProperties
+            extraProperties: $extraProperties,
+            mcp: $mcp
         );
     }
 

@@ -16,7 +16,10 @@ namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ApiResource(types: ['https://schema.org/Recipe'], normalizationContext: ['hydra_prefix' => false])]
+#[ApiResource(
+    types: ['https://schema.org/Recipe'],
+    normalizationContext: ['hydra_prefix' => false],
+)]
 #[ORM\Entity]
 class Recipe
 {

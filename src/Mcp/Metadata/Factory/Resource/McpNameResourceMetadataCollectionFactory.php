@@ -26,7 +26,7 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
  */
 final readonly class McpNameResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    public function __construct(private ResourceMetadataCollectionFactoryInterface $decorated)
+    public function __construct(private ResourceMetadataCollectionFactoryInterface $decorated, private $autoMcp = true)
     {
     }
 

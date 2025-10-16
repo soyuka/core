@@ -220,6 +220,7 @@ class HttpOperation extends Operation
         array|string|null $middleware = null,
         ?bool $queryParameterValidationEnabled = null,
         ?bool $jsonStream = null,
+        protected mixed $mcp = null,
         array $extraProperties = [],
     ) {
         $this->formats = (null === $formats || \is_array($formats)) ? $formats : [$formats];
@@ -670,6 +671,19 @@ class HttpOperation extends Operation
     public function getErrors(): ?array
     {
         return $this->errors;
+    }
+
+    public function getMcp(): mixed
+    {
+        return $this->mcp;
+    }
+
+    public function withMcp(mixed $mcp): static
+    {
+        $self = clone $this;
+        $self->mcp = $mcp;
+
+        return $self;
     }
 
     /**

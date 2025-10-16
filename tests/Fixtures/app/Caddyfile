@@ -1,0 +1,18 @@
+{
+        frankenphp
+}
+
+localhost:8080 {
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Credentials true
+        Access-Control-Allow-Methods *
+        Access-Control-Allow-Headers *
+        Access-Control-Expose-Headers "mcp-session-id"
+        defer
+    }
+    root * public/
+    file_server
+    log
+    php_server
+}
