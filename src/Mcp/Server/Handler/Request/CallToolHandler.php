@@ -98,11 +98,12 @@ final class CallToolHandler implements RequestHandlerInterface
         $url = $this->router->generate($operation->getRouteName() ?? $operation->getName(), $uriVariables);
         $method = $operation->getMethod();
         $content = $bodyParams ? json_encode($bodyParams, \JSON_THROW_ON_ERROR) : null;
-        $headers = ['Content-Type' => 'application/json', 'Accept' => 'application/ld+json'];
+        $accept = current($operation->getOutputFormats())[0] ?? 'application/json';
 
-        $subRequest = HttpRequest::create($url, $method, [], [], [], ['HTTP_ACCEPT' => $headers['Accept']], $content);
+        $subRequest = HttpRequest::create($url, $method, [], [], [], ['HTTP_ACCEPT' => $accept], $content);
         if ($content) {
-            $subRequest->headers->set('Content-Type', $headers['Content-Type']);
+            $contentType = current($operation->getInputFormats())[0] ?? 'application/json';
+            $subRequest->headers->set('Content-Type', $contentType);
         }
 
         $response = $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);

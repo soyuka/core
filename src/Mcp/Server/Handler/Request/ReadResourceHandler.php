@@ -51,7 +51,7 @@ final class ReadResourceHandler implements RequestHandlerInterface
         $this->logger->debug('Reading resource', ['uri' => $uri]);
 
         try {
-            $httpRequest = HttpRequest::create($uri, 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/ld+json']);
+            $httpRequest = HttpRequest::create($uri, 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json, application/ld+json, application/vnd.openapi+json']);
             $response = $this->kernel->handle($httpRequest, HttpKernelInterface::SUB_REQUEST);
             if (!$content = $response->getContent()) {
                 throw new RuntimeException('No content');
@@ -59,7 +59,13 @@ final class ReadResourceHandler implements RequestHandlerInterface
 
             $array = json_decode($content, true);
 
-            return new Response($request->getId(), new StructuredContentResult($array, new ReadResourceResult([new TextResourceContents($array['@id'], 'application/ld+json', $content)])));
+            if (isset($array['@id'])) {
+                $textResourceContents = new TextResourceContents($array['@id'], 'application/ld+json', $content);
+            } else {
+                $textResourceContents = new TextResourceContents($uri, $response->headers->get('content-type')[0], $content);
+            }
+
+            return new Response($request->getId(), new StructuredContentResult($array, new ReadResourceResult([$textResourceContents])));
         } catch (OperationNotFoundException $e) {
             $this->logger->error('Resource not found', ['uri' => $uri]);
 
