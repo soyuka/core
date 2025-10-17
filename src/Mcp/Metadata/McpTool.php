@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Mcp\Metadata;
 
-final class McpTool implements McpCapability
+/**
+ * @internal
+ */
+final class McpTool implements McpCapabilityInterface
 {
     public function __construct(
-        public readonly string $name,
-        public readonly ?string $description = null,
-        public readonly ?array $inputSchema = null,
+        public ?string $name = null,
+        public ?string $description = null,
+        public ?array $inputSchema = null,
     ) {
     }
 }

@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Mcp\Metadata;
 
-interface McpCapability
+/**
+ * Base marker interface for MCP capability DTOs.
+ *
+ * @internal
+ */
+interface McpCapabilityInterface
 {
 }

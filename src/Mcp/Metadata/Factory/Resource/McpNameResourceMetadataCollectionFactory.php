@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Mcp\Metadata\Factory\Resource;
 
+use ApiPlatform\Mcp\Metadata\McpCapabilityInterface;
+use ApiPlatform\Mcp\Metadata\McpResource;
+use ApiPlatform\Mcp\Metadata\McpResourceTemplate;
+use ApiPlatform\Mcp\Metadata\McpTool;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operations;
@@ -26,7 +30,7 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
  */
 final readonly class McpNameResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
-    public function __construct(private ResourceMetadataCollectionFactoryInterface $decorated, private $autoMcp = true)
+    public function __construct(private ResourceMetadataCollectionFactoryInterface $decorated)
     {
     }
 
@@ -40,21 +44,75 @@ final readonly class McpNameResourceMetadataCollectionFactory implements Resourc
             }
 
             $newOperations = new Operations();
-            foreach ($operations as $operation) {
+            if (!$resource->getMcp()) {
+                continue;
+            }
+
+            foreach ($operations as $operationName => $operation) {
                 if (!$operation instanceof HttpOperation) {
+                    $newOperations->add($operationName, $operation);
                     continue;
                 }
 
-                if ($mcpName = $this->getMcpName($operation)) {
-                    $operation = $operation->withExtraProperties(array_merge($operation->getExtraProperties(), ['mcp_name' => $mcpName]));
+                $mcp = $operation->getMcp() ?? $resource->getMcp();
+
+                if (false === $mcp || null === $mcp) {
+                    $newOperations->add($operationName, $operation);
+                    continue;
                 }
-                $newOperations->add($operation->getName(), $operation);
+
+                $capabilities = [];
+                if (true === $mcp) {
+                    $capabilities[] = match ($operation->getMethod()) {
+                        'GET' => $operation->getUriVariables() ? new McpResourceTemplate() : new McpResource(),
+                        default => new McpTool(),
+                    };
+                } elseif (\is_array($mcp)) {
+                    $capabilities = $mcp;
+                } else {
+                    $capabilities[] = $mcp;
+                }
+
+                $completedCapabilities = [];
+                foreach ($capabilities as $capability) {
+                    if (!$capability instanceof McpCapabilityInterface) {
+                        continue;
+                    }
+
+                    $completedCapabilities[] = $this->completeCapability($capability, $operation);
+                }
+
+                if ($completedCapabilities) {
+                    $operation = $operation->withMcp($completedCapabilities);
+                }
+
+                $newOperations->add($operationName, $operation);
             }
 
             $resourceMetadataCollection[$i] = $resource->withOperations($newOperations);
         }
 
         return $resourceMetadataCollection;
+    }
+
+    private function completeCapability(McpCapabilityInterface $capability, HttpOperation $operation): McpCapabilityInterface
+    {
+        if ($capability instanceof McpTool) {
+            $capability->name ??= $this->getMcpName($operation);
+            $capability->description ??= $operation->getDescription();
+        }
+
+        if ($capability instanceof McpResource) {
+            $capability->name ??= $this->getMcpName($operation);
+            $capability->description ??= $operation->getDescription();
+        }
+
+        if ($capability instanceof McpResourceTemplate) {
+            $capability->name ??= $this->getMcpName($operation);
+            $capability->description ??= $operation->getDescription();
+        }
+
+        return $capability;
     }
 
     private function getMcpName(HttpOperation $operation): string
@@ -67,7 +125,7 @@ final readonly class McpNameResourceMetadataCollectionFactory implements Resourc
 
     private function getHttpMethodName(?string $method): string
     {
-        return match (strtolower($method)) {
+        return match (strtolower($method ?? '')) {
             'post' => 'create',
             'put' => 'upsert',
             'patch' => 'update',

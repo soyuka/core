@@ -13,13 +13,16 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Mcp\Metadata;
 
-final class McpResourceTemplate implements McpCapability
+/**
+ * @internal
+ */
+final class McpResourceTemplate implements McpCapabilityInterface
 {
     public function __construct(
-        public readonly string $uriTemplate,
-        public readonly string $name,
-        public readonly ?string $description = null,
-        public readonly ?string $mimeType = null,
+        public ?string $uriTemplate = null,
+        public ?string $name = null,
+        public ?string $description = null,
+        public ?string $mimeType = null,
     ) {
     }
 }

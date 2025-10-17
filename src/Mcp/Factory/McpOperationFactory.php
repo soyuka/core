@@ -15,6 +15,9 @@ namespace ApiPlatform\Mcp\Factory;
 
 use ApiPlatform\JsonSchema\Schema;
 use ApiPlatform\JsonSchema\SchemaFactoryInterface;
+use ApiPlatform\Mcp\Metadata\McpResource;
+use ApiPlatform\Mcp\Metadata\McpResourceTemplate;
+use ApiPlatform\Mcp\Metadata\McpTool;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
@@ -46,68 +49,95 @@ final readonly class McpOperationFactory implements McpCapabilityFactoryInterfac
             $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
             foreach ($resourceMetadataCollection as $resource) {
                 foreach ($resource->getOperations() as $operation) {
-                    // TODO: A dedicated `$operation->getMcp() === false` property would be the ideal way to control inclusion.
                     if (!$operation instanceof HttpOperation) {
                         continue;
                     }
 
-                    $mcpName = $operation->getExtraProperties()['mcp_name'] ?? null;
-                    if (!$mcpName) {
+                    $mcp = $operation->getMcp();
+
+                    if (false === $mcp || null === $mcp) {
                         continue;
                     }
 
-                    // TBD: To support multiple formats, we could iterate over `getOutputFormats`
-                    // and yield a tool for each, suffixing the name with the format,
-                    // e.g., "api_books_get_collection_jsonld", "api_books_get_collection_json".
-                    // The handler would then parse this name to set the correct `Accept` header.
-                    $method = strtoupper($operation->getMethod());
+                    $capabilities = \is_array($mcp) ? $mcp : [$mcp];
 
-                    if (!$operation->getUriTemplate()) {
-                        continue;
-                    }
-
-                    $mimeType = current($operation->getInputFormats())[0] ?? 'application/json';
-
-                    if ('GET' === $method) {
-                        $uri = \sprintf('%s://%s/%s', $this->requestContext->getScheme(), $this->requestContext->getHost(), ltrim(str_replace('{._format}', '', $operation->getUriTemplate()), '/'));
-
-                        if (!$operation->getUriVariables()) {
-                            yield [
-                                'type' => 'resource',
-                                'definition' => [
-                                    'uri' => $uri,
-                                    'name' => $mcpName,
-                                    'description' => $operation->getDescription(),
-                                    'mimeType' => $mimeType,
-                                ],
-                            ];
-
-                            continue;
+                    foreach ($capabilities as $capability) {
+                        if ($capability instanceof McpTool) {
+                            yield from $this->buildTool($capability, $operation);
+                        } elseif ($capability instanceof McpResource) {
+                            yield from $this->buildResource($capability, $operation);
+                        } elseif ($capability instanceof McpResourceTemplate) {
+                            yield from $this->buildResourceTemplate($capability, $operation);
                         }
-
-                        yield [
-                            'type' => 'resource_template',
-                            'definition' => [
-                                'uriTemplate' => $uri,
-                                'name' => $mcpName,
-                                'description' => $operation->getDescription(),
-                                'mimeType' => $mimeType,
-                            ],
-                        ];
-                        continue;
                     }
-
-                    yield [
-                        'type' => 'tool',
-                        'definition' => [
-                            'name' => $mcpName,
-                            'description' => $operation->getDescription(),
-                            'inputSchema' => $this->buildInputSchema($operation),
-                        ],
-                    ];
                 }
             }
         }
+    }
+
+    /**
+     * @return \Generator<array{type: string, definition: array}>
+     */
+    private function buildTool(McpTool $tool, HttpOperation $operation): \Generator
+    {
+        if (!$tool->name) {
+            return;
+        }
+
+        yield [
+            'type' => 'tool',
+            'definition' => [
+                'name' => $tool->name,
+                'description' => $tool->description,
+                'inputSchema' => $tool->inputSchema ?? $this->buildInputSchema($operation),
+            ],
+        ];
+    }
+
+    /**
+     * @return \Generator<array{type: string, definition: array}>
+     */
+    private function buildResource(McpResource $resource, HttpOperation $operation): \Generator
+    {
+        if (!$operation->getUriTemplate() || !$resource->name) {
+            return;
+        }
+
+        $uri = \sprintf('%s://%s/%s', $this->requestContext->getScheme(), $this->requestContext->getHost(), ltrim(str_replace('{._format}', '', $operation->getUriTemplate()), '/'));
+        $mimeType = current($operation->getInputFormats()['jsonld'] ?? []) ?? 'application/ld+json';
+
+        yield [
+            'type' => 'resource',
+            'definition' => [
+                'uri' => $resource->uri ?? $uri,
+                'name' => $resource->name,
+                'description' => $resource->description,
+                'mimeType' => $resource->mimeType ?? $mimeType,
+            ],
+        ];
+    }
+
+    /**
+     * @return \Generator<array{type: string, definition: array}>
+     */
+    private function buildResourceTemplate(McpResourceTemplate $template, HttpOperation $operation): \Generator
+    {
+        if (!$operation->getUriTemplate() || !$template->name) {
+            return;
+        }
+
+        $uri = \sprintf('%s://%s/%s', $this->requestContext->getScheme(), $this->requestContext->getHost(), ltrim(str_replace('{._format}', '', $operation->getUriTemplate()), '/'));
+        $mimeType = current($operation->getInputFormats()['jsonld'] ?? []) ?? 'application/ld+json';
+
+        yield [
+            'type' => 'resource_template',
+            'definition' => [
+                'uriTemplate' => $template->uriTemplate ?? $uri,
+                'name' => $template->name,
+                'description' => $template->description,
+                'mimeType' => $template->mimeType ?? $mimeType,
+            ],
+        ];
     }
 
     private function buildInputSchema(HttpOperation $operation): ?array
@@ -119,6 +149,7 @@ final readonly class McpOperationFactory implements McpCapabilityFactoryInterfac
         ];
 
         // 1. Add properties from the request body for relevant methods
+        // For GET requests, we only want URI variables, so we skip this part.
         if (\in_array($operation->getMethod(), ['POST', 'PUT', 'PATCH'], true)) {
             $bodySchema = $this->schemaFactory->buildSchema($operation->getClass(), 'json', Schema::TYPE_INPUT, $operation);
             $rootDefinitionKey = $bodySchema->getRootDefinitionKey();

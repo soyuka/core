@@ -170,6 +170,7 @@ class HttpOperation extends Operation
         protected ?array $errors = null,
         protected ?bool $strictQueryParameterValidation = null,
         protected ?bool $hideHydraOperation = null,
+        protected mixed $mcp = null,
 
         ?string $shortName = null,
         ?string $class = null,
@@ -220,7 +221,6 @@ class HttpOperation extends Operation
         array|string|null $middleware = null,
         ?bool $queryParameterValidationEnabled = null,
         ?bool $jsonStream = null,
-        protected mixed $mcp = null,
         array $extraProperties = [],
     ) {
         $this->formats = (null === $formats || \is_array($formats)) ? $formats : [$formats];
