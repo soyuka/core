@@ -1018,7 +1018,7 @@ final class ApiPlatformExtension extends Extension implements PrependExtensionIn
     private function registerMcpConfiguration(PhpFileLoader $loader): void
     {
         if (!class_exists(McpBundle::class)) {
-            throw new RuntimeException('symfony/mcp-bundle is not installed.');
+            return;
         }
 
         $loader->load('mcp.php');
