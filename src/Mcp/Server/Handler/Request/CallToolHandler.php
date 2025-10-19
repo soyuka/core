@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace ApiPlatform\Mcp\Server\Handler\Request;
 
 use ApiPlatform\Mcp\Schema\Result\StructuredContentResult;
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation\Factory\OperationMetadataFactoryInterface;
@@ -59,6 +60,10 @@ final class CallToolHandler implements RequestHandlerInterface
         try {
             $result = $this->executeTool($toolName, $arguments);
 
+            if ($result instanceof StructuredContentResult) {
+                return new McpResponse($request->getId(), $result);
+            }
+
             $rawResult = new CallToolResult([new TextContent($result)]);
 
             return new McpResponse($request->getId(), $result ? new StructuredContentResult(json_decode($result, true), $rawResult) : $rawResult);
@@ -86,21 +91,27 @@ final class CallToolHandler implements RequestHandlerInterface
 
         $uriVariables = [];
         $bodyParams = [];
+        $queryParams = [];
+        $pageToken = null;
 
         foreach ($arguments as $key => $value) {
             if (\array_key_exists($key, $operation->getUriVariables() ?? [])) {
                 $uriVariables[$key] = $value;
+            } elseif ('pageToken' === $key) {
+                $pageToken = $value;
+            } elseif ('GET' === $operation->getMethod()) {
+                $queryParams[$key] = $value;
             } else {
                 $bodyParams[$key] = $value;
             }
         }
 
-        $url = $this->router->generate($operation->getRouteName() ?? $operation->getName(), $uriVariables);
+        $url = $pageToken ? base64_decode($pageToken) : $this->router->generate($operation->getRouteName() ?? $operation->getName(), $uriVariables);
         $method = $operation->getMethod();
         $content = $bodyParams ? json_encode($bodyParams, \JSON_THROW_ON_ERROR) : null;
         $accept = current($operation->getOutputFormats())[0] ?? 'application/json';
 
-        $subRequest = HttpRequest::create($url, $method, [], [], [], ['HTTP_ACCEPT' => $accept], $content);
+        $subRequest = HttpRequest::create($url, $method, $queryParams, [], [], ['HTTP_ACCEPT' => $accept], $content);
         if ($content) {
             $contentType = current($operation->getInputFormats())[0] ?? 'application/json';
             $subRequest->headers->set('Content-Type', $contentType);
@@ -109,6 +120,16 @@ final class CallToolHandler implements RequestHandlerInterface
         $response = $this->kernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
         if (HttpResponse::HTTP_NO_CONTENT === $response->getStatusCode()) {
             return null;
+        }
+
+        $json = json_decode($response->getContent(), true);
+        if ($operation instanceof CollectionOperationInterface) {
+            $result = ['items' => $json['hydra:member'] ?? $json['member']];
+            if ($next = ($json['hydra:view']['hydra:next'] ?? $json['view']['next'])) {
+                $result['nextPageToken'] = base64_encode($next);
+            }
+
+            return new StructuredContentResult($result);
         }
 
         return $response->getContent();

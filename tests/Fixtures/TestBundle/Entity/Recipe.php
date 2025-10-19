@@ -19,6 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource(
     types: ['https://schema.org/Recipe'],
     normalizationContext: ['hydra_prefix' => false],
+    paginationItemsPerPage: 2,
+    mcp: true
 )]
 #[ORM\Entity]
 class Recipe

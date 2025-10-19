@@ -18,6 +18,7 @@ use ApiPlatform\JsonSchema\SchemaFactoryInterface;
 use ApiPlatform\Mcp\Metadata\McpResource;
 use ApiPlatform\Mcp\Metadata\McpResourceTemplate;
 use ApiPlatform\Mcp\Metadata\McpTool;
+use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
@@ -49,13 +50,7 @@ final readonly class McpOperationFactory implements McpCapabilityFactoryInterfac
             $resourceMetadataCollection = $this->resourceMetadataFactory->create($resourceClass);
             foreach ($resourceMetadataCollection as $resource) {
                 foreach ($resource->getOperations() as $operation) {
-                    if (!$operation instanceof HttpOperation) {
-                        continue;
-                    }
-
-                    $mcp = $operation->getMcp();
-
-                    if (false === $mcp || null === $mcp) {
+                    if (!$operation instanceof HttpOperation || !($mcp = $operation->getMcp())) {
                         continue;
                     }
 
@@ -149,7 +144,6 @@ final readonly class McpOperationFactory implements McpCapabilityFactoryInterfac
         ];
 
         // 1. Add properties from the request body for relevant methods
-        // For GET requests, we only want URI variables, so we skip this part.
         if (\in_array($operation->getMethod(), ['POST', 'PUT', 'PATCH'], true)) {
             $bodySchema = $this->schemaFactory->buildSchema($operation->getClass(), 'json', Schema::TYPE_INPUT, $operation);
             $rootDefinitionKey = $bodySchema->getRootDefinitionKey();
@@ -171,6 +165,22 @@ final readonly class McpOperationFactory implements McpCapabilityFactoryInterfac
             if ($uriVariable->getRequired() ?? true) {
                 $schema['required'][] = $parameterName;
             }
+        }
+
+        if ('GET' === $operation->getMethod()) {
+            foreach ($operation->getParameters() as $parameter) {
+                $schema['properties'][$parameter->getKey()] = $parameter->getSchema() ?? ['type' => 'string'];
+                if ($parameter->getRequired() ?? true) {
+                    $schema['required'][] = $parameter->getKey();
+                }
+            }
+        }
+
+        if ($operation instanceof CollectionOperationInterface) {
+            $schema['properties']['pageToken'] = [
+                'type' => 'string',
+                'description' => 'A token to retrieve the next page of results.',
+            ];
         }
 
         if (empty($schema['properties'])) {

@@ -51,6 +51,17 @@ class McpTest extends ApiTestCase
         $recipe->cookTime = 'PT1H';
         $recipe->prepTime = 'PT20M';
         $manager->persist($recipe);
+
+        $recipe2 = new Recipe();
+        $recipe2->name = 'Bouillabaisse';
+        $recipe2->description = 'A traditional Provençal fish stew.';
+        $manager->persist($recipe2);
+
+        $recipe3 = new Recipe();
+        $recipe3->name = 'Cassoulet';
+        $recipe3->description = 'A rich, slow-cooked casserole.';
+        $manager->persist($recipe3);
+
         $manager->flush();
     }
 
@@ -83,26 +94,15 @@ class McpTest extends ApiTestCase
         ]);
         $this->assertResponseIsSuccessful();
 
-        $baseSchema = [
-            'type' => 'object',
-            'properties' => [
-                'name' => ['type' => 'string'],
-                'description' => ['type' => 'string'],
-                'cookTime' => ['type' => ['string', 'null']],
-                'prepTime' => ['type' => ['string', 'null']],
-            ],
-        ];
-
-        $this->assertJsonContains([
-            'result' => [
-                'tools' => [
-                    ['name' => 'recipe_create', 'inputSchema' => $baseSchema],
-                    ['name' => 'recipe_upsert_by_id', 'inputSchema' => $baseSchema + ['properties' => ['id' => ['type' => 'integer']] + $baseSchema['properties']]],
-                    ['name' => 'recipe_update_by_id', 'inputSchema' => $baseSchema + ['properties' => ['id' => ['type' => 'integer']] + $baseSchema['properties']]],
-                    ['name' => 'recipe_delete_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id']]],
-                ],
-            ],
-        ]);
+        $tools = $response->toArray()['result']['tools'];
+        $this->assertContains(['name' => 'recipe_create', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['readOnly' => true, 'type' => 'integer'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]]]], $tools);
+        $this->assertContains(['name' => 'recipe_upsert_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]], 'required' => ['id']]], $tools);
+        $this->assertContains(['name' => 'recipe_update_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]], 'required' => ['id']]], $tools);
+        $this->assertContains(['name' => 'recipe_delete_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id']]], $tools);
+        $this->assertContains(['name' => 'recipe_retrieve_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id']]], $tools);
+        $recipeListTool = array_values(array_filter($tools, fn ($t) => 'recipe_retrieve_list' === $t['name']))[0] ?? null;
+        $this->assertNotNull($recipeListTool);
+        $this->assertArrayHasKey('pageToken', $recipeListTool['inputSchema']['properties']);
 
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
@@ -110,10 +110,11 @@ class McpTest extends ApiTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
+        $resourceNames = array_map(fn ($r) => $r['name'], $response->toArray()['result']['resources']);
+        $this->assertNotContains('recipe_retrieve_list', $resourceNames);
         $this->assertJsonContains([
             'result' => [
                 'resources' => [
-                    ['uri' => 'http://localhost/recipes', 'name' => 'recipe_retrieve_list', 'mimeType' => 'application/ld+json'],
                     ['uri' => 'http://localhost/docs.jsonopenapi', 'name' => 'openapi_spec', 'description' => 'The OpenAPI specification for this API.', 'mimeType' => 'application/vnd.openapi+json'],
                     ['uri' => 'http://localhost/docs.jsonld', 'name' => 'hydra_docs', 'description' => 'The Hydra documentation for this API.', 'mimeType' => 'application/ld+json'],
                     ['uri' => 'http://localhost/entrypoint', 'name' => 'api_entrypoint', 'description' => 'The main entrypoint for the API.', 'mimeType' => 'application/ld+json'],
@@ -126,26 +127,11 @@ class McpTest extends ApiTestCase
             'json' => $this->createJsonRpcRequest('resources/templates/list'),
         ]);
 
+        $templateNames = array_map(fn ($r) => $r['name'], $response->toArray()['result']['resourceTemplates']);
+        $this->assertNotContains('recipe_retrieve_by_id', $templateNames);
         $this->assertJsonContains([
             'result' => [
                 'resourceTemplates' => [
-                    [
-                        'uriTemplate' => 'http://localhost/recipes/{id}',
-                        'name' => 'recipe_retrieve_by_id',
-                        'mimeType' => 'application/ld+json',
-                    ],
-                    [
-                        'uriTemplate' => 'http://localhost/errors/{status}',
-                        'name' => 'error_retrieve_by_status',
-                        'description' => 'A representation of common errors.',
-                        'mimeType' => 'application/ld+json',
-                    ],
-                    [
-                        'uriTemplate' => 'http://localhost/validation_errors/{id}',
-                        'name' => 'constraintviolation_retrieve_by_id',
-                        'description' => 'Unprocessable entity',
-                        'mimeType' => 'application/ld+json',
-                    ],
                     [
                         'uriTemplate' => 'http://localhost/contexts/{shortName}',
                         'name' => 'jsonld_context',
@@ -175,24 +161,43 @@ class McpTest extends ApiTestCase
 
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('resources/read', [
-                'uri' => \sprintf('http://localhost/recipes/%d', $createdRecipeId),
+            'json' => $this->createJsonRpcRequest('tools/call', [
+                'name' => 'recipe_retrieve_by_id',
+                'arguments' => ['id' => (string) $createdRecipeId],
             ]),
         ]);
         $this->assertResponseIsSuccessful();
         $readRecipe = $response->toArray()['result'];
-        $this->assertStringContainsString('Ratatouille', $readRecipe['contents'][0]['text']);
+        $this->assertStringContainsString('Ratatouille', $readRecipe['content'][0]['text']);
         $this->assertArraySubset($arguments, $readRecipe['structuredContent']);
 
+        // Test collection tool with pagination
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('resources/read', [
-                'uri' => 'http://localhost/recipes',
+            'json' => $this->createJsonRpcRequest('tools/call', [
+                'name' => 'recipe_retrieve_list',
+                'arguments' => ['itemsPerPage' => 2],
             ]),
         ]);
         $this->assertResponseIsSuccessful();
         $list = $response->toArray()['result'];
-        $this->assertSame(2, $list['structuredContent']['totalItems']);
+        dd($list);
+        $this->assertCount(2, $list['structuredContent']['items']);
+        $this->assertArrayHasKey('nextPageToken', $list['structuredContent']);
+        $nextPageToken = $list['structuredContent']['nextPageToken'];
+
+        // Test next page
+        $response = $client->request('POST', '/mcp', [
+            'headers' => $this->mcpHeaders,
+            'json' => $this->createJsonRpcRequest('tools/call', [
+                'name' => 'recipe_retrieve_list',
+                'arguments' => ['pageToken' => $nextPageToken],
+            ]),
+        ]);
+        $this->assertResponseIsSuccessful();
+        $list = $response->toArray()['result'];
+        $this->assertCount(2, $list['structuredContent']['items']);
+        $this->assertArrayNotHasKey('nextPageToken', $list['structuredContent']);
 
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
@@ -225,7 +230,7 @@ class McpTest extends ApiTestCase
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('tools/call', [
                 'name' => 'recipe_delete_by_id',
-                'arguments' => ['id' => $createdRecipeId],
+                'arguments' => ['id' => (string) $createdRecipeId],
             ]),
         ]);
         $this->assertResponseIsSuccessful();

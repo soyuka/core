@@ -28,7 +28,7 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
  *
  * @internal
  */
-final readonly class McpNameResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
+final readonly class McpResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
     public function __construct(private ResourceMetadataCollectionFactoryInterface $decorated)
     {
@@ -49,26 +49,16 @@ final readonly class McpNameResourceMetadataCollectionFactory implements Resourc
             }
 
             foreach ($operations as $operationName => $operation) {
-                if (!$operation instanceof HttpOperation) {
-                    $newOperations->add($operationName, $operation);
-                    continue;
-                }
-
-                $mcp = $operation->getMcp() ?? $resource->getMcp();
-
-                if (false === $mcp || null === $mcp) {
+                if (!$operation instanceof HttpOperation || !($mcp = $operation->getMcp())) {
                     $newOperations->add($operationName, $operation);
                     continue;
                 }
 
                 $capabilities = [];
-                if (true === $mcp) {
-                    $capabilities[] = match ($operation->getMethod()) {
-                        'GET' => $operation->getUriVariables() ? new McpResourceTemplate() : new McpResource(),
-                        default => new McpTool(),
-                    };
-                } elseif (\is_array($mcp)) {
+                if (\is_array($mcp)) {
                     $capabilities = $mcp;
+                } else if (true === $mcp) {
+                    $capabilities[] = new McpTool();
                 } else {
                     $capabilities[] = $mcp;
                 }
