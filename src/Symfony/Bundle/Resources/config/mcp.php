@@ -16,7 +16,6 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use ApiPlatform\Mcp\Factory\McpDocumentationFactory;
 use ApiPlatform\Mcp\Factory\McpOperationFactory;
 use ApiPlatform\Mcp\Metadata\Factory\Operation\McpOperationMetadataFactory;
-use ApiPlatform\Mcp\Metadata\Factory\Resource\McpResourceMetadataCollectionFactory;
 use ApiPlatform\Mcp\Server\Builder;
 use ApiPlatform\Mcp\Server\Handler\Request\CallToolHandler;
 use ApiPlatform\Mcp\Server\Handler\Request\ReadResourceHandler;
@@ -25,27 +24,17 @@ return static function (ContainerConfigurator $container): void {
     $container->services()
         // Generator for MCP capabilities based on API Platform operations
         ->set('api_platform.mcp.operation_factory', McpOperationFactory::class)
-            ->args([
-                service('api_platform.metadata.resource.name_collection_factory'),
-                service('api_platform.metadata.resource.metadata_collection_factory'),
-                service('router.request_context'),
-                service('api_platform.json_schema.schema_factory'),
-            ])
+            ->args([])
             ->tag('api_platform.mcp_capability_factory')
 
         // Generator for MCP capabilities based on API Platform documentation endpoints
         ->set('api_platform.mcp.documentation_factory', McpDocumentationFactory::class)
             ->args([
+                service('api_platform.metadata.resource.name_collection_factory'),
+                service('api_platform.metadata.resource.metadata_collection_factory'),
                 service('router.request_context'),
             ])
             ->tag('api_platform.mcp_capability_factory')
-
-        // Creates an Mpc specific name and adds it to an operation's `extraProperties`
-        ->set('api_platform.mcp.metadata_resource_factory.mcp_name', McpResourceMetadataCollectionFactory::class)
-            ->decorate('api_platform.metadata.resource.metadata_collection_factory', priority: -10)
-            ->args([
-                service('.inner'),
-            ])
 
         ->set('api_platform.mcp.operation_metadata_factory', McpOperationMetadataFactory::class)
             ->args([
@@ -64,6 +53,12 @@ return static function (ContainerConfigurator $container): void {
         ->set('api_platform.mcp.request_handler.read_resource', ReadResourceHandler::class)
             ->args([
                 service('http_kernel'),
+                service('api_platform.metadata.resource.name_collection_factory'),
+                service('serializer'),
+                param('api_platform.title'),
+                param('api_platform.description'),
+                param('api_platform.version'),
+                service('logger')->nullOnInvalid(),
             ])
             ->tag('api_platform.mcp.request_handler')
 

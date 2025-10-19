@@ -13,14 +13,31 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\FreeTextQueryFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrFilter;
+use ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource(
     types: ['https://schema.org/Recipe'],
     normalizationContext: ['hydra_prefix' => false],
     paginationItemsPerPage: 2,
-    mcp: true
+    operations: [
+        new GetCollection(
+            parameters: [
+                'q' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter()), properties: ['name', 'description'])),
+            ]
+        ),
+        new Get(),
+        new Post(),
+        new Patch(),
+    ]
 )]
 #[ORM\Entity]
 class Recipe

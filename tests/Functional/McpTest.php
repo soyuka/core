@@ -54,13 +54,18 @@ class McpTest extends ApiTestCase
 
         $recipe2 = new Recipe();
         $recipe2->name = 'Bouillabaisse';
-        $recipe2->description = 'A traditional Provençal fish stew.';
+        $recipe2->description = 'A traditional Provençal fish and chicken stew.';
         $manager->persist($recipe2);
 
         $recipe3 = new Recipe();
         $recipe3->name = 'Cassoulet';
         $recipe3->description = 'A rich, slow-cooked casserole.';
         $manager->persist($recipe3);
+
+        $chickenRecipe = new Recipe();
+        $chickenRecipe->name = 'Roast Chicken';
+        $chickenRecipe->description = 'A simple and delicious roast chicken.';
+        $manager->persist($chickenRecipe);
 
         $manager->flush();
     }
@@ -73,14 +78,12 @@ class McpTest extends ApiTestCase
 
         $client = self::createClient();
 
+        // 1. Initialize
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('initialize', [
                 'protocolVersion' => '2024-11-05',
-                'clientInfo' => [
-                    'name' => 'ApiPlatform Test Suite',
-                    'version' => '1.0',
-                ],
+                'clientInfo' => ['name' => 'ApiPlatform Test Suite', 'version' => '1.0'],
                 'capabilities' => new \stdClass(),
             ]),
         ]);
@@ -88,149 +91,88 @@ class McpTest extends ApiTestCase
         $this->assertResponseHasHeader('mcp-session-id');
         $this->mcpHeaders['mcp-session-id'] = $response->getHeaders()['mcp-session-id'][0];
 
+        // 2. Initial tools/list should NOT have the search tool
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('tools/list'),
         ]);
         $this->assertResponseIsSuccessful();
-
         $tools = $response->toArray()['result']['tools'];
-        $this->assertContains(['name' => 'recipe_create', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['readOnly' => true, 'type' => 'integer'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]]]], $tools);
-        $this->assertContains(['name' => 'recipe_upsert_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]], 'required' => ['id']]], $tools);
-        $this->assertContains(['name' => 'recipe_update_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'], 'cookTime' => ['type' => ['string', 'null']], 'prepTime' => ['type' => ['string', 'null']]], 'required' => ['id']]], $tools);
-        $this->assertContains(['name' => 'recipe_delete_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id']]], $tools);
-        $this->assertContains(['name' => 'recipe_retrieve_by_id', 'inputSchema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id']]], $tools);
-        $recipeListTool = array_values(array_filter($tools, fn ($t) => 'recipe_retrieve_list' === $t['name']))[0] ?? null;
-        $this->assertNotNull($recipeListTool);
-        $this->assertArrayHasKey('pageToken', $recipeListTool['inputSchema']['properties']);
+        $toolNames = array_column($tools, 'name');
+        $this->assertNotContains('search_recipes', $toolNames);
+        $this->assertContains('invoke_hydra_operation', $toolNames);
 
+        // 3. Read the recipe collection resource
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('resources/list'),
+            'json' => $this->createJsonRpcRequest('resources/read', ['uri' => 'http://localhost/api/recipes']),
         ]);
-
         $this->assertResponseIsSuccessful();
-        $resourceNames = array_map(fn ($r) => $r['name'], $response->toArray()['result']['resources']);
-        $this->assertNotContains('recipe_retrieve_list', $resourceNames);
-        $this->assertJsonContains([
-            'result' => [
-                'resources' => [
-                    ['uri' => 'http://localhost/docs.jsonopenapi', 'name' => 'openapi_spec', 'description' => 'The OpenAPI specification for this API.', 'mimeType' => 'application/vnd.openapi+json'],
-                    ['uri' => 'http://localhost/docs.jsonld', 'name' => 'hydra_docs', 'description' => 'The Hydra documentation for this API.', 'mimeType' => 'application/ld+json'],
-                    ['uri' => 'http://localhost/entrypoint', 'name' => 'api_entrypoint', 'description' => 'The main entrypoint for the API.', 'mimeType' => 'application/ld+json'],
-                ],
-            ],
-        ]);
+        // The test can't easily check for the `tools/list_changed` notification,
+        // so we proceed assuming the client received it.
 
+        // 4. Call tools/list again, the new tool should be there.
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('resources/templates/list'),
+            'json' => $this->createJsonRpcRequest('tools/list'),
         ]);
+        $this->assertResponseIsSuccessful();
+        $tools = $response->toArray()['result']['tools'];
+        $searchTool = null;
+        foreach ($tools as $tool) {
+            if ($tool['name'] === 'search_recipes') {
+                $searchTool = $tool;
+                break;
+            }
+        }
+        $this->assertNotNull($searchTool, 'search_recipes tool was not dynamically generated.');
+        $this->assertArrayHasKey('q', $searchTool['inputSchema']['properties']);
 
-        $templateNames = array_map(fn ($r) => $r['name'], $response->toArray()['result']['resourceTemplates']);
-        $this->assertNotContains('recipe_retrieve_by_id', $templateNames);
-        $this->assertJsonContains([
-            'result' => [
-                'resourceTemplates' => [
-                    [
-                        'uriTemplate' => 'http://localhost/contexts/{shortName}',
-                        'name' => 'jsonld_context',
-                        'description' => 'The JSON-LD context for a given resource short name.',
-                        'mimeType' => 'application/ld+json',
-                    ],
-                ],
-            ],
+        // 5. Call the new dynamic tool to search for chicken
+        $response = $client->request('POST', '/mcp', [
+            'headers' => $this->mcpHeaders,
+            'json' => $this->createJsonRpcRequest('tools/call', [
+                'name' => 'search_recipes',
+                'arguments' => ['q' => 'chicken'],
+            ]),
         ]);
+        $this->assertResponseIsSuccessful();
+        $result = $response->toArray()['result'];
+        $searchResultContent = $result['structuredContent'];
+        $this->assertCount(2, $searchResultContent['hydra:member']);
+        $this->assertStringContainsString('chicken', strtolower(json_encode($searchResultContent['hydra:member'])));
 
-        $arguments = [
+        // 6. Use generic tool to CREATE a recipe
+        $recipePayload = [
             'name' => 'Ratatouille',
             'description' => 'A traditional French Provençal stewed vegetable dish.',
         ];
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_create',
-                'arguments' => $arguments,
-            ]),
-        ]);
-        $this->assertResponseIsSuccessful();
-        $createdRecipe = $response->toArray()['result'];
-        $this->assertStringContainsString('Ratatouille', $createdRecipe['content'][0]['text']);
-        $this->assertArraySubset($arguments, $createdRecipe['structuredContent']);
-        $createdRecipeId = $createdRecipe['structuredContent']['id'];
-
-        $response = $client->request('POST', '/mcp', [
-            'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_retrieve_by_id',
-                'arguments' => ['id' => (string) $createdRecipeId],
-            ]),
-        ]);
-        $this->assertResponseIsSuccessful();
-        $readRecipe = $response->toArray()['result'];
-        $this->assertStringContainsString('Ratatouille', $readRecipe['content'][0]['text']);
-        $this->assertArraySubset($arguments, $readRecipe['structuredContent']);
-
-        // Test collection tool with pagination
-        $response = $client->request('POST', '/mcp', [
-            'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_retrieve_list',
-                'arguments' => ['itemsPerPage' => 2],
-            ]),
-        ]);
-        $this->assertResponseIsSuccessful();
-        $list = $response->toArray()['result'];
-        dd($list);
-        $this->assertCount(2, $list['structuredContent']['items']);
-        $this->assertArrayHasKey('nextPageToken', $list['structuredContent']);
-        $nextPageToken = $list['structuredContent']['nextPageToken'];
-
-        // Test next page
-        $response = $client->request('POST', '/mcp', [
-            'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_retrieve_list',
-                'arguments' => ['pageToken' => $nextPageToken],
-            ]),
-        ]);
-        $this->assertResponseIsSuccessful();
-        $list = $response->toArray()['result'];
-        $this->assertCount(2, $list['structuredContent']['items']);
-        $this->assertArrayNotHasKey('nextPageToken', $list['structuredContent']);
-
-        $response = $client->request('POST', '/mcp', [
-            'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_upsert_by_id',
+                'name' => 'invoke_hydra_operation',
                 'arguments' => [
-                    'id' => $createdRecipeId,
-                    'name' => 'Ratatouille Updated',
-                    'description' => 'An updated description.',
+                    'method' => 'POST',
+                    'uri' => 'http://localhost/api/recipes',
+                    'payload' => $recipePayload,
                 ],
             ]),
         ]);
         $this->assertResponseIsSuccessful();
-        $this->assertStringContainsString('Ratatouille Updated', $response->getContent());
+        $createdRecipeResult = $response->toArray()['result'];
+        $createdRecipeContent = json_decode($createdRecipeResult['content'][0]['text'], true);
+        $this->assertArrayHasKey('@id', $createdRecipeContent);
+        $newRecipeUri = 'http://localhost'.$createdRecipeContent['@id'];
 
+        // 7. Use generic tool to DELETE the recipe
         $response = $client->request('POST', '/mcp', [
             'headers' => $this->mcpHeaders,
             'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_update_by_id',
+                'name' => 'invoke_hydra_operation',
                 'arguments' => [
-                    'id' => $createdRecipeId,
-                    'name' => 'Ratatouille Updated again',
+                    'method' => 'DELETE',
+                    'uri' => $newRecipeUri,
                 ],
-            ]),
-        ]);
-        $this->assertResponseIsSuccessful();
-        $this->assertStringContainsString('Ratatouille Updated again', $response->getContent());
-
-        $response = $client->request('POST', '/mcp', [
-            'headers' => $this->mcpHeaders,
-            'json' => $this->createJsonRpcRequest('tools/call', [
-                'name' => 'recipe_delete_by_id',
-                'arguments' => ['id' => (string) $createdRecipeId],
             ]),
         ]);
         $this->assertResponseIsSuccessful();
