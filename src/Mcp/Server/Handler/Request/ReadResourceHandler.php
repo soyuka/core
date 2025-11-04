@@ -115,8 +115,8 @@ final class ReadResourceHandler implements RequestHandlerInterface
                 $dynamicTools[$toolName] = $newTool;
                 $session->set('dynamic_tools', $dynamicTools);
 
-                if (method_exists($session, 'notify')) {
-                    $session->notify('notifications/tools/list_changed', []);
+                if (method_exists($session, 'addNotification')) {
+                    $session->addNotification('notifications/tools/list_changed', []);
                 }
             }
 
