@@ -145,6 +145,56 @@ final class DoctrineTest extends ApiTestCase
         $this->assertEquals('after', $a['hydra:member'][0]['name']);
     }
 
+    #[DataProvider('partialFilterParameterProviderForSearchFilterParameter')]
+    public function testPartialSearchFilterWithSearchFilterParameter(string $url, int $expectedCount, array $expectedFoos): void
+    {
+        $resource = $this->isMongoDB() ? SearchFilterParameterDocument::class : SearchFilterParameter::class;
+        $this->recreateSchema([$resource]);
+        $this->loadFixtures($resource);
+
+        $response = self::createClient()->request('GET', $url);
+
+        $this->assertResponseIsSuccessful();
+
+        $responseData = $response->toArray();
+        $filteredItems = $responseData['hydra:member'];
+
+
+        $this->assertCount($expectedCount, $filteredItems, \sprintf('Expected %d items for URL %s', $expectedCount, $url));
+
+        $foos = array_map(fn ($item) => $item['foo'], $filteredItems);
+        sort($foos);
+        sort($expectedFoos);
+
+        $this->assertSame($expectedFoos, $foos, 'The "foo" values do not match the expected values.');
+    }
+
+    public static function partialFilterParameterProviderForSearchFilterParameter(): \Generator
+    {
+        // Fixtures Recap (from DoctrineTest::loadFixtures with SearchFilterParameter):
+        // 3x foo = 'foo'
+        // 2x foo = 'bar'
+        // 1x foo = 'baz'
+
+        yield 'partial match on foo (fo -> 3x foo)' => [
+            '/search_filter_parameter?searchPartial[foo]=fo',
+            3,
+            ['foo', 'foo', 'foo'],
+        ];
+
+        yield 'partial match on foo (ba -> 2x bar, 1x baz)' => [
+            '/search_filter_parameter?searchPartial[foo]=ba',
+            3,
+            ['bar', 'bar', 'baz'],
+        ];
+
+        yield 'partial match on foo (az -> 1x baz)' => [
+            '/search_filter_parameter?searchPartial[foo]=az',
+            1,
+            ['baz'],
+        ];
+    }
+
     public function loadFixtures(string $resourceClass): void
     {
         $container = static::$kernel->getContainer();

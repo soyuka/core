@@ -35,6 +35,10 @@ use Doctrine\ORM\Mapping as ORM;
         'searchExact[:property]' => new QueryParameter(filter: 'app_search_filter_with_exact'),
         'searchOnTextAndDate[:property]' => new QueryParameter(filter: 'app_filter_date_and_search'),
         'q' => new QueryParameter(property: 'hydra:freetextQuery'),
+        'search[:property]' => new QueryParameter(
+            filter: new \ApiPlatform\Doctrine\Orm\Filter\PartialSearchFilter(),
+            properties: ['foo', 'createdAt']
+        ),
     ]
 )]
 #[QueryCollection(
