@@ -105,14 +105,14 @@ final class ParameterValidatorProvider implements ProviderInterface
     private function getProperty(Parameter $parameter, ConstraintViolationInterface $violation): string
     {
         $key = $parameter->getKey();
-
-        if (str_contains($key, '[:property]')) {
-            return str_replace('[:property]', $violation->getPropertyPath(), $key);
-        }
-
-        if (str_contains($key, ':property')) {
-            return str_replace(':property', $violation->getPropertyPath(), $key);
-        }
+        //
+        // if (str_contains($key, '[:property]')) {
+        //     return str_replace('[:property]', $violation->getPropertyPath(), $key);
+        // }
+        //
+        // if (str_contains($key, ':property')) {
+        //     return str_replace(':property', $violation->getPropertyPath(), $key);
+        // }
 
         $openApi = $parameter->getOpenApi();
         if (false === $openApi) {

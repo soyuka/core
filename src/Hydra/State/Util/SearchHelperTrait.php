@@ -79,14 +79,15 @@ trait SearchHelperTrait
                         continue;
                     }
 
-                    $k = str_replace(':property', $description['property'], $key);
-                    $variable = str_replace($description['property'], $k, $variable);
-                    $keys[] = $variable;
-                    $m = new IriTemplateMapping(variable: $variable, property: $description['property'], required: $description['required']);
-                    if (null !== ($required = $parameter->getRequired())) {
-                        $m->required = $required;
-                    }
-                    $mapping[] = $m;
+                    // tbd
+                    // $k = str_replace(':property', $description['property'], $key);
+                    // $variable = str_replace($description['property'], $k, $variable);
+                    // $keys[] = $variable;
+                    // $m = new IriTemplateMapping(variable: $variable, property: $description['property'], required: $description['required']);
+                    // if (null !== ($required = $parameter->getRequired())) {
+                    //     $m->required = $required;
+                    // }
+                    // $mapping[] = $m;
                 }
 
                 if ($filterDescription) {

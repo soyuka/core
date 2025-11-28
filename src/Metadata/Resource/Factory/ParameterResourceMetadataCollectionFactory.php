@@ -119,42 +119,49 @@ final class ParameterResourceMetadataCollectionFactory implements ResourceMetada
     {
         $propertyNames = $properties = [];
         $parameters = $operation->getParameters() ?? new Parameters();
+
+        // First loop we look for the :property placeholder and replace its key
         foreach ($parameters as $key => $parameter) {
-            if (!$parameter->getKey()) {
-                $parameter = $parameter->withKey($key);
-            }
-
-            ['propertyNames' => $propertyNames, 'properties' => $properties] = $this->getProperties($resourceClass, $parameter);
-            if (null === $parameter->getProvider() && (($f = $parameter->getFilter()) && $f instanceof ParameterProviderFilterInterface)) {
-                $parameters->add($key, $parameter->withProvider($f->getParameterProvider()));
-            }
-
-            if (str_contains($key, ':property')) {
-                foreach ($propertyNames as $property) {
-                    $converted = $this->nameConverter?->denormalize($property) ?? $property;
-                    $propertyParameter = $this->setDefaults($converted, $parameter, $resourceClass, $properties, $operation);
-                    $priority = $propertyParameter->getPriority() ?? $internalPriority--;
-                    $finalKey = str_replace(':property', $converted, $key);
-                    $parameters->add(
-                        $finalKey,
-                        $propertyParameter->withProperty($converted)->withPriority($priority)->withKey($finalKey)
-                    );
-                }
-
-                $parameters->remove($key, $parameter::class);
+            if (!str_contains($key, ':property')) {
                 continue;
             }
 
-            $key = $parameter->getKey() ?? $key;
+            ['propertyNames' => $propertyNames, 'properties' => $properties] = $this->getProperties($resourceClass, $parameter);
 
-            if (str_contains($key, ':property') || ((($f = $parameter->getFilter()) && is_a($f, PropertiesAwareInterface::class, true)) || $parameter instanceof PropertiesAwareInterface)) {
+            // TODO: Do we really need this?
+            if ((($f = $parameter->getFilter()) && is_a($f, PropertiesAwareInterface::class, true)) || $parameter instanceof PropertiesAwareInterface) {
                 $p = [];
                 foreach ($propertyNames as $prop) {
                     $p[$this->nameConverter?->denormalize($prop) ?? $prop] = $prop;
                 }
 
-                $parameter = $parameter->withExtraProperties($parameter->getExtraProperties() + ['_properties' => $p]);
+                $parameter = $parameter->withProperties($p);
             }
+
+            foreach ($propertyNames as $property) {
+                $converted = $this->nameConverter?->denormalize($property) ?? $property;
+                $finalKey = str_replace(':property', $converted, $key);
+                $parameters->add(
+                    $finalKey,
+                    $propertyParameter->withProperty($converted)->withKey($finalKey)
+                );
+            }
+
+            $parameters->remove($key, $parameter::class);
+        }
+
+
+        foreach ($parameters as $key => $parameter) {
+            if (!$parameter->getKey()) {
+                $parameter = $parameter->withKey($key);
+            }
+
+            // The filter has a parameter provider
+            if (null === $parameter->getProvider() && (($f = $parameter->getFilter()) && $f instanceof ParameterProviderFilterInterface)) {
+                $parameter = $parameter->withProvider($f->getParameterProvider());
+            }
+
+            $key = $parameter->getKey() ?? $key;
 
             $parameter = $this->setDefaults($key, $parameter, $resourceClass, $properties, $operation);
             // We don't do any type cast yet, a query parameter or an header is always a string or a list of strings

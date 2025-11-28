@@ -26,7 +26,7 @@ final readonly class SparseFieldsetParameterProvider implements ParameterProvide
             return null;
         }
 
-        $allowedProperties = $parameter->getExtraProperties()['_properties'] ?? [];
+        $allowedProperties = $parameter->getProperties() ?? [];
         $value = $parameter->getValue();
         $normalizationContext = $operation->getNormalizationContext();
 

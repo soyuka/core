@@ -74,19 +74,22 @@ final class ParameterExtension implements AggregationCollectionExtensionInterfac
                 $filter->setLogger($this->logger);
             }
 
-            if ($filter instanceof AbstractFilter && !$filter->getProperties()) {
+            // Repeated inside ORM Move this to common ?
+            if ($filter instanceof PropertyAwareFilterInterface) {
+                $properties = [];
                 $propertyKey = $parameter->getProperty() ?? $parameter->getKey();
 
-                if (str_contains($propertyKey, ':property')) {
-                    $extraProperties = $parameter->getExtraProperties()['_properties'] ?? [];
-                    foreach (array_keys($extraProperties) as $property) {
-                        $properties[$property] = $parameter->getFilterContext();
-                    }
-                } else {
-                    $properties = [$propertyKey => $parameter->getFilterContext()];
+                if ($filter instanceof AbstractFilter) {
+                    $properties = $filter->getProperties() ?? [];
                 }
 
-                $filter->setProperties($properties ?? []);
+                foreach ($parameter->getProperties() ?? [$propertyKey] as $property) {
+                    if (!isset ($properties[$properties])) {
+                        $properties[$property] = $parameter->getFilterContext();
+                    }
+                }
+
+                $filter->setProperties($properties);
             }
 
             $context['filters'] = $values;

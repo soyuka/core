@@ -101,7 +101,7 @@ trait ParameterValidationConstraints
             $assertions[] = new Choice(choices: $schema['enum']);
         }
 
-        if ($properties = $parameter->getExtraProperties()['_properties'] ?? []) {
+        if ($properties = $parameter->getProperties() ?? []) {
             $fields = [];
             foreach ($properties as $propertyName) {
                 $fields[$propertyName] = $assertions;

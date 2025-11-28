@@ -76,21 +76,22 @@ final class ParameterExtension implements QueryCollectionExtensionInterface, Que
                 $filter->setLogger($this->logger);
             }
 
+            // Repeated inside ODM Move this to common ?
             if ($filter instanceof PropertyAwareFilterInterface) {
                 $properties = [];
                 $propertyKey = $parameter->getProperty() ?? $parameter->getKey();
+
                 if ($filter instanceof AbstractFilter) {
                     $properties = $filter->getProperties() ?? [];
+                }
 
-                    if (str_contains($propertyKey, ':property')) {
-                        $extraProperties = $parameter->getExtraProperties()['_properties'] ?? [];
-                        foreach (array_keys($extraProperties) as $property) {
-                            $properties[$property] = $parameter->getFilterContext();
-                        }
+                foreach ($parameter->getProperties() ?? [$propertyKey] as $property) {
+                    if (!isset ($properties[$properties])) {
+                        $properties[$property] = $parameter->getFilterContext();
                     }
                 }
 
-                $filter->setProperties($properties + [$propertyKey => $parameter->getFilterContext()]);
+                $filter->setProperties($properties);
             }
 
             $filter->apply($queryBuilder, $queryNameGenerator, $resourceClass, $operation,
