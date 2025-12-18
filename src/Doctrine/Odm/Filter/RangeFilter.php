@@ -14,7 +14,8 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Odm\Filter;
 
 use ApiPlatform\Doctrine\Common\Filter\RangeFilterInterface;
-use ApiPlatform\Doctrine\Common\Filter\RangeFilterTrait;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
+use ApiPlatform\Metadata\JsonSchemaFilterInterface;
 use ApiPlatform\Metadata\OpenApiParameterFilterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Parameter;
@@ -32,12 +33,17 @@ use Doctrine\ODM\MongoDB\Aggregation\Builder;
  * ```php
  * <?php
  * // api/src/Entity/Book.php
- * use ApiPlatform\Metadata\ApiFilter;
  * use ApiPlatform\Metadata\ApiResource;
+ * use ApiPlatform\Metadata\GetCollection;
+ * use ApiPlatform\Metadata\QueryParameter;
  * use ApiPlatform\Doctrine\Odm\Filter\RangeFilter;
  *
  * #[ApiResource]
- * #[ApiFilter(RangeFilter::class, properties: ['price'])]
+ * #[GetCollection(
+ *     parameters: [
+ *         'price' => new QueryParameter(filter: new RangeFilter())
+ *     ]
+ * )]
  * class Book
  * {
  *     // ...
@@ -108,105 +114,92 @@ use Doctrine\ODM\MongoDB\Aggregation\Builder;
  * @author Lee Siong Chan <ahlee2326@me.com>
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
-final class RangeFilter extends AbstractFilter implements RangeFilterInterface, OpenApiParameterFilterInterface
+final class RangeFilter implements FilterInterface, RangeFilterInterface, JsonSchemaFilterInterface, OpenApiParameterFilterInterface
 {
-    use RangeFilterTrait;
+    use BackwardCompatibleFilterDescriptionTrait;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function filterProperty(string $property, mixed $values, Builder $aggregationBuilder, string $resourceClass, ?Operation $operation = null, array &$context = []): void
+    public function apply(Builder $aggregationBuilder, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (
-            !\is_array($values)
-            || !$this->isPropertyEnabled($property, $resourceClass)
-            || !$this->isPropertyMapped($property, $resourceClass)
-        ) {
+        $parameter = $context['parameter'] ?? null;
+        if (!$parameter) {
             return;
         }
 
-        $values = $this->normalizeValues($values, $property);
-        if (null === $values) {
+        $values = $parameter->getValue();
+        if (!\is_array($values)) {
             return;
         }
 
-        $matchField = $field = $property;
-
-        if ($this->isPropertyNested($property, $resourceClass)) {
-            [$matchField] = $this->addLookupsForNestedProperty($property, $aggregationBuilder, $resourceClass);
-        }
+        $property = $parameter->getProperty();
 
         foreach ($values as $operator => $value) {
-            $this->addMatch(
-                $aggregationBuilder,
-                $field,
-                $matchField,
-                $operator,
-                $value
-            );
+            $this->addMatch($aggregationBuilder, $property, $operator, $value);
         }
     }
 
-    /**
-     * Adds the match stage according to the operator.
-     */
-    protected function addMatch(Builder $aggregationBuilder, string $field, string $matchField, string $operator, string $value): void
+    private function addMatch(Builder $aggregationBuilder, string $field, string $operator, string $value): void
     {
         switch ($operator) {
             case self::PARAMETER_BETWEEN:
                 $rangeValue = explode('..', $value, 2);
 
-                $rangeValue = $this->normalizeBetweenValues($rangeValue);
-                if (null === $rangeValue) {
+                if (2 !== \count($rangeValue)) {
                     return;
                 }
+
+                if (!is_numeric($rangeValue[0]) || !is_numeric($rangeValue[1])) {
+                    return;
+                }
+
+                $rangeValue = [$rangeValue[0] + 0, $rangeValue[1] + 0];
 
                 if ($rangeValue[0] === $rangeValue[1]) {
-                    $aggregationBuilder->match()->field($matchField)->equals($rangeValue[0]);
+                    $aggregationBuilder->match()->field($field)->equals($rangeValue[0]);
 
                     return;
                 }
 
-                $aggregationBuilder->match()->field($matchField)->gte($rangeValue[0])->lte($rangeValue[1]);
+                $aggregationBuilder->match()->field($field)->gte($rangeValue[0])->lte($rangeValue[1]);
 
                 break;
             case self::PARAMETER_GREATER_THAN:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
-                $aggregationBuilder->match()->field($matchField)->gt($value);
+                $aggregationBuilder->match()->field($field)->gt($value + 0);
 
                 break;
             case self::PARAMETER_GREATER_THAN_OR_EQUAL:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
-                $aggregationBuilder->match()->field($matchField)->gte($value);
+                $aggregationBuilder->match()->field($field)->gte($value + 0);
 
                 break;
             case self::PARAMETER_LESS_THAN:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
-                $aggregationBuilder->match()->field($matchField)->lt($value);
+                $aggregationBuilder->match()->field($field)->lt($value + 0);
 
                 break;
             case self::PARAMETER_LESS_THAN_OR_EQUAL:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
-                $aggregationBuilder->match()->field($matchField)->lte($value);
+                $aggregationBuilder->match()->field($field)->lte($value + 0);
 
                 break;
         }
+    }
+
+    public function getSchema(Parameter $parameter): array
+    {
+        return ['type' => 'number'];
     }
 
     public function getOpenApiParameters(Parameter $parameter): array
@@ -219,6 +212,7 @@ final class RangeFilter extends AbstractFilter implements RangeFilterInterface, 
             new OpenApiParameter(name: $key.'[lt]', in: $in),
             new OpenApiParameter(name: $key.'[gte]', in: $in),
             new OpenApiParameter(name: $key.'[lte]', in: $in),
+            new OpenApiParameter(name: $key.'[between]', in: $in),
         ];
     }
 }

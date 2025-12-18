@@ -14,14 +14,14 @@ declare(strict_types=1);
 namespace ApiPlatform\Doctrine\Orm\Filter;
 
 use ApiPlatform\Doctrine\Common\Filter\RangeFilterInterface;
-use ApiPlatform\Doctrine\Common\Filter\RangeFilterTrait;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
+use ApiPlatform\Metadata\JsonSchemaFilterInterface;
 use ApiPlatform\Metadata\OpenApiParameterFilterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Parameter;
 use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\OpenApi\Model\Parameter as OpenApiParameter;
-use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -34,12 +34,17 @@ use Doctrine\ORM\QueryBuilder;
  * ```php
  * <?php
  * // api/src/Entity/Book.php
- * use ApiPlatform\Metadata\ApiFilter;
  * use ApiPlatform\Metadata\ApiResource;
+ * use ApiPlatform\Metadata\GetCollection;
+ * use ApiPlatform\Metadata\QueryParameter;
  * use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
  *
  * #[ApiResource]
- * #[ApiFilter(RangeFilter::class, properties: ['price'])]
+ * #[GetCollection(
+ *     parameters: [
+ *         'price' => new QueryParameter(filter: new RangeFilter())
+ *     ]
+ * )]
  * class Book
  * {
  *     // ...
@@ -109,51 +114,31 @@ use Doctrine\ORM\QueryBuilder;
  *
  * @author Lee Siong Chan <ahlee2326@me.com>
  */
-final class RangeFilter extends AbstractFilter implements RangeFilterInterface, OpenApiParameterFilterInterface
+final class RangeFilter implements FilterInterface, RangeFilterInterface, JsonSchemaFilterInterface, OpenApiParameterFilterInterface
 {
-    use RangeFilterTrait;
+    use BackwardCompatibleFilterDescriptionTrait;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function filterProperty(string $property, mixed $values, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (
-            !\is_array($values)
-            || !$this->isPropertyEnabled($property, $resourceClass)
-            || !$this->isPropertyMapped($property, $resourceClass)
-        ) {
+        $parameter = $context['parameter'] ?? null;
+        if (!$parameter) {
             return;
         }
 
-        $values = $this->normalizeValues($values, $property);
-        if (null === $values) {
+        $values = $parameter->getValue();
+        if (!\is_array($values)) {
             return;
         }
 
+        $property = $parameter->getProperty();
         $alias = $queryBuilder->getRootAliases()[0];
-        $field = $property;
-
-        if ($this->isPropertyNested($property, $resourceClass)) {
-            [$alias, $field] = $this->addJoinsForNestedProperty($property, $alias, $queryBuilder, $queryNameGenerator, $resourceClass, Join::INNER_JOIN);
-        }
 
         foreach ($values as $operator => $value) {
-            $this->addWhere(
-                $queryBuilder,
-                $queryNameGenerator,
-                $alias,
-                $field,
-                $operator,
-                $value
-            );
+            $this->addWhere($queryBuilder, $queryNameGenerator, $alias, $property, $operator, $value);
         }
     }
 
-    /**
-     * Adds the where clause according to the operator.
-     */
-    protected function addWhere(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $alias, string $field, string $operator, string $value): void
+    private function addWhere(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $alias, string $field, string $operator, string $value): void
     {
         $valueParameter = $queryNameGenerator->generateParameterName($field);
 
@@ -161,10 +146,15 @@ final class RangeFilter extends AbstractFilter implements RangeFilterInterface, 
             case self::PARAMETER_BETWEEN:
                 $rangeValue = explode('..', $value, 2);
 
-                $rangeValue = $this->normalizeBetweenValues($rangeValue);
-                if (null === $rangeValue) {
+                if (2 !== \count($rangeValue)) {
                     return;
                 }
+
+                if (!is_numeric($rangeValue[0]) || !is_numeric($rangeValue[1])) {
+                    return;
+                }
+
+                $rangeValue = [$rangeValue[0] + 0, $rangeValue[1] + 0];
 
                 if ($rangeValue[0] === $rangeValue[1]) {
                     $queryBuilder
@@ -181,50 +171,51 @@ final class RangeFilter extends AbstractFilter implements RangeFilterInterface, 
 
                 break;
             case self::PARAMETER_GREATER_THAN:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
                 $queryBuilder
                     ->andWhere(\sprintf('%s.%s > :%s', $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                    ->setParameter($valueParameter, $value + 0);
 
                 break;
             case self::PARAMETER_GREATER_THAN_OR_EQUAL:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
                 $queryBuilder
                     ->andWhere(\sprintf('%s.%s >= :%s', $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                    ->setParameter($valueParameter, $value + 0);
 
                 break;
             case self::PARAMETER_LESS_THAN:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
                 $queryBuilder
                     ->andWhere(\sprintf('%s.%s < :%s', $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                    ->setParameter($valueParameter, $value + 0);
 
                 break;
             case self::PARAMETER_LESS_THAN_OR_EQUAL:
-                $value = $this->normalizeValue($value, $operator);
-                if (null === $value) {
+                if (!is_numeric($value)) {
                     return;
                 }
 
                 $queryBuilder
                     ->andWhere(\sprintf('%s.%s <= :%s', $alias, $field, $valueParameter))
-                    ->setParameter($valueParameter, $value);
+                    ->setParameter($valueParameter, $value + 0);
 
                 break;
         }
+    }
+
+    public function getSchema(Parameter $parameter): array
+    {
+        return ['type' => 'number'];
     }
 
     public function getOpenApiParameters(Parameter $parameter): array
@@ -237,6 +228,7 @@ final class RangeFilter extends AbstractFilter implements RangeFilterInterface, 
             new OpenApiParameter(name: $key.'[lt]', in: $in),
             new OpenApiParameter(name: $key.'[gte]', in: $in),
             new OpenApiParameter(name: $key.'[lte]', in: $in),
+            new OpenApiParameter(name: $key.'[between]', in: $in),
         ];
     }
 }
