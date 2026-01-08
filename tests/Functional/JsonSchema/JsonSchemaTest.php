@@ -24,6 +24,8 @@ use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Issue5501\BrokenDocs;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Issue5501\Related;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Product;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\ResourceWithEnumProperty;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\Issue5626\SelfReferencingGreetingDto;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue5626\SelfReferencingGreeting;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue5793\BagOfTests;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue5793\TestEntity;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Issue6212\Nest;
@@ -66,6 +68,7 @@ class JsonSchemaTest extends ApiTestCase
             JsonSchemaResourceRelated::class,
             Product::class,
             AggregateRating::class,
+            SelfReferencingGreeting::class,
         ];
     }
 
@@ -222,5 +225,42 @@ class JsonSchemaTest extends ApiTestCase
     {
         $schema = $this->schemaFactory->buildSchema(Product::class, 'jsonld', Schema::TYPE_OUTPUT, $this->operationMetadataFactory->create('_api_/json-stream-products_get_collection'));
         $this->assertThat(['member' => [['aggregateRating' => ['ratingValue' => '1.0', 'reviewCount' => 1]]]], new MatchesJsonSchema($schema));
+    }
+
+    /**
+     * Test for issue #5626 - v3.1.6 regression where modifying output to a DTO causes infinite loop in schema types.
+     * When a GET operation outputs a DTO that contains the resource itself, the schema should reference the resource
+     * class (SelfReferencingGreeting), NOT the DTO class (which would create a self-referencing infinite loop).
+     */
+    public function testIssue5626DtoOutputDoesNotSelfReference(): void
+    {
+        // This should not throw an exception or create an infinite loop
+        $operation = $this->operationMetadataFactory->create('_api_/self_referencing_greetings/{id}_get');
+        $schema = $this->schemaFactory->buildSchema(SelfReferencingGreeting::class, 'jsonld', Schema::TYPE_OUTPUT, $operation);
+        dd(json_encode($schema, \JSON_PRETTY_PRINT));
+
+        // The schema should contain a definition for the DTO (not self-referencing)
+        $this->assertArrayHasKey('SelfReferencingGreeting.SelfReferencingGreetingDto.jsonld-advanced', $schema['definitions']);
+
+        // Verify we can access the DTO definition without errors
+        $dtoDefinition = $schema['definitions']['SelfReferencingGreeting.SelfReferencingGreetingDto.jsonld-advanced'];
+        $this->assertIsArray($dtoDefinition->getArrayCopy());
+
+        // Check if properties exist in the allOf structure
+        $foundGreetingProperty = false;
+        if (isset($dtoDefinition['allOf'])) {
+            foreach ($dtoDefinition['allOf'] as $item) {
+                if (isset($item['properties']['greeting']['$ref'])) {
+                    $foundGreetingProperty = true;
+                    $ref = $item['properties']['greeting']['$ref'];
+                    // The greeting property should reference SelfReferencingGreeting.jsonld-advanced (the resource),
+                    // NOT SelfReferencingGreetingDto.jsonld-advanced (which would be a self-reference causing infinite loop)
+                    $this->assertStringContainsString('SelfReferencingGreeting.jsonld', $ref);
+                    $this->assertStringNotContainsString('SelfReferencingGreetingDto', $ref);
+                }
+            }
+        }
+
+        $this->assertTrue($foundGreetingProperty, 'The DTO should have a greeting property in its schema');
     }
 }
