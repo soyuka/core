@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use ApiPlatform\Symfony\Doctrine\EventListener\PublishMercureUpdatesListener;
+use Symfony\Component\Mercure\HubRegistry;
+
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.doctrine_mongodb.odm.listener.mercure.publish', 'ApiPlatform\Symfony\Doctrine\EventListener\PublishMercureUpdatesListener')
+    $services->set('api_platform.doctrine_mongodb.odm.listener.mercure.publish', PublishMercureUpdatesListener::class)
         ->args([
             service('api_platform.resource_class_resolver'),
             service('api_platform.symfony.iri_converter'),
@@ -24,7 +27,7 @@ return static function (ContainerConfigurator $container) {
             service('api_platform.serializer'),
             '%api_platform.formats%',
             service('messenger.default_bus')->ignoreOnInvalid(),
-            service('Symfony\Component\Mercure\HubRegistry'),
+            service(HubRegistry::class),
             service('api_platform.graphql.subscription.subscription_manager')->ignoreOnInvalid(),
             service('api_platform.graphql.subscription.mercure_iri_generator')->ignoreOnInvalid(),
             null,

@@ -13,13 +13,16 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use ApiPlatform\Symfony\State\MercureLinkProcessor;
+use Symfony\Component\Mercure\Discovery;
+
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.mercure.processor.add_link_header', 'ApiPlatform\Symfony\State\MercureLinkProcessor')
+    $services->set('api_platform.mercure.processor.add_link_header', MercureLinkProcessor::class)
         ->decorate('api_platform.state_processor.respond', null, 400)
         ->args([
             service('api_platform.mercure.processor.add_link_header.inner'),
-            service('Symfony\Component\Mercure\Discovery')->ignoreOnInvalid(),
+            service(Discovery::class)->ignoreOnInvalid(),
         ]);
 };

@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGenerator;
+use Symfony\Component\Mercure\HubRegistry;
+
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
 
-    $services->set('api_platform.graphql.subscription.mercure_iri_generator', 'ApiPlatform\GraphQl\Subscription\MercureSubscriptionIriGenerator')
+    $services->set('api_platform.graphql.subscription.mercure_iri_generator', MercureSubscriptionIriGenerator::class)
         ->args([
             service('router.request_context'),
-            service('Symfony\Component\Mercure\HubRegistry'),
+            service(HubRegistry::class),
         ]);
 };
