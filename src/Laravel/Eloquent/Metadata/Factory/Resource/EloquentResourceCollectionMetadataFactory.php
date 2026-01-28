@@ -80,7 +80,6 @@ final class EloquentResourceCollectionMetadataFactory implements ResourceMetadat
         foreach ($resourceMetadataCollection as $i => $resourceMetadata) {
             $operations = $resourceMetadata->getOperations();
             foreach ($operations ?? [] as $operationName => $operation) {
-                // Check if this operation uses Eloquent via stateOptions
                 $modelClass = $this->getStateOptionsClass($operation, $resourceClass, Options::class);
                 $usesEloquent = $isModel || ($modelClass !== $resourceClass);
 
@@ -114,7 +113,6 @@ final class EloquentResourceCollectionMetadataFactory implements ResourceMetadat
 
             $graphQlOperations = $resourceMetadata->getGraphQlOperations();
             foreach ($graphQlOperations ?? [] as $operationName => $graphQlOperation) {
-                // Check if this operation uses Eloquent via stateOptions
                 $modelClass = $this->getStateOptionsClass($graphQlOperation, $resourceClass, Options::class);
                 $usesEloquent = $isModel || ($modelClass !== $resourceClass);
 
