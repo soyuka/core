@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Tests\Functional\JsonSchema;
 
+use ApiPlatform\Hydra\JsonSchema\ItemDefinitionProcessor;
+use ApiPlatform\Hydra\JsonSchema\SchemaFactory as HydraSchemaFactory;
 use ApiPlatform\JsonSchema\Generator\ApiPlatformDefinitionPolicy;
 use ApiPlatform\JsonSchema\Generator\ConfigurationFactory;
 use ApiPlatform\JsonSchema\Generator\GeneratorSchemaFactory;
@@ -25,12 +27,15 @@ use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\Attribute
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\AttributeSelectedBook;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\BuiltinTypeQuirks;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenBook;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenDescribedOwner;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenDescribedRelated;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenGroupedItem;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenInputResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenMultiResourceEntity;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenMultiResourceOwner;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenNestedResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenNonStandardPutChild;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenOutputDtoOwner;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenOutputDtoResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenPartialChildrenOwner;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenPatchOnlyChild;
@@ -70,12 +75,15 @@ class GoldenSchemaTest extends ApiTestCase
             AttributeSelectedBook::class,
             BuiltinTypeQuirks::class,
             GoldenBook::class,
+            GoldenDescribedOwner::class,
+            GoldenDescribedRelated::class,
             GoldenGroupedItem::class,
             GoldenInputResource::class,
             GoldenMultiResourceEntity::class,
             GoldenMultiResourceOwner::class,
             GoldenNestedResource::class,
             GoldenNonStandardPutChild::class,
+            GoldenOutputDtoOwner::class,
             GoldenOutputDtoResource::class,
             GoldenPartialChildrenOwner::class,
             GoldenPatchOnlyChild::class,
@@ -131,12 +139,16 @@ class GoldenSchemaTest extends ApiTestCase
     #[DataProvider('provideCases')]
     public function testGenerateMatchesGolden(string $case, string $className, string $format, string $type, ?string $operationName, ?array $serializerContext, string $version, array $configuration): void
     {
-        if ('json' !== $format) {
-            $this->markTestSkipped('Stage 1 covers the json format only.');
+        if (!\in_array($format, ['json', 'jsonld'], true)) {
+            $this->markTestSkipped('Stage 2 covers the json and jsonld formats only.');
         }
 
         if ('mcp' === ($configuration['schemaFactory'] ?? null)) {
             $this->markTestSkipped('The MCP schema factory is not ported in stage 1.');
+        }
+
+        if ('jsonld_nested_output_dto' === $case) {
+            $this->markTestSkipped('The Hydra decorator re-resolves the nested operation by format, so jsonld describes the output DTO of an embedded resource while json does not: pending decision.');
         }
 
         if ('groups_explicit_context_split' === $case) {
@@ -157,7 +169,9 @@ class GoldenSchemaTest extends ApiTestCase
             $propertyMetadataFactory,
             $resourceClassResolver,
             $container->has('api_platform.name_converter') ? $container->get('api_platform.name_converter') : null,
+            [new ItemDefinitionProcessor($resourceClassResolver, $policy)],
         );
+        $factory = new HydraSchemaFactory($factory, $container->getParameter('api_platform.serializer.default_context'), $container->get('api_platform.json_schema.definition_name_factory'), $metadataFactory);
 
         $schema = $factory->buildSchema($className, $format, $type, $operation, new Schema($version), $serializerContext);
 
@@ -426,6 +440,30 @@ class GoldenSchemaTest extends ApiTestCase
             'dialect' => 'jsonSchema202012',
             'format' => 'json',
             'namePrefix' => 'BuiltinTypeQuirks',
+        ]];
+
+        yield 'nested_described_resource' => ['nested_described_resource', GoldenDescribedOwner::class, 'json', Schema::TYPE_OUTPUT, 'golden_described_owner_get', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'json',
+            'namePrefix' => 'GoldenDescribedOwner',
+        ]];
+
+        yield 'nested_output_dto' => ['nested_output_dto', GoldenOutputDtoOwner::class, 'json', Schema::TYPE_OUTPUT, 'golden_output_dto_owner_get', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'json',
+            'namePrefix' => 'GoldenOutputDtoOwner',
+        ]];
+
+        yield 'jsonld_nested_described_resource' => ['jsonld_nested_described_resource', GoldenDescribedOwner::class, 'jsonld', Schema::TYPE_OUTPUT, 'golden_described_owner_get', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonld',
+            'namePrefix' => 'GoldenDescribedOwner',
+        ]];
+
+        yield 'jsonld_nested_output_dto' => ['jsonld_nested_output_dto', GoldenOutputDtoOwner::class, 'jsonld', Schema::TYPE_OUTPUT, 'golden_output_dto_owner_get', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonld',
+            'namePrefix' => 'GoldenOutputDtoOwner',
         ]];
 
         yield 'mcp_tool_output' => ['mcp_tool_output', McpFormatTool::class, 'json', Schema::TYPE_OUTPUT, 'format_message', null, Schema::VERSION_JSON_SCHEMA, [

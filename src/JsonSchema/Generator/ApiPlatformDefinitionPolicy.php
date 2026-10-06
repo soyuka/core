@@ -149,7 +149,7 @@ final class ApiPlatformDefinitionPolicy implements DefinitionPolicyInterface
         return preg_replace('/[^a-zA-Z0-9.\-_]/', self::GLUE, $name);
     }
 
-    private function resolveGenId(?DefinitionParent $parent): bool
+    public function resolveGenId(?DefinitionParent $parent): bool
     {
         for (; null !== $parent; $parent = $parent->parent) {
             try {
@@ -166,7 +166,7 @@ final class ApiPlatformDefinitionPolicy implements DefinitionPolicyInterface
         return true;
     }
 
-    private function findNestedOperation(string $class): ?Operation
+    public function findNestedOperation(string $class): ?Operation
     {
         if (!$this->isResourceClass($class)) {
             return null;
