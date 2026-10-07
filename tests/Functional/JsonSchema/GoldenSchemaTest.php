@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Tests\Functional\JsonSchema;
 
+use ApiPlatform\Hal\JsonSchema\SchemaFactory as HalSchemaFactory;
 use ApiPlatform\Hydra\JsonSchema\ItemDefinitionProcessor;
 use ApiPlatform\Hydra\JsonSchema\SchemaFactory as HydraSchemaFactory;
+use ApiPlatform\JsonApi\JsonSchema\SchemaFactory as JsonApiSchemaFactory;
 use ApiPlatform\JsonSchema\Generator\ApiPlatformDefinitionPolicy;
 use ApiPlatform\JsonSchema\Generator\ConfigurationFactory;
 use ApiPlatform\JsonSchema\Generator\GeneratorSchemaFactory;
 use ApiPlatform\JsonSchema\Schema;
 use ApiPlatform\JsonSchema\SchemaFactory;
 use ApiPlatform\JsonSchema\SchemaFactoryInterface;
+use ApiPlatform\Mcp\JsonSchema\SchemaFactory as McpSchemaFactory;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Test\ApiTestCase;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\AttributeSelectedAuthor;
@@ -46,6 +49,9 @@ use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenRel
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenStrictInputResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenValidatedResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\McpFormatTool;
+use ApiPlatform\Tests\Fixtures\TestBundle\Dto\McpBookOutputDto;
+use ApiPlatform\Tests\Fixtures\TestBundle\Dto\SearchDto;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\McpBook;
 use ApiPlatform\Tests\SetupClassResourcesTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -92,6 +98,7 @@ class GoldenSchemaTest extends ApiTestCase
             GoldenRelationResource::class,
             GoldenStrictInputResource::class,
             GoldenValidatedResource::class,
+            McpBook::class,
             McpFormatTool::class,
         ];
     }
@@ -107,7 +114,7 @@ class GoldenSchemaTest extends ApiTestCase
 
         $operation = null;
         if ('mcp' === ($configuration['schemaFactory'] ?? null)) {
-            $operation = $this->resourceMetadataCollectionFactory->create($className)[0]->getMcp()[$operationName];
+            $operation = $this->resourceMetadataCollectionFactory->create($configuration['mcpResource'] ?? $className)[0]->getMcp()[$operationName];
         } elseif (null !== $operationName) {
             $operation = $this->resourceMetadataCollectionFactory->create($className)->getOperation($operationName);
         }
@@ -139,14 +146,6 @@ class GoldenSchemaTest extends ApiTestCase
     #[DataProvider('provideCases')]
     public function testGenerateMatchesGolden(string $case, string $className, string $format, string $type, ?string $operationName, ?array $serializerContext, string $version, array $configuration): void
     {
-        if (!\in_array($format, ['json', 'jsonld'], true)) {
-            $this->markTestSkipped('Stage 2 covers the json and jsonld formats only.');
-        }
-
-        if ('mcp' === ($configuration['schemaFactory'] ?? null)) {
-            $this->markTestSkipped('The MCP schema factory is not ported in stage 1.');
-        }
-
         if ('jsonld_nested_output_dto' === $case) {
             $this->markTestSkipped('The Hydra decorator re-resolves the nested operation by format, so jsonld describes the output DTO of an embedded resource while json does not: pending decision.');
         }
@@ -155,7 +154,13 @@ class GoldenSchemaTest extends ApiTestCase
             $this->markTestSkipped('Pins the explicit-context groups bug fixed in api-platform/core#8643.');
         }
 
-        $operation = null !== $operationName ? $this->resourceMetadataCollectionFactory->create($className)->getOperation($operationName) : null;
+        $isMcp = 'mcp' === ($configuration['schemaFactory'] ?? null);
+        $operation = null;
+        if ($isMcp) {
+            $operation = $this->resourceMetadataCollectionFactory->create($configuration['mcpResource'] ?? $className)[0]->getMcp()[$operationName];
+        } elseif (null !== $operationName) {
+            $operation = $this->resourceMetadataCollectionFactory->create($className)->getOperation($operationName);
+        }
 
         $container = self::getContainer();
         $metadataFactory = $container->get('api_platform.metadata.resource.metadata_collection_factory');
@@ -171,7 +176,13 @@ class GoldenSchemaTest extends ApiTestCase
             $container->has('api_platform.name_converter') ? $container->get('api_platform.name_converter') : null,
             [new ItemDefinitionProcessor($resourceClassResolver, $policy)],
         );
-        $factory = new HydraSchemaFactory($factory, $container->getParameter('api_platform.serializer.default_context'), $container->get('api_platform.json_schema.definition_name_factory'), $metadataFactory);
+        $definitionNameFactory = $container->get('api_platform.json_schema.definition_name_factory');
+        $factory = new JsonApiSchemaFactory($factory, $propertyMetadataFactory, $resourceClassResolver, $metadataFactory, $definitionNameFactory, $container->get('api_platform.jsonapi.resource_linkage_resolver'));
+        $factory = new HydraSchemaFactory($factory, $container->getParameter('api_platform.serializer.default_context'), $definitionNameFactory, $metadataFactory);
+        $factory = new HalSchemaFactory($factory, $definitionNameFactory, $metadataFactory);
+        if ($isMcp) {
+            $factory = new McpSchemaFactory($factory);
+        }
 
         $schema = $factory->buildSchema($className, $format, $type, $operation, new Schema($version), $serializerContext);
 
@@ -394,6 +405,14 @@ class GoldenSchemaTest extends ApiTestCase
             'namePrefix' => 'GoldenRelation',
         ]];
 
+        yield 'jsonhal_output_collection' => ['jsonhal_output_collection', GoldenBook::class, 'jsonhal', Schema::TYPE_OUTPUT, 'golden_book_get_collection', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonhal',
+            'groups' => ['golden:read'],
+            'collection' => true,
+            'namePrefix' => 'GoldenBook',
+        ]];
+
         yield 'jsonapi_output_item' => ['jsonapi_output_item', GoldenBook::class, 'jsonapi', Schema::TYPE_OUTPUT, 'golden_book_get', null, Schema::VERSION_JSON_SCHEMA, [
             'dialect' => 'jsonSchema202012',
             'format' => 'jsonapi',
@@ -471,6 +490,36 @@ class GoldenSchemaTest extends ApiTestCase
             'format' => 'json',
             'schemaFactory' => 'mcp',
             'namePrefix' => 'McpFormatTool',
+        ]];
+
+        yield 'mcp_loader_item_output' => ['mcp_loader_item_output', McpBook::class, 'jsonld', Schema::TYPE_OUTPUT, 'get_book_info', [SchemaFactory::FORCE_SUBSCHEMA => true], Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonld',
+            'schemaFactory' => 'mcp',
+            'namePrefix' => 'McpBook',
+        ]];
+
+        yield 'mcp_loader_collection_output' => ['mcp_loader_collection_output', McpBook::class, 'jsonld', Schema::TYPE_OUTPUT, 'list_books', [SchemaFactory::FORCE_SUBSCHEMA => true], Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonld',
+            'schemaFactory' => 'mcp',
+            'collection' => true,
+            'namePrefix' => 'McpBook',
+        ]];
+
+        yield 'mcp_loader_output_dto' => ['mcp_loader_output_dto', McpBookOutputDto::class, 'jsonld', Schema::TYPE_OUTPUT, 'list_books_dto', [SchemaFactory::FORCE_SUBSCHEMA => true], Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'jsonld',
+            'schemaFactory' => 'mcp',
+            'mcpResource' => McpBook::class,
+            'namePrefix' => 'McpBook',
+        ]];
+
+        yield 'mcp_loader_input' => ['mcp_loader_input', SearchDto::class, 'jsonld', Schema::TYPE_INPUT, 'list_books', [SchemaFactory::FORCE_SUBSCHEMA => true], Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'json',
+            'schemaFactory' => 'mcp',
+            'mcpResource' => McpBook::class,
         ]];
     }
 
