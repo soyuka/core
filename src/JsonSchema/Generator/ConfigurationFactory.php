@@ -24,7 +24,6 @@ use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Symfony\Component\JsonSchema\Configuration;
 use Symfony\Component\JsonSchema\Dialect;
 use Symfony\Component\JsonSchema\NullSyntax;
-use Symfony\Component\JsonSchema\ReferenceStrategy;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\Validator\Constraints\GroupSequence;
@@ -82,16 +81,15 @@ final class ConfigurationFactory
         $attributes = $serializerContext[AbstractNormalizer::ATTRIBUTES] ?? null;
 
         $configuration = new Configuration(
-            $this->createDialect($version),
-            ReferenceStrategy::ByDefinition,
-            array_values((array) ($serializerContext[AbstractNormalizer::GROUPS] ?? [])),
-            $attributes ? (array) $attributes : null,
-            array_values((array) ($serializerContext['ignored_attributes'] ?? [])),
-            false !== ($serializerContext[AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES] ?? true),
-            $this->normalizeValidationGroups($validationGroups),
-            $serializerContext[self::OPENAPI_DEFINITION_NAME] ?? null,
-            $this->definitionPolicy->createRootPrefix($operation, $className, $inputOrOutputClass),
-            $isJsonMergePatch ? 'merge-patch+json' : $format,
+            dialect: $this->createDialect($version),
+            groups: array_values((array) ($serializerContext[AbstractNormalizer::GROUPS] ?? [])),
+            attributes: $attributes ? (array) $attributes : null,
+            ignoredAttributes: array_values((array) ($serializerContext['ignored_attributes'] ?? [])),
+            allowExtraAttributes: false !== ($serializerContext[AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES] ?? true),
+            validationGroups: $this->normalizeValidationGroups($validationGroups),
+            definitionName: $serializerContext[self::OPENAPI_DEFINITION_NAME] ?? null,
+            definitionPrefix: $this->definitionPolicy->createRootPrefix($operation, $className, $inputOrOutputClass),
+            format: $isJsonMergePatch ? 'merge-patch+json' : $format,
         );
 
         $propertyOptions = ['schema_type' => $type, 'enable_getter_setter_extraction' => true];
@@ -123,7 +121,7 @@ final class ConfigurationFactory
     {
         return match ($version) {
             Schema::VERSION_OPENAPI => new Dialect('#/components/schemas/', NullSyntax::Union),
-            Schema::VERSION_SWAGGER => new Dialect('#/definitions/', NullSyntax::Union, supportsDeprecated: false),
+            Schema::VERSION_SWAGGER => new Dialect('#/definitions/', NullSyntax::Union),
             default => new Dialect('#/definitions/', NullSyntax::Union, schemaUri: 'http://json-schema.org/draft-07/schema#'),
         };
     }

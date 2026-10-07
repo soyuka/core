@@ -20,7 +20,6 @@ use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Symfony\Component\JsonSchema\ClassSchemaResolver\NativeClassSchemaResolver;
-use Symfony\Component\JsonSchema\ClassSchemaResolver\UidClassSchemaResolver;
 use Symfony\Component\JsonSchema\DefinitionProcessor\DefinitionProcessorInterface;
 use Symfony\Component\JsonSchema\SchemaGenerator;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
@@ -54,7 +53,7 @@ final class GeneratorSchemaFactory implements SchemaFactoryInterface
         $generator = new SchemaGenerator(
             new ApiPlatformPropertyInfoExtractor($accessor),
             $policy,
-            [new ResourceIriClassSchemaResolver($accessor, $this->resourceClassResolver, $type), new NativeClassSchemaResolver(), new UidClassSchemaResolver()],
+            [new ResourceIriClassSchemaResolver($accessor, $this->resourceClassResolver, $type), new NativeClassSchemaResolver()],
             [new ApiPropertySchemaProvider($accessor, $request->version)],
             [new ApiPropertySchemaEnricher($accessor, $this->resourceClassResolver, $request->version)],
             [new BuiltinTypeDefinitionProcessor($accessor, $this->nameConverter), new PartialUpdateDefinitionProcessor($policy), new NestedOperationDefinitionProcessor($policy), ...$this->definitionProcessors],
