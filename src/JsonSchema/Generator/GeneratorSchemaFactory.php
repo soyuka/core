@@ -82,13 +82,27 @@ final class GeneratorSchemaFactory implements SchemaFactoryInterface
                 ]);
             }
 
-            foreach ($definition['properties'] ?? [] as $property => $propertySchema) {
-                $definition['properties'][$property] = new \ArrayObject($propertySchema);
+            foreach ($definition['allOf'] ?? [] as $key => $member) {
+                if (isset($member['properties'])) {
+                    $definition['allOf'][$key] = self::toDefinitionObject($member);
+                }
             }
 
-            $definitions[$name] = new \ArrayObject($definition);
+            $definitions[$name] = self::toDefinitionObject($definition);
         }
 
         return $schema;
+    }
+
+    /**
+     * @param array<string, mixed> $definition
+     */
+    private static function toDefinitionObject(array $definition): \ArrayObject
+    {
+        foreach ($definition['properties'] ?? [] as $property => $propertySchema) {
+            $definition['properties'][$property] = new \ArrayObject($propertySchema);
+        }
+
+        return new \ArrayObject($definition);
     }
 }

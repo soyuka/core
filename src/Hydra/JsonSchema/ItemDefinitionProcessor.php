@@ -14,22 +14,26 @@ declare(strict_types=1);
 namespace ApiPlatform\Hydra\JsonSchema;
 
 use ApiPlatform\JsonSchema\Generator\ApiPlatformDefinitionPolicy;
-use ApiPlatform\Metadata\ResourceClassResolverInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Util\ResourceClassInfoTrait;
 use Symfony\Component\JsonSchema\Configuration;
 use Symfony\Component\JsonSchema\DefinitionPolicy\DefinitionParent;
 use Symfony\Component\JsonSchema\DefinitionProcessor\DefinitionProcessorInterface;
 
 final class ItemDefinitionProcessor implements DefinitionProcessorInterface
 {
+    use ResourceClassInfoTrait;
+
     public function __construct(
-        private readonly ResourceClassResolverInterface $resourceClassResolver,
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         private readonly ApiPlatformDefinitionPolicy $definitionPolicy,
     ) {
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
     public function process(array $definition, string $class, Configuration $config, ?DefinitionParent $parent): array
     {
-        if (null === $parent || 'jsonld' !== $config->format || !$this->resourceClassResolver->isResourceClass($class)) {
+        if (null === $parent || 'jsonld' !== $config->format || !$this->isResourceClass($class)) {
             return $definition;
         }
 

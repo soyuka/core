@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Symfony\Tests\Bundle\DependencyInjection;
 
+use ApiPlatform\Hydra\JsonSchema\ItemDefinitionProcessor;
+use ApiPlatform\JsonSchema\Generator\ApiPlatformDefinitionPolicy;
+use ApiPlatform\JsonSchema\Generator\ConfigurationFactory;
+use ApiPlatform\JsonSchema\Generator\GeneratorSchemaFactory;
+use ApiPlatform\JsonSchema\SchemaFactory;
 use ApiPlatform\Metadata\Exception\ExceptionInterface;
 use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use ApiPlatform\Metadata\IdentifiersExtractorInterface;
@@ -33,10 +38,12 @@ use PHPUnit\Framework\TestCase;
 use Symfony\AI\McpBundle\McpBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Bundle\TwigBundle\TwigBundle;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\JsonSchema\DefinitionProcessor\DefinitionProcessorInterface;
 use Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter;
 
 class ApiPlatformExtensionTest extends TestCase
@@ -451,6 +458,50 @@ class ApiPlatformExtensionTest extends TestCase
         $this->assertContainerHasService('api_platform.mcp.state_provider.parameter_validator');
     }
 
+    public function testJsonSchemaGeneratorIsDisabledByDefault(): void
+    {
+        (new ApiPlatformExtension())->load(self::DEFAULT_CONFIG, $this->container);
+
+        $this->assertSame(SchemaFactory::class, $this->container->getDefinition('api_platform.json_schema.schema_factory')->getClass());
+        $this->assertNotContainerHasService('api_platform.json_schema.generator.definition_policy');
+        $this->assertNotContainerHasService('api_platform.json_schema.generator.configuration_factory');
+        $this->assertNotContainerHasService('api_platform.hydra.json_schema.item_definition_processor');
+        $this->assertSame([], $this->container->findTaggedServiceIds('api_platform.json_schema.definition_processor'));
+    }
+
+    public function testJsonSchemaGeneratorReplacesTheBaseSchemaFactory(): void
+    {
+        $config = self::DEFAULT_CONFIG;
+        $config['api_platform']['json_schema']['generator'] = true;
+        (new ApiPlatformExtension())->load($config, $this->container);
+
+        $schemaFactory = $this->container->getDefinition('api_platform.json_schema.schema_factory');
+        $this->assertSame(GeneratorSchemaFactory::class, $schemaFactory->getClass());
+        $this->assertSame(ApiPlatformDefinitionPolicy::class, $this->container->getDefinition('api_platform.json_schema.generator.definition_policy')->getClass());
+        $this->assertTrue($this->container->getDefinition('api_platform.json_schema.generator.definition_policy')->isShared());
+        $this->assertSame(ConfigurationFactory::class, $this->container->getDefinition('api_platform.json_schema.generator.configuration_factory')->getClass());
+
+        $definitionProcessors = $schemaFactory->getArgument(6);
+        $this->assertInstanceOf(TaggedIteratorArgument::class, $definitionProcessors);
+        $this->assertSame('api_platform.json_schema.definition_processor', $definitionProcessors->getTag());
+
+        $this->assertSame(ItemDefinitionProcessor::class, $this->container->getDefinition('api_platform.hydra.json_schema.item_definition_processor')->getClass());
+        $this->assertServiceHasTags('api_platform.hydra.json_schema.item_definition_processor', ['api_platform.json_schema.definition_processor']);
+
+        $this->assertSame('api_platform.json_schema.schema_factory', $this->container->getDefinition('api_platform.hydra.json_schema.schema_factory')->getDecoratedService()[0]);
+        $this->assertSame('api_platform.json_schema.schema_factory', $this->container->getDefinition('api_platform.hal.json_schema.schema_factory')->getDecoratedService()[0]);
+        $this->assertSame('api_platform.json_schema.schema_factory', $this->container->getDefinition('api_platform.json_schema.backward_compatible_schema_factory')->getDecoratedService()[0]);
+    }
+
+    public function testJsonSchemaDefinitionProcessorsAreAutoconfigured(): void
+    {
+        (new ApiPlatformExtension())->load(self::DEFAULT_CONFIG, $this->container);
+
+        $instanceof = $this->container->getAutoconfiguredInstanceof();
+        $this->assertArrayHasKey(DefinitionProcessorInterface::class, $instanceof);
+        $this->assertArrayHasKey('api_platform.json_schema.definition_processor', $instanceof[DefinitionProcessorInterface::class]->getTags());
+    }
+
     public function testItRegistersMetadataConfiguration(): void
     {
         $config = self::DEFAULT_CONFIG;
@@ -535,7 +586,7 @@ class ApiPlatformExtensionTest extends TestCase
 
         $apiPlatformPropertyInfo = $this->container->getDefinition('api_platform.property_info');
         foreach ($apiPlatformPropertyInfo->getArguments() as $arg) {
-            if ($arg instanceof \Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument) {
+            if ($arg instanceof TaggedIteratorArgument) {
                 $this->assertStringStartsWith('api_platform.property_info.', $arg->getTag(), \sprintf('api_platform.property_info must consume only "api_platform.property_info.*" private tags; found "%s".', $arg->getTag()));
             }
         }

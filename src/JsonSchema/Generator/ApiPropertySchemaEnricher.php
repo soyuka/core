@@ -45,7 +45,9 @@ final class ApiPropertySchemaEnricher implements PropertySchemaEnricherInterface
         }
 
         $contextSchema = Schema::VERSION_JSON_SCHEMA === $this->version ? $metadata->getJsonSchemaContext() : $metadata->getOpenapiContext();
-        $schema = [...array_diff_key($property->schema, ['default' => true]), ...array_diff_key($metadata->getSchema() ?? [], array_flip(self::OWNED_KEYWORDS)), ...$this->getDocumentation($metadata)];
+        $metadataSchema = $metadata->getSchema() ?? [];
+        $schema = [...array_diff_key($property->schema, ['default' => true]), ...array_diff_key($metadataSchema, array_flip(self::OWNED_KEYWORDS)), ...$this->getDocumentation($metadata)];
+        $schema = array_replace(array_intersect_key($metadataSchema, $schema), $schema);
 
         if ($contextSchema) {
             if (array_intersect_key($contextSchema, array_flip(self::STRUCTURAL_KEYWORDS))) {

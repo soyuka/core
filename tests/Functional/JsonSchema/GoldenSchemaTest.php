@@ -34,6 +34,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenDes
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenDescribedRelated;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenGroupedItem;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenInputResource;
+use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenIntersectionResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenMultiResourceEntity;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenMultiResourceOwner;
 use ApiPlatform\Tests\Fixtures\TestBundle\ApiResource\JsonSchemaGolden\GoldenNestedResource;
@@ -85,6 +86,7 @@ class GoldenSchemaTest extends ApiTestCase
             GoldenDescribedRelated::class,
             GoldenGroupedItem::class,
             GoldenInputResource::class,
+            GoldenIntersectionResource::class,
             GoldenMultiResourceEntity::class,
             GoldenMultiResourceOwner::class,
             GoldenNestedResource::class,
@@ -110,6 +112,10 @@ class GoldenSchemaTest extends ApiTestCase
     #[DataProvider('provideCases')]
     public function testBuildSchemaMatchesGolden(string $case, string $className, string $format, string $type, ?string $operationName, ?array $serializerContext, string $version, array $configuration): void
     {
+        if ('output_intersection_type' === $case) {
+            $this->markTestSkipped('The old path emits anyOf for intersection types, fixed on 5.0 by fix/json-schema-intersection-allof.');
+        }
+
         $this->assertNotEmpty($configuration);
 
         $operation = null;
@@ -174,7 +180,7 @@ class GoldenSchemaTest extends ApiTestCase
             $propertyMetadataFactory,
             $resourceClassResolver,
             $container->has('api_platform.name_converter') ? $container->get('api_platform.name_converter') : null,
-            [new ItemDefinitionProcessor($resourceClassResolver, $policy)],
+            [new ItemDefinitionProcessor($metadataFactory, $policy)],
         );
         $definitionNameFactory = $container->get('api_platform.json_schema.definition_name_factory');
         $factory = new JsonApiSchemaFactory($factory, $propertyMetadataFactory, $resourceClassResolver, $metadataFactory, $definitionNameFactory, $container->get('api_platform.jsonapi.resource_linkage_resolver'));
@@ -459,6 +465,12 @@ class GoldenSchemaTest extends ApiTestCase
             'dialect' => 'jsonSchema202012',
             'format' => 'json',
             'namePrefix' => 'BuiltinTypeQuirks',
+        ]];
+
+        yield 'output_intersection_type' => ['output_intersection_type', GoldenIntersectionResource::class, 'json', Schema::TYPE_OUTPUT, 'golden_intersection_get', null, Schema::VERSION_JSON_SCHEMA, [
+            'dialect' => 'jsonSchema202012',
+            'format' => 'json',
+            'namePrefix' => 'GoldenIntersection',
         ]];
 
         yield 'nested_described_resource' => ['nested_described_resource', GoldenDescribedOwner::class, 'json', Schema::TYPE_OUTPUT, 'golden_described_owner_get', null, Schema::VERSION_JSON_SCHEMA, [
