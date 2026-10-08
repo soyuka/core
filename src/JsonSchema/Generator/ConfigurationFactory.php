@@ -127,14 +127,13 @@ final class ConfigurationFactory
     }
 
     /**
-     * @return array<mixed>|GroupSequence|\Closure|null
+     * @return array<mixed>|GroupSequence|null
      */
-    private function normalizeValidationGroups(mixed $groups): array|GroupSequence|\Closure|null
+    private function normalizeValidationGroups(mixed $groups): array|GroupSequence|null
     {
         return match (true) {
-            null === $groups => null,
-            $groups instanceof GroupSequence, $groups instanceof \Closure => $groups,
-            \is_array($groups) && \is_callable($groups) => \Closure::fromCallable($groups),
+            null === $groups, $groups instanceof \Closure, \is_array($groups) && \is_callable($groups) => null,
+            $groups instanceof GroupSequence => $groups,
             \is_array($groups) => $groups,
             default => [$groups],
         };
